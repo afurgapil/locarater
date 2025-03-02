@@ -4,6 +4,8 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import locationRoutes from "./routes/location.routes";
 import authRoutes from "./routes/auth.routes";
+import reviewRoutes from "./routes/review.routes";
+import userRoutes from "./routes/user.routes";
 
 dotenv.config();
 
@@ -15,8 +17,11 @@ app.use(express.json());
 // Routes
 app.use("/api/locations", locationRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api", reviewRoutes);
+app.use("/api/users", userRoutes);
 
-const MONGODB_URI = process.env.MONGODB_URI || "";
+const MONGODB_URI =
+  process.env.MONGODB_URI || "mongodb://localhost:27017/locarater";
 
 mongoose
   .connect(MONGODB_URI)
