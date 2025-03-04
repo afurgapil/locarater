@@ -1,15 +1,47 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import { useRouter, useSearchParams } from "next/navigation";
+import { debounce } from "lodash";
 
-export function SearchBar() {
-  const [query, setQuery] = useState("");
+interface SearchBarProps {
+  onSearch?: (query: string) => void;
+}
+
+export function SearchBar({ onSearch }: SearchBarProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [query, setQuery] = useState(searchParams.get("q") || "");
+
+  // Debounce fonksiyonu ile arama işlemini geciktirme
+  const debouncedSearch = useCallback(
+    debounce((searchQuery: string) => {
+      if (onSearch) {
+        onSearch(searchQuery);
+      } else {
+        // Eğer onSearch prop'u verilmemişse, URL'i güncelle
+        const params = new URLSearchParams(searchParams.toString());
+        if (searchQuery) {
+          params.set("q", searchQuery);
+        } else {
+          params.delete("q");
+        }
+        router.push(`/?${params.toString()}`);
+      }
+    }, 500),
+    [onSearch, router, searchParams]
+  );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement search functionality
-    console.log("Search query:", query);
+    debouncedSearch(query);
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newQuery = e.target.value;
+    setQuery(newQuery);
+    debouncedSearch(newQuery);
   };
 
   return (
@@ -18,7 +50,7 @@ export function SearchBar() {
         <input
           type="text"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={handleChange}
           placeholder="Mekan ara..."
           className="w-full rounded-lg border border-gray-300 bg-white dark:bg-gray-700 dark:border-gray-600 py-3 pl-4 pr-10 shadow-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:text-white"
         />

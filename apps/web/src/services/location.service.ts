@@ -194,4 +194,11 @@ export const locationService = {
     });
     return data;
   },
+
+  async searchLocations(query: string): Promise<Location[]> {
+    const { data } = await api.get(
+      `/locations/search?q=${encodeURIComponent(query)}`
+    );
+    return data;
+  },
 };

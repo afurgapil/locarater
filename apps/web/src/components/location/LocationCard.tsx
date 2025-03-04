@@ -4,6 +4,7 @@ import { StarIcon } from "@heroicons/react/24/solid";
 import { MapPinIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import type { Location } from "@/types/location";
+import { getCategoryLabel } from "@/constants/categories";
 
 interface LocationCardProps {
   location: Location;
@@ -39,7 +40,7 @@ export function LocationCard({ location }: LocationCardProps) {
             </span>
           </div>
           <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-            {location.category}
+            {getCategoryLabel(location.category)}
           </span>
         </div>
       </div>

@@ -1,30 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { locationService } from "@/services/location.service";
 import { LocationCard } from "./LocationCard";
 import type { Location } from "@/types/location";
 
-export function LocationList() {
-  const [locations, setLocations] = useState<Location[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+interface LocationListProps {
+  locations: Location[];
+  loading: boolean;
+}
 
-  useEffect(() => {
-    fetchLocations();
-  }, []);
-
-  const fetchLocations = async () => {
-    try {
-      const data = await locationService.getLocations();
-      setLocations(data);
-    } catch (error: any) {
-      setError(error.message || "Mekanlar yüklenirken bir hata oluştu");
-    } finally {
-      setLoading(false);
-    }
-  };
-
+export function LocationList({ locations, loading }: LocationListProps) {
   if (loading) {
     return (
       <div className="animate-pulse">
@@ -40,18 +24,10 @@ export function LocationList() {
     );
   }
 
-  if (error) {
-    return (
-      <div className="text-red-600 dark:text-red-400 text-center py-4">
-        {error}
-      </div>
-    );
-  }
-
   if (locations.length === 0) {
     return (
       <div className="text-center py-4 text-gray-500 dark:text-gray-400">
-        Henüz mekan eklenmemiş
+        Sonuç bulunamadı
       </div>
     );
   }

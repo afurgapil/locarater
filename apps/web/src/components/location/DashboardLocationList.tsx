@@ -5,6 +5,7 @@ import { locationService } from "@/services/location.service";
 import type { Location } from "@/types/location";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { LocationModal } from "./LocationModal";
+import { getCategoryLabel } from "@/constants/categories";
 
 export function DashboardLocationList() {
   const [locations, setLocations] = useState<Location[]>([]);
@@ -108,7 +109,9 @@ export function DashboardLocationList() {
               </div>
             </div>
             <div className="text-sm text-gray-500 dark:text-gray-400">
-              <p>{location.category}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {getCategoryLabel(location.category)}
+              </p>
               <p>
                 {location.address.city}, {location.address.district}
               </p>

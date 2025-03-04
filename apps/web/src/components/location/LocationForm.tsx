@@ -1,34 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import { Formik, Form, Field } from "formik";
-import { MapPinIcon } from "@heroicons/react/24/solid";
 import { locationService } from "@/services/location.service";
-import dynamic from "next/dynamic";
 import type { Location } from "@/types/location";
-
-// Kategori enum'ı
-const CATEGORIES = [
-  { value: "RESTAURANT", label: "Restoran" },
-  { value: "CAFE", label: "Kafe" },
-  { value: "BAR", label: "Bar" },
-  { value: "CLUB", label: "Kulüp" },
-  { value: "PATISSERIE", label: "Pastane" },
-  { value: "FAST_FOOD", label: "Fast Food" },
-  { value: "FINE_DINING", label: "Fine Dining" },
-  { value: "BISTRO", label: "Bistro" },
-  { value: "PUB", label: "Pub" },
-  { value: "FOOD_TRUCK", label: "Food Truck" },
-  { value: "OTHER", label: "Diğer" },
-] as const;
-
-// Harita componentini client-side'da yükle
-const Map = dynamic(() => import("../map/Map"), {
-  ssr: false,
-  loading: () => (
-    <div className="h-[400px] bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse" />
-  ),
-});
+import { CATEGORIES } from "@/constants/categories";
 
 interface LocationFormValues {
   name: string;
@@ -61,7 +36,6 @@ export function LocationForm({ location, onSuccess }: LocationFormProps) {
     try {
       const token = localStorage.getItem("token");
       if (!token) {
-        // Token yoksa kullanıcıyı login sayfasına yönlendir
         window.location.href = "/auth/login";
         return;
       }
@@ -75,7 +49,6 @@ export function LocationForm({ location, onSuccess }: LocationFormProps) {
       onSuccess?.();
     } catch (error: any) {
       console.error("Error saving location:", error);
-      // Kullanıcıya hata mesajı göster
       setErrors({
         submit: error.response?.data?.message || "Bir hata oluştu",
       });
