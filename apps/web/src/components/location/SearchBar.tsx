@@ -14,13 +14,11 @@ export function SearchBar({ onSearch }: SearchBarProps) {
   const searchParams = useSearchParams();
   const [query, setQuery] = useState(searchParams.get("q") || "");
 
-  // Debounce fonksiyonu ile arama işlemini geciktirme
   const debouncedSearch = useCallback(
     debounce((searchQuery: string) => {
       if (onSearch) {
         onSearch(searchQuery);
       } else {
-        // Eğer onSearch prop'u verilmemişse, URL'i güncelle
         const params = new URLSearchParams(searchParams.toString());
         if (searchQuery) {
           params.set("q", searchQuery);

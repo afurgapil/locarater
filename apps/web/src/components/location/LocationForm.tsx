@@ -4,6 +4,7 @@ import { Formik, Form, Field } from "formik";
 import { locationService } from "@/services/location.service";
 import type { Location } from "@/types/location";
 import { CATEGORIES } from "@/constants/categories";
+import { FormikHelpers } from "formik";
 
 interface LocationFormValues {
   name: string;
@@ -11,6 +12,17 @@ interface LocationFormValues {
   address: {
     city: string;
     district: string;
+  };
+  initialReview?: {
+    rating: {
+      overall: number;
+      taste: number;
+      service: number;
+      ambiance: number;
+      pricePerformance: number;
+    };
+    comment: string;
+    visitDate?: Date;
   };
 }
 
@@ -27,11 +39,22 @@ export function LocationForm({ location, onSuccess }: LocationFormProps) {
       city: location?.address?.city || "",
       district: location?.address?.district || "",
     },
+    initialReview: {
+      rating: {
+        overall: 5,
+        taste: 5,
+        service: 5,
+        ambiance: 5,
+        pricePerformance: 5,
+      },
+      comment: "",
+      visitDate: new Date(),
+    },
   };
 
   const handleSubmit = async (
     values: LocationFormValues,
-    { setSubmitting, resetForm, setErrors }: any
+    { setSubmitting, resetForm, setErrors }: FormikHelpers<LocationFormValues>
   ) => {
     try {
       const token = localStorage.getItem("token");
@@ -43,15 +66,25 @@ export function LocationForm({ location, onSuccess }: LocationFormProps) {
       if (location) {
         await locationService.updateLocation(location._id, values);
       } else {
-        await locationService.createLocation(values);
+        const newLocation = await locationService.createLocation(values);
+
+        if (values.initialReview && values.initialReview.comment.trim()) {
+          await locationService.addReview(
+            newLocation._id,
+            values.initialReview
+          );
+        }
       }
+
       resetForm();
       onSuccess?.();
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error saving location:", error);
-      setErrors({
-        submit: error.response?.data?.message || "Bir hata oluştu",
-      });
+      if (error instanceof Error) {
+        setErrors({
+          submit: error.message || "Bir hata oluştu",
+        });
+      }
     } finally {
       setSubmitting(false);
     }
@@ -126,6 +159,80 @@ export function LocationForm({ location, onSuccess }: LocationFormProps) {
                 name="address.district"
                 className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white sm:text-sm"
               />
+            </div>
+          </div>
+
+          <div className="border-t pt-4 mt-4">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+              İlk Değerlendirmenizi Ekleyin
+            </h3>
+
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                {[
+                  "overall",
+                  "taste",
+                  "service",
+                  "ambiance",
+                  "pricePerformance",
+                ].map((field) => (
+                  <div key={field}>
+                    <label
+                      htmlFor={`initialReview.rating.${field}`}
+                      className="block text-sm font-medium text-gray-700 dark:text-gray-200"
+                    >
+                      {field === "overall"
+                        ? "Genel Puan"
+                        : field === "taste"
+                          ? "Lezzet"
+                          : field === "service"
+                            ? "Servis"
+                            : field === "ambiance"
+                              ? "Ambiyans"
+                              : "Fiyat/Performans"}
+                    </label>
+                    <Field
+                      type="number"
+                      min="1"
+                      max="5"
+                      id={`initialReview.rating.${field}`}
+                      name={`initialReview.rating.${field}`}
+                      className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white sm:text-sm"
+                    />
+                  </div>
+                ))}
+              </div>
+
+              <div>
+                <label
+                  htmlFor="initialReview.comment"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-200"
+                >
+                  Yorumunuz
+                </label>
+                <Field
+                  as="textarea"
+                  id="initialReview.comment"
+                  name="initialReview.comment"
+                  rows={4}
+                  className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white sm:text-sm"
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="initialReview.visitDate"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-200"
+                >
+                  Ziyaret Tarihi
+                </label>
+                <Field
+                  type="date"
+                  id="initialReview.visitDate"
+                  name="initialReview.visitDate"
+                  className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white sm:text-sm"
+                />
+              </div>
             </div>
           </div>
 
