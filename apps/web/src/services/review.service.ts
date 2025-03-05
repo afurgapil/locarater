@@ -26,9 +26,15 @@ interface CreateReviewDto {
 }
 
 interface UpdateReviewDto {
-  rating?: number;
-  comment?: string;
-  images?: File[];
+  rating: {
+    overall: number;
+    taste: number;
+    service: number;
+    ambiance: number;
+    pricePerformance: number;
+  };
+  comment: string;
+  visitDate?: Date;
 }
 
 export const reviewService = {
@@ -48,36 +54,29 @@ export const reviewService = {
     return data;
   },
 
-  async updateReview(
-    locationId: string,
-    reviewId: string,
-    reviewData: CreateReviewDto
-  ): Promise<ReviewResponse> {
+  async updateReview(id: string, updateData: UpdateReviewDto): Promise<Review> {
     const { data } = await api.put(
-      `/locations/${locationId}/reviews/${reviewId}`,
-      reviewData
+      API_ENDPOINTS.reviews.update(id),
+      updateData
     );
     return data;
   },
 
-  async deleteReview(locationId: string, reviewId: string): Promise<void> {
-    await api.delete(`/locations/${locationId}/reviews/${reviewId}`);
+  async deleteReview(id: string): Promise<void> {
+    await api.delete(API_ENDPOINTS.reviews.delete(id));
   },
-
-  async likeReview(locationId: string, reviewId: string): Promise<Review> {
-    const { data } = await api.post<Review>(
-      API_ENDPOINTS.locations.likeReview(locationId, reviewId)
-    );
-    return data;
-  },
-
-  async reportReview(
-    locationId: string,
-    reviewId: string,
-    reason: string
-  ): Promise<void> {
-    await api.post(`/locations/${locationId}/reviews/${reviewId}/report`, {
-      reason,
-    });
+  async getUserReviews(): Promise<Review[]> {
+    try {
+      const { data } = await api.post(API_ENDPOINTS.reviews.getByUser);
+      console.log("API Response:", data);
+      return data;
+    } catch (error) {
+      console.error("getUserReviews error:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
+      throw error;
+    }
   },
 };

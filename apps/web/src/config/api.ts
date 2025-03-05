@@ -14,6 +14,7 @@ export const API_ENDPOINTS = {
   locations: {
     getAll: `${API_BASE_URL}/locations`,
     getById: (id: string) => `${API_BASE_URL}/locations/${id}`,
+    getByUser: `${API_BASE_URL}/locations/user`,
     create: `${API_BASE_URL}/locations`,
     update: (id: string) => `${API_BASE_URL}/locations/${id}`,
     delete: (id: string) => `${API_BASE_URL}/locations/${id}`,
@@ -33,6 +34,18 @@ export const API_ENDPOINTS = {
     getById: (id: string) => `${API_BASE_URL}/users/${id}`,
     update: (id: string) => `${API_BASE_URL}/users/${id}`,
     delete: (id: string) => `${API_BASE_URL}/users/${id}`,
+  },
+  statistics: {
+    dashboard: `${API_BASE_URL}/statistics/dashboard`,
+    user: `${API_BASE_URL}/statistics/user`,
+  },
+  reviews: {
+    getAll: `${API_BASE_URL}/reviews`,
+    getById: (id: string) => `${API_BASE_URL}/reviews/${id}`,
+    create: `${API_BASE_URL}/reviews`,
+    update: (id: string) => `${API_BASE_URL}/reviews/${id}`,
+    delete: (id: string) => `${API_BASE_URL}/reviews/${id}`,
+    getByUser: `${API_BASE_URL}/reviews/user`,
   },
 };
 

@@ -1,4 +1,5 @@
 import axios from "axios";
+import { useAuthStore } from "@/store/useAuthStore";
 
 export const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api",
@@ -15,22 +16,39 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    console.log("Request Config:", {
+      url: config.url,
+      headers: config.headers,
+      method: config.method,
+    });
     return config;
   },
   (error) => {
+    console.error("Request Error:", error);
     return Promise.reject(error);
   }
 );
 
 // Response interceptor - 401 hatalarını yakala
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log("Response:", {
+      status: response.status,
+      data: response.data,
+    });
+    return response;
+  },
   async (error) => {
-    if (error.response?.status === 401) {
-      // Token'ı temizle
-      localStorage.removeItem("token");
+    console.error("API Error:", {
+      status: error.response?.status,
+      data: error.response?.data,
+      config: error.config,
+    });
 
-      // Eğer login sayfasında değilsek, login sayfasına yönlendir
+    if (error.response?.status === 401) {
+      const authStore = useAuthStore.getState();
+      authStore.logout(); // Store'dan logout fonksiyonunu çağır
+
       if (
         typeof window !== "undefined" &&
         !window.location.pathname.includes("/auth/login")

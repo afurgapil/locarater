@@ -1,9 +1,34 @@
 import { Request, Response } from "express";
 import { Location } from "../models/location.model";
+import { Types } from "mongoose";
+
+interface Rating {
+  overall: number;
+  taste?: number;
+  service?: number;
+  ambiance?: number;
+  pricePerformance?: number;
+}
+
+interface Review {
+  _id: Types.ObjectId;
+  user:
+    | Types.ObjectId
+    | {
+        _id: Types.ObjectId;
+        username: string;
+        name: string;
+      };
+  rating: Rating;
+  comment?: string;
+  visitDate?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 interface AuthenticatedRequest extends Request {
   user?: {
-    id: string;
+    _id: string;
     username: string;
     role: string;
   };
@@ -16,17 +41,15 @@ export const addReview = async (
   try {
     const locationId = req.params.locationId;
     const reviewData = req.body;
-    reviewData.user = req.user?.id;
-
+    reviewData.user = req.user?._id;
     const location = await Location.findById(locationId);
     if (!location) {
       res.status(404).json({ message: "Mekan bulunamadı" });
       return;
     }
 
-    // Check if user has already reviewed
     const existingReview = location.reviews.find(
-      (review) => review.user.toString() === req.user?.id
+      (review) => review.user.toString() === req.user?._id
     );
 
     if (existingReview) {
@@ -87,14 +110,17 @@ export const updateReview = async (
       return;
     }
 
-    const review = location.reviews.id(reviewId);
+    const review = (location.reviews as any).id(reviewId) as Review;
     if (!review) {
       res.status(404).json({ message: "Değerlendirme bulunamadı" });
       return;
     }
 
     // Check if the user owns the review or is admin
-    if (review.user.toString() !== req.user?.id && req.user?.role !== "ADMIN") {
+    if (
+      review.user.toString() !== req.user?._id &&
+      req.user?.role !== "ADMIN"
+    ) {
       res.status(403).json({ message: "Bu işlem için yetkiniz yok" });
       return;
     }
@@ -127,12 +153,10 @@ export const updateReview = async (
     });
   } catch (error: any) {
     console.error("Review güncellenirken hata:", error);
-    res
-      .status(500)
-      .json({
-        message: "Review güncellenirken hata oluştu",
-        error: error.message,
-      });
+    res.status(500).json({
+      message: "Review güncellenirken hata oluştu",
+      error: error.message,
+    });
   }
 };
 
@@ -149,14 +173,17 @@ export const deleteReview = async (
       return;
     }
 
-    const review = location.reviews.id(reviewId);
+    const review = (location.reviews as any).id(reviewId) as Review;
     if (!review) {
       res.status(404).json({ message: "Değerlendirme bulunamadı" });
       return;
     }
 
     // Check if the user owns the review or is admin
-    if (review.user.toString() !== req.user?.id && req.user?.role !== "ADMIN") {
+    if (
+      review.user.toString() !== req.user?._id &&
+      req.user?.role !== "ADMIN"
+    ) {
       res.status(403).json({ message: "Bu işlem için yetkiniz yok" });
       return;
     }
@@ -198,45 +225,65 @@ export const getReviews = async (
     });
   } catch (error: any) {
     console.error("Reviewlar getirilirken hata:", error);
-    res
-      .status(500)
-      .json({
-        message: "Reviewlar getirilirken hata oluştu",
-        error: error.message,
-      });
+    res.status(500).json({
+      message: "Reviewlar getirilirken hata oluştu",
+      error: error.message,
+    });
   }
 };
 
 export const getReviewsByUser = async (
-  req: Request,
+  req: AuthenticatedRequest,
   res: Response
 ): Promise<void> => {
   try {
-    const { userId } = req.params;
-    const locations = await Location.find({ "reviews.user": userId }).populate(
-      "reviews.user",
-      "username name"
-    );
+    const userId = req.user?._id;
 
-    const userReviews = locations.flatMap((location) => {
-      return location.reviews
-        .filter((review) => review.user.toString() === userId)
-        .map((review) => ({
-          locationId: location._id,
+    if (!userId) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
+
+    const locations = await Location.find({
+      "reviews.user": userId,
+    })
+      .select("name reviews")
+      .populate("reviews.user", "username name");
+
+    const userReviews = locations.flatMap((location) =>
+      location.reviews
+        .filter((review: Review) => {
+          const reviewUserId = (review.user as any)._id
+            ? (review.user as any)._id.toString()
+            : review.user.toString();
+          const isMatch = reviewUserId === userId.toString();
+
+          return isMatch;
+        })
+        .map((review: Review) => ({
+          _id: review._id.toString(),
+          locationId: location._id.toString(),
           locationName: location.name,
-          review,
-        }));
-    });
+          rating: review.rating,
+          comment: review.comment,
+          visitDate: review.visitDate,
+          createdAt: review.createdAt,
+          updatedAt: review.updatedAt,
+          user: {
+            _id: (review.user as any)._id.toString(),
+            username: (review.user as any).username,
+            name: (review.user as any).name,
+          },
+        }))
+    );
 
     res.json(userReviews);
   } catch (error: any) {
-    console.error("Kullanıcı reviewları getirilirken hata:", error);
-    res
-      .status(500)
-      .json({
-        message: "Kullanıcı reviewları getirilirken hata oluştu",
-        error: error.message,
-      });
+    console.error("Kullanıcı değerlendirmeleri getirilirken hata:", error);
+    res.status(500).json({
+      message: "Kullanıcı değerlendirmeleri getirilirken hata oluştu",
+      error: error.message,
+    });
   }
 };
 
@@ -254,7 +301,7 @@ export const reportReview = async (
       return;
     }
 
-    const review = location.reviews.id(reviewId);
+    const review = (location.reviews as any).id(reviewId) as Review;
     if (!review) {
       res.status(404).json({ message: "Değerlendirme bulunamadı" });
       return;
@@ -272,11 +319,9 @@ export const reportReview = async (
     });
   } catch (error: any) {
     console.error("Review raporlanırken hata:", error);
-    res
-      .status(500)
-      .json({
-        message: "Review raporlanırken hata oluştu",
-        error: error.message,
-      });
+    res.status(500).json({
+      message: "Review raporlanırken hata oluştu",
+      error: error.message,
+    });
   }
 };

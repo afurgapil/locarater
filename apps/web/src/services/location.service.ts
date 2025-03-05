@@ -112,7 +112,7 @@ export const locationService = {
   },
 
   async deleteLocation(id: string): Promise<void> {
-    await api.delete(API_ENDPOINTS.locations.delete(id));
+    await api.delete(`${API_ENDPOINTS.locations}/${id}`);
   },
 
   async getReviews(id: string) {
@@ -195,10 +195,8 @@ export const locationService = {
     return data;
   },
 
-  async searchLocations(query: string): Promise<Location[]> {
-    const { data } = await api.get(
-      `/locations/search?q=${encodeURIComponent(query)}`
-    );
+  async getUserLocations(): Promise<Location[]> {
+    const { data } = await api.get(API_ENDPOINTS.locations.getByUser);
     return data;
   },
 };

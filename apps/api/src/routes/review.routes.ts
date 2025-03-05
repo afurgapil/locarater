@@ -13,7 +13,9 @@ const router = Router();
 
 // Public routes
 router.get("/locations/:locationId/reviews", getReviews);
-router.get("/users/:userId/reviews", getReviewsByUser);
+
+// Protected User Reviews route
+router.post("/reviews/user", authenticateToken, getReviewsByUser);
 
 // Protected routes
 router.post("/locations/:locationId/reviews", authenticateToken, addReview);

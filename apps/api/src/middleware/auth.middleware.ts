@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import { User } from "../models/user.model";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 
@@ -10,10 +9,16 @@ interface JwtPayload {
   role: string;
 }
 
+interface AuthUser {
+  _id: string;
+  username: string;
+  role: string;
+}
+
 declare global {
   namespace Express {
     interface Request {
-      user?: JwtPayload;
+      user?: AuthUser;
     }
   }
 }
@@ -33,7 +38,13 @@ export const authenticateToken = async (
     }
 
     const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
-    req.user = decoded;
+
+    req.user = {
+      _id: decoded.id,
+      username: decoded.username,
+      role: decoded.role,
+    };
+    console.log("req.user", req.user);
 
     next();
   } catch (error) {

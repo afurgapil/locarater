@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 
 interface AuthenticatedRequest extends Request {
   user?: {
-    id: string;
+    _id: string;
     username: string;
     role: string;
   };
@@ -15,7 +15,7 @@ export const getUserProfile = async (
   res: Response
 ): Promise<void> => {
   try {
-    const userId = req.params.userId || req.user?.id;
+    const userId = req.params.userId || req.user?._id;
     const user = await User.findById(userId).select("-password");
 
     if (!user) {
@@ -25,12 +25,10 @@ export const getUserProfile = async (
 
     res.json(user);
   } catch (error: any) {
-    res
-      .status(500)
-      .json({
-        message: "Kullanıcı bilgileri getirilirken hata oluştu",
-        error: error.message,
-      });
+    res.status(500).json({
+      message: "Kullanıcı bilgileri getirilirken hata oluştu",
+      error: error.message,
+    });
   }
 };
 
@@ -39,7 +37,7 @@ export const updateUserProfile = async (
   res: Response
 ): Promise<void> => {
   try {
-    const userId = req.user?.id;
+    const userId = req.user?._id;
     const updateData = req.body;
 
     // Remove sensitive fields from update data
@@ -62,12 +60,10 @@ export const updateUserProfile = async (
       user,
     });
   } catch (error: any) {
-    res
-      .status(500)
-      .json({
-        message: "Profil güncellenirken hata oluştu",
-        error: error.message,
-      });
+    res.status(500).json({
+      message: "Profil güncellenirken hata oluştu",
+      error: error.message,
+    });
   }
 };
 
@@ -77,7 +73,7 @@ export const changePassword = async (
 ): Promise<void> => {
   try {
     const { currentPassword, newPassword } = req.body;
-    const userId = req.user?.id;
+    const userId = req.user?._id;
 
     const user = await User.findById(userId);
     if (!user) {
@@ -103,12 +99,10 @@ export const changePassword = async (
 
     res.json({ message: "Şifre başarıyla güncellendi" });
   } catch (error: any) {
-    res
-      .status(500)
-      .json({
-        message: "Şifre güncellenirken hata oluştu",
-        error: error.message,
-      });
+    res.status(500).json({
+      message: "Şifre güncellenirken hata oluştu",
+      error: error.message,
+    });
   }
 };
 
@@ -117,7 +111,7 @@ export const deleteAccount = async (
   res: Response
 ): Promise<void> => {
   try {
-    const userId = req.user?.id;
+    const userId = req.user?._id;
     const { password } = req.body;
 
     const user = await User.findById(userId);
@@ -179,12 +173,10 @@ export const forgotPassword = async (
       },
     });
   } catch (error: any) {
-    res
-      .status(500)
-      .json({
-        message: "Şifre sıfırlama işlemi başlatılırken hata oluştu",
-        error: error.message,
-      });
+    res.status(500).json({
+      message: "Şifre sıfırlama işlemi başlatılırken hata oluştu",
+      error: error.message,
+    });
   }
 };
 
@@ -197,11 +189,9 @@ export const resetPassword = async (
 
     const user = await User.findById(userId);
     if (!user || !user.resetPasswordToken || !user.resetPasswordExpires) {
-      res
-        .status(400)
-        .json({
-          message: "Geçersiz veya süresi dolmuş şifre sıfırlama talebi",
-        });
+      res.status(400).json({
+        message: "Geçersiz veya süresi dolmuş şifre sıfırlama talebi",
+      });
       return;
     }
 
@@ -235,11 +225,9 @@ export const resetPassword = async (
 
     res.json({ message: "Şifre başarıyla sıfırlandı" });
   } catch (error: any) {
-    res
-      .status(500)
-      .json({
-        message: "Şifre sıfırlanırken hata oluştu",
-        error: error.message,
-      });
+    res.status(500).json({
+      message: "Şifre sıfırlanırken hata oluştu",
+      error: error.message,
+    });
   }
 };

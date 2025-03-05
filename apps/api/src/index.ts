@@ -6,7 +6,7 @@ import locationRoutes from "./routes/location.routes";
 import authRoutes from "./routes/auth.routes";
 import reviewRoutes from "./routes/review.routes";
 import userRoutes from "./routes/user.routes";
-
+import statisticsRoutes from "./routes/statistics.routes";
 dotenv.config();
 
 const app = express();
@@ -26,7 +26,7 @@ app.use("/api/locations", locationRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api", reviewRoutes);
 app.use("/api/users", userRoutes);
-
+app.use("/api/statistics", statisticsRoutes);
 const MONGODB_URI =
   process.env.MONGODB_URI || "mongodb://localhost:27017/locarater";
 

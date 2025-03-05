@@ -7,6 +7,7 @@ import {
   deleteLocation,
   addReview,
   getReviews,
+  getLocationByUser,
 } from "../controllers/location.controller";
 import { authenticateToken, checkRole } from "../middleware/auth.middleware";
 
@@ -14,6 +15,9 @@ const router = Router();
 
 // Public routes
 router.get("/", getLocations);
+// Specific routes should come before dynamic routes
+router.get("/user", authenticateToken, getLocationByUser);
+// Dynamic routes
 router.get("/:id", getLocationById);
 router.get("/:id/reviews", getReviews);
 

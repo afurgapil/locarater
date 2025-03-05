@@ -5,7 +5,7 @@ import { RequestHandler } from "express";
 
 interface AuthenticatedRequest extends Request {
   user?: {
-    id: string;
+    _id: string;
     username: string;
     role: string;
   };
@@ -33,7 +33,7 @@ export const createLocation = async (
 ): Promise<void> => {
   try {
     const locationData = req.body;
-    locationData.createdBy = req.user?.id;
+    locationData.createdBy = req.user?._id;
 
     // Koordinatları otomatik olarak al
     const geocodeResult = await getCoordinates(
@@ -61,6 +61,19 @@ export const getLocations = async (
     const locations = await Location.find()
       .populate("createdBy", "username name")
       .populate("reviews.user", "username name");
+    res.json(locations);
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getLocationByUser = async (
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> => {
+  try {
+    const userId = req.user?._id;
+    const locations = await Location.find({ createdBy: userId });
     res.json(locations);
   } catch (error: any) {
     res.status(500).json({ message: error.message });
@@ -100,7 +113,7 @@ export const updateLocation = async (
     }
 
     if (
-      location.createdBy.toString() !== req.user?.id &&
+      location.createdBy.toString() !== req.user?._id &&
       req.user?.role !== "ADMIN"
     ) {
       res.status(403).json({ message: "Bu işlem için yetkiniz yok" });
@@ -150,7 +163,7 @@ export const deleteLocation = async (
 
     // Only ADMIN or the creator can delete
     if (
-      location.createdBy.toString() !== req.user?.id &&
+      location.createdBy.toString() !== req.user?._id &&
       req.user?.role !== "ADMIN"
     ) {
       res.status(403).json({ message: "Bu işlem için yetkiniz yok" });
@@ -171,7 +184,7 @@ export const addReview = async (
   try {
     const locationId = req.params.id;
     const reviewData = req.body;
-    reviewData.user = req.user?.id;
+    reviewData.user = req.user?._id;
 
     const location = await Location.findById(locationId);
     if (!location) {
@@ -181,7 +194,7 @@ export const addReview = async (
 
     // Check if user has already reviewed
     const existingReview = location.reviews.find(
-      (review) => review.user.toString() === req.user?.id
+      (review) => review.user.toString() === req.user?._id
     );
 
     if (existingReview) {

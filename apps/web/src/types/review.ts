@@ -1,5 +1,3 @@
-import type { User } from "./auth";
-
 export interface Review {
   _id: string;
   user: {
