@@ -2,14 +2,14 @@
   "name": "@locarater/api",
   "version": "1.0.0",
   "description": "Locarater API - Location Rating Application",
-  "main": "dist/index.ts",
+  "main": "dist/index.js",
   "engines": {
     "node": "14.x"
   },
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "build": "tsc",
-    "start": "node dist/index.ts"
+    "start": "node dist/index.js"
   },
   "keywords": [],
   "author": "",
