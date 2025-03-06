@@ -29,6 +29,7 @@ export default function LocationDetailPage() {
     try {
       setLoading(true);
       const data = await locationService.getLocationById(locationId);
+      console.log("DATA", data);
       setLocation(data);
     } catch (error) {
       const errorMessage =
@@ -109,6 +110,14 @@ export default function LocationDetailPage() {
       : "0.0",
   };
 
+  console.log("Location data:", {
+    reviewCount: location.reviewCount,
+    averageRating: location.averageRating,
+    rating: location.rating,
+    ratings: location.ratings,
+    reviews: location.reviews,
+  });
+
   if (!location.rating && location.reviews && location.reviews.length > 0) {
     const reviewsWithRatings = location.reviews.filter(
       (review) => review.rating
@@ -138,6 +147,8 @@ export default function LocationDetailPage() {
       ratings.service = (serviceSum / count).toFixed(1);
       ratings.ambiance = (ambianceSum / count).toFixed(1);
       ratings.pricePerformance = (pricePerformanceSum / count).toFixed(1);
+
+      console.log("Calculated ratings from reviews:", ratings);
     }
   }
 
@@ -265,22 +276,23 @@ export default function LocationDetailPage() {
               <div className="flex items-center mr-2">
                 <StarIcon className="h-8 w-8 text-yellow-400" />
                 <span className="text-3xl font-bold ml-2 text-gray-900 dark:text-white">
-                  {location.averageRating
-                    ? Number(location.averageRating).toFixed(1)
-                    : location.reviews &&
-                        location.reviews.length > 0 &&
-                        location.reviews[0].rating?.overall
-                      ? Number(location.reviews[0].rating.overall).toFixed(1)
-                      : "0.0"}
+                  {location.ratings?.average?.toFixed(1) ||
+                    location.averageRating?.toFixed(1) ||
+                    "0.0"}
                 </span>
               </div>
               <span className="text-sm text-gray-500 dark:text-gray-400">
-                ({location.reviewCount || location.reviews?.length || 0}{" "}
+                (
+                {location.ratings?.count ||
+                  location.reviewCount ||
+                  location.reviews?.length ||
+                  0}{" "}
                 değerlendirme)
               </span>
             </div>
 
-            {location.reviewCount > 0 ||
+            {(location.ratings && location.ratings.count > 0) ||
+            location.reviewCount > 0 ||
             (location.reviews && location.reviews.length > 0) ? (
               <div className="space-y-2">
                 <div className="flex items-center">

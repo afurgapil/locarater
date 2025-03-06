@@ -54,9 +54,23 @@ export function LoginForm() {
       });
       setToken(response.token);
       router.push("/dashboard");
-    } catch (error) {
-      setStatus("Giriş yapılırken bir hata oluştu");
+    } catch (error: unknown) {
       console.error("Login error:", error);
+
+      // Backend'den gelen hata mesajlarını işle
+      const errorResponse = error as {
+        response?: { data?: { message?: string } };
+      };
+      const errorMessage =
+        errorResponse.response?.data?.message ||
+        "Giriş yapılırken bir hata oluştu";
+
+      // Spesifik hata mesajlarını ilgili alanlara bağla
+      if (errorMessage.includes("Kullanıcı adı veya şifre hatalı")) {
+        setStatus("Kullanıcı adı veya şifre hatalı");
+      } else {
+        setStatus(errorMessage);
+      }
     } finally {
       setSubmitting(false);
     }

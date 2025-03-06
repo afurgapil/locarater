@@ -64,9 +64,11 @@ export function RegisterForm() {
     {
       setSubmitting,
       setStatus,
+      setFieldError,
     }: {
       setSubmitting: (isSubmitting: boolean) => void;
       setStatus: (status: string) => void;
+      setFieldError: (field: string, message: string) => void;
     }
   ) => {
     try {
@@ -79,9 +81,27 @@ export function RegisterForm() {
       });
       setToken(response.token);
       router.push("/dashboard");
-    } catch (error) {
-      setStatus("Kayıt olurken bir hata oluştu");
+    } catch (error: unknown) {
       console.error("Register error:", error);
+
+      // Backend'den gelen hata mesajlarını işle
+      const errorResponse = error as {
+        response?: { data?: { message?: string } };
+      };
+      const errorMessage =
+        errorResponse.response?.data?.message ||
+        "Kayıt olurken bir hata oluştu";
+
+      // Spesifik hata mesajlarını ilgili alanlara bağla
+      if (errorMessage.includes("email adresi zaten kullanımda")) {
+        setFieldError("email", "Bu email adresi zaten kullanımda");
+        setStatus("Lütfen farklı bir email adresi kullanın");
+      } else if (errorMessage.includes("kullanıcı adı zaten kullanımda")) {
+        setFieldError("username", "Bu kullanıcı adı zaten kullanımda");
+        setStatus("Lütfen farklı bir kullanıcı adı kullanın");
+      } else {
+        setStatus(errorMessage);
+      }
     } finally {
       setSubmitting(false);
     }

@@ -16,6 +16,22 @@ export interface Location {
     ambiance: number;
     pricePerformance: number;
   };
+  ratings?: {
+    average: number;
+    count: number;
+    distribution: {
+      10: number;
+      9: number;
+      8: number;
+      7: number;
+      6: number;
+      5: number;
+      4: number;
+      3: number;
+      2: number;
+      1: number;
+    };
+  };
   reviews: Review[];
   reviewCount: number;
   averageRating: number;
@@ -27,6 +43,7 @@ export interface Location {
   images: string[];
   createdAt: string;
   updatedAt: string;
+  id?: string;
 }
 
 export interface Review {
