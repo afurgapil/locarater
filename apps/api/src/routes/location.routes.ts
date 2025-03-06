@@ -10,10 +10,12 @@ import {
 import { authenticateToken, checkRole } from "../middleware/auth.middleware";
 
 const router = Router();
-
+// Public routes
 router.get("/", getLocations);
 router.get("/user", authenticateToken, getLocationByUser);
 router.get("/:id", getLocationById);
+
+// Protected routes
 router.post("/", authenticateToken, createLocation);
 router.put("/:id", authenticateToken, updateLocation);
 router.delete(

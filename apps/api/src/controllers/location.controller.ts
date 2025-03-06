@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 import { Location } from "../models/location.model";
-import { getCoordinates } from "../services/geocoding.service";
 import { RequestHandler } from "express";
 
 interface AuthenticatedRequest extends Request {
@@ -15,10 +14,6 @@ interface LocationRequest extends Request {
   body: {
     name: string;
     category: string;
-    location: {
-      type: "Point";
-      coordinates: [number, number];
-    };
     rating?: number;
     address: {
       city: string;
@@ -107,17 +102,6 @@ export const updateLocation = async (
     ) {
       res.status(403).json({ message: "Bu işlem için yetkiniz yok" });
       return;
-    }
-
-    if (locationData.address?.city && locationData.address?.district) {
-      const geocodeResult = await getCoordinates(
-        locationData.address.city,
-        locationData.address.district
-      );
-
-      if (geocodeResult.coordinates) {
-        locationData.address.coordinates = geocodeResult.coordinates;
-      }
     }
 
     const updatedLocation = await Location.findByIdAndUpdate(

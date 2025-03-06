@@ -1,12 +1,13 @@
-import express from "express";
+import { Router } from "express";
 import {
   getDashboardStats,
   getUserStats,
 } from "../controllers/statistics.controller";
+import { authenticateToken } from "../middleware/auth.middleware";
+const router = Router();
 
-const router = express.Router();
-
-router.get("/dashboard", getDashboardStats);
-router.get("/user", getUserStats);
+// Protected routes
+router.get("/dashboard", authenticateToken, getDashboardStats);
+router.get("/user", authenticateToken, getUserStats);
 
 export default router;

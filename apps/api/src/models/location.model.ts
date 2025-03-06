@@ -11,11 +11,6 @@ const AddressSchema = new mongoose.Schema({
     required: true,
     trim: true,
   },
-  coordinates: {
-    type: [Number],
-    required: false,
-    default: null,
-  },
 });
 
 const PriceRangeSchema = new mongoose.Schema({
@@ -211,7 +206,6 @@ export interface ILocation extends Document {
   address: {
     city: string;
     district: string;
-    coordinates: number[];
   };
   priceRange?: {
     currency: string;

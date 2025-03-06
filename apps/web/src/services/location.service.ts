@@ -10,10 +10,6 @@ interface CreateLocationDto {
     city: string;
     district: string;
   };
-  location?: {
-    type: "Point";
-    coordinates: [number, number];
-  };
   images?: File[];
 }
 
@@ -26,10 +22,6 @@ interface UpdateLocationDto {
   };
   images?: File[];
   description?: string;
-  location?: {
-    type: "Point";
-    coordinates: [number, number];
-  };
 }
 
 interface LocationSearchParams {
@@ -77,10 +69,6 @@ export const locationService = {
     const locationData = {
       ...data,
       images: imageUrls,
-      location: data.location || {
-        type: "Point",
-        coordinates: [0, 0],
-      },
     };
 
     const response = await api.post(

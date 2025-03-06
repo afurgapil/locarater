@@ -2,7 +2,10 @@ import { Request, Response } from "express";
 import { Location } from "../models/location.model";
 import { AuthRequest } from "../types/auth";
 
-export const getDashboardStats = async (req: AuthRequest, res: Response) => {
+export const getDashboardStats = async (
+  req: AuthRequest,
+  res: Response
+): Promise<Response> => {
   try {
     const userId = req.user?._id;
 
@@ -176,7 +179,10 @@ export const getDashboardStats = async (req: AuthRequest, res: Response) => {
   }
 };
 
-export const getUserStats = async (req: AuthRequest, res: Response) => {
+export const getUserStats = async (
+  req: AuthRequest,
+  res: Response
+): Promise<Response> => {
   try {
     const userId = req.user?._id;
 

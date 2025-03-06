@@ -2,14 +2,9 @@ export interface Location {
   _id: string;
   name: string;
   category: string;
-  location: {
-    type: "Point";
-    coordinates: [number, number];
-  };
   address: {
     city: string;
     district: string;
-    coordinates?: [number, number];
   };
   rating?: number;
   reviews: Review[];
