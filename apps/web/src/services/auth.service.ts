@@ -9,6 +9,7 @@ export interface User {
   isVerified: boolean;
   createdAt: string;
   updatedAt: string;
+  role?: string;
 }
 
 export interface AuthResponse {
@@ -50,6 +51,11 @@ export interface UpdateProfileCredentials {
   avatar?: File;
 }
 
+export interface UpdateRoleCredentials {
+  identifier: string;
+  role: "USER" | "ADMIN" | "BUSINESS_OWNER";
+}
+
 export const authService = {
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     const { data } = await api.post<AuthResponse>(
@@ -72,5 +78,15 @@ export const authService = {
 
   async logout(): Promise<void> {
     await api.post(API_ENDPOINTS.auth.logout);
+  },
+
+  async updateUserRole(
+    credentials: UpdateRoleCredentials
+  ): Promise<{ message: string; user: User }> {
+    const { data } = await api.post(
+      API_ENDPOINTS.users.updateRole,
+      credentials
+    );
+    return data;
   },
 };

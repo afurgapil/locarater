@@ -4,19 +4,21 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ProfileForm } from "@/components/profile/ProfileForm";
 import { PasswordForm } from "@/components/profile/PasswordForm";
-import { PasswordResetForm } from "@/components/profile/PasswordResetForm";
 import { DeleteAccountDialog } from "@/components/profile/DeleteAccountDialog";
 import { UserStats } from "@/components/profile/UserStats";
 import { profileService } from "@/services/profile.service";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useToast } from "@/hooks/useToast";
+import UserRoleManagement from "../../../components/profile/UserRoleManagement";
 
 export default function ProfilePage() {
   const router = useRouter();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const logout = useAuthStore((state) => state.logout);
+  const user = useAuthStore((state) => state.user);
   const { showToast } = useToast();
 
+  const isAdmin = user?.role === "ADMIN";
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
@@ -42,13 +44,6 @@ export default function ProfilePage() {
 
           <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
             <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
-              Şifre Sıfırlama
-            </h2>
-            <PasswordResetForm />
-          </div>
-
-          <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-            <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
               Hesap Yönetimi
             </h2>
             <button
@@ -60,12 +55,24 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Sağ Kolon - İstatistikler */}
-        <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-          <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
-            Aktivite Özeti
-          </h2>
-          <UserStats />
+        {/* Sağ Kolon - İstatistikler ve Admin Paneli */}
+        <div className="space-y-6">
+          <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+            <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+              Aktivite Özeti
+            </h2>
+            <UserStats />
+          </div>
+
+          {/* Admin için Kullanıcı Rol Yönetimi */}
+          {isAdmin && (
+            <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+              <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                Yönetici Paneli
+              </h2>
+              <UserRoleManagement />
+            </div>
+          )}
         </div>
       </div>
 

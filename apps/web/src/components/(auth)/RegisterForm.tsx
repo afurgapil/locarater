@@ -75,7 +75,7 @@ export function RegisterForm() {
       setUser({
         _id: response.user._id,
         username: values.username,
-        role: "user",
+        role: response.user.role || "USER",
       });
       setToken(response.token);
       router.push("/dashboard");

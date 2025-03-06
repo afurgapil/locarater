@@ -28,6 +28,7 @@ export const API_ENDPOINTS = {
     delete: `${API_BASE_URL}/users/account`,
     update: `${API_BASE_URL}/users/profile`,
     changePassword: `${API_BASE_URL}/users/change-password`,
+    updateRole: `${API_BASE_URL}/users/update-role`,
   },
   statistics: {
     dashboard: `${API_BASE_URL}/statistics/dashboard`,

@@ -50,7 +50,7 @@ export function LoginForm() {
       setUser({
         _id: response.user._id,
         username: response.user.name || values.username,
-        role: "user",
+        role: response.user.role || "USER",
       });
       setToken(response.token);
       router.push("/dashboard");

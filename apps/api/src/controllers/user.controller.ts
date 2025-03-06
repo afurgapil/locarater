@@ -262,3 +262,54 @@ export const forgotPassword = async (
     });
   }
 };
+
+export const updateUserRole = async (
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> => {
+  try {
+    const { identifier, role } = req.body;
+
+    if (!identifier || !role) {
+      res.status(400).json({ message: "Kullanıcı bilgisi ve rol gereklidir" });
+      return;
+    }
+
+    const validRoles = ["USER", "ADMIN", "BUSINESS_OWNER"];
+    if (!validRoles.includes(role)) {
+      res.status(400).json({ message: "Geçersiz rol değeri" });
+      return;
+    }
+
+    const query = identifier.includes("@")
+      ? { email: identifier }
+      : { username: identifier };
+
+    const user = await User.findOne(query);
+
+    if (!user) {
+      res.status(404).json({ message: "Kullanıcı bulunamadı" });
+      return;
+    }
+
+    user.role = role;
+    user.updatedAt = new Date();
+    await user.save();
+
+    res.json({
+      message: "Kullanıcı rolü başarıyla güncellendi",
+      user: {
+        _id: user._id,
+        username: user.username,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+      },
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      message: "Kullanıcı rolü güncellenirken hata oluştu",
+      error: error.message,
+    });
+  }
+};
