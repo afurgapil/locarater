@@ -1,25 +1,40 @@
 import { formatDistanceToNow } from "date-fns";
 import { tr } from "date-fns/locale";
 
-interface Activity {
+interface BaseActivity {
   _id: string;
-  locationName: string;
-  rating?: number;
-  comment?: string;
   createdAt: string;
+}
+
+interface LocationActivity extends BaseActivity {
+  name: string;
+  type: "location";
+}
+
+interface ReviewActivity extends BaseActivity {
+  locationName: string;
+  rating: number;
+  comment: string;
+  type: "review";
 }
 
 interface DashboardActivityListProps {
   activities: {
-    locations: Activity[];
-    reviews: Activity[];
+    locations: Array<Omit<LocationActivity, "type">>;
+    reviews: Array<Omit<ReviewActivity, "type">>;
   };
 }
 
 export function DashboardActivityList({
   activities,
 }: DashboardActivityListProps) {
-  const sortedActivities = [...activities.locations, ...activities.reviews]
+  const sortedActivities = [
+    ...activities.locations.map((loc) => ({
+      ...loc,
+      type: "location" as const,
+    })),
+    ...activities.reviews.map((rev) => ({ ...rev, type: "review" as const })),
+  ]
     .sort(
       (a, b) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
@@ -41,17 +56,17 @@ export function DashboardActivityList({
               <div className="relative flex space-x-3">
                 <div>
                   <span className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center">
-                    {"rating" in activity ? "⭐" : "📍"}
+                    {activity.type === "review" ? "⭐" : "📍"}
                   </span>
                 </div>
                 <div className="flex min-w-0 flex-1 justify-between space-x-4">
                   <div>
                     <p className="text-sm text-gray-700 dark:text-gray-300">
-                      {"rating" in activity
+                      {activity.type === "review"
                         ? `${activity.locationName} mekanına yorum yapıldı`
                         : `${activity.name} mekanı eklendi`}
                     </p>
-                    {"comment" in activity && (
+                    {activity.type === "review" && (
                       <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                         {activity.comment}
                       </p>

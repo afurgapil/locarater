@@ -4,11 +4,9 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import { useRouter } from "next/navigation";
 import { authService } from "@/services/auth.service";
 import { useAuthStore } from "@/store/useAuthStore";
+import type { LoginCredentials } from "@/services/auth.service";
 
-interface LoginFormValues {
-  username: string;
-  password: string;
-}
+type LoginFormValues = LoginCredentials;
 
 export function LoginForm() {
   const router = useRouter();
@@ -24,8 +22,8 @@ export function LoginForm() {
 
     if (!values.username) {
       errors.username = "Kullanıcı adı zorunludur";
-    } else if (values.username.length < 2) {
-      errors.username = "Kullanıcı adı en az 2 karakter olmalıdır";
+    } else if (values.username.length < 3) {
+      errors.username = "Kullanıcı adı en az 3 karakter olmalıdır";
     }
 
     if (!values.password) {
@@ -49,7 +47,11 @@ export function LoginForm() {
   ) => {
     try {
       const response = await authService.login(values);
-      setUser(response.user);
+      setUser({
+        _id: response.user._id,
+        username: response.user.name || values.username,
+        role: "user",
+      });
       setToken(response.token);
       router.push("/dashboard");
     } catch (error) {

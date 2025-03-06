@@ -2,6 +2,14 @@ import { api } from "@/lib/axios";
 import { API_ENDPOINTS } from "@/config/api";
 import type { Review } from "@/types/review";
 
+interface ApiError {
+  message: string;
+  response?: {
+    data?: unknown;
+    status?: number;
+  };
+}
+
 interface ReviewResponse {
   reviews: Review[];
   ratings: {
@@ -73,11 +81,12 @@ export const reviewService = {
     try {
       const { data } = await api.post(API_ENDPOINTS.reviews.getByUser);
       return data;
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const apiError = error as ApiError;
       console.error("getUserReviews error:", {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
+        message: apiError.message,
+        response: apiError.response?.data,
+        status: apiError.response?.status,
       });
       throw error;
     }

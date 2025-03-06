@@ -6,10 +6,6 @@ export const API_ENDPOINTS = {
     login: `${API_BASE_URL}/auth/login`,
     register: `${API_BASE_URL}/auth/register`,
     logout: `${API_BASE_URL}/auth/logout`,
-    verifyEmail: `${API_BASE_URL}/auth/verify-email`,
-    forgotPassword: `${API_BASE_URL}/auth/forgot-password`,
-    resetPassword: `${API_BASE_URL}/auth/reset-password`,
-    profile: `${API_BASE_URL}/auth/profile`,
   },
   locations: {
     getAll: `${API_BASE_URL}/locations`,
@@ -26,6 +22,11 @@ export const API_ENDPOINTS = {
   },
   upload: {
     image: `${API_BASE_URL}/upload/image`,
+  },
+  user: {
+    profile: `${API_BASE_URL}/user/profile`,
+    delete: `${API_BASE_URL}/user/account`,
+    update: `${API_BASE_URL}/user/profile`,
   },
   users: {
     getAll: `${API_BASE_URL}/users`,

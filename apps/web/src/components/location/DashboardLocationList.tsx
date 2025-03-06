@@ -5,7 +5,16 @@ import { locationService } from "@/services/location.service";
 import type { Location } from "@/types/location";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { LocationModal } from "./LocationModal";
-import { getCategoryLabel } from "@/constants/categories";
+import { getCategoryLabel, CategoryType } from "@/constants/categories";
+
+interface ApiError {
+  message?: string;
+  response?: {
+    data?: {
+      message?: string;
+    };
+  };
+}
 
 export function DashboardLocationList() {
   const [locations, setLocations] = useState<Location[]>([]);
@@ -24,8 +33,9 @@ export function DashboardLocationList() {
     try {
       const data = await locationService.getLocations();
       setLocations(data);
-    } catch (error: any) {
-      setError(error.message || "Mekanlar yüklenirken bir hata oluştu");
+    } catch (error) {
+      const apiError = error as ApiError;
+      setError(apiError.message || "Mekanlar yüklenirken bir hata oluştu");
     } finally {
       setLoading(false);
     }
@@ -41,10 +51,11 @@ export function DashboardLocationList() {
       try {
         await locationService.deleteLocation(id);
         setLocations(locations.filter((loc) => loc._id !== id));
-      } catch (error: any) {
+      } catch (error) {
+        const apiError = error as ApiError;
         console.error("Error deleting location:", error);
         alert(
-          error.response?.data?.message || "Mekan silinirken bir hata oluştu"
+          apiError.response?.data?.message || "Mekan silinirken bir hata oluştu"
         );
       }
     }
@@ -110,7 +121,7 @@ export function DashboardLocationList() {
             </div>
             <div className="text-sm text-gray-500 dark:text-gray-400">
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                {getCategoryLabel(location.category)}
+                {getCategoryLabel(location.category as CategoryType)}
               </p>
               <p>
                 {location.address.city}, {location.address.district}

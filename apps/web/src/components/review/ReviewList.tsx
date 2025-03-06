@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { reviewService } from "@/services/review.service";
 import { ReviewCard } from "./ReviewCard";
 import type { Review } from "@/types/review";
@@ -9,25 +9,39 @@ interface ReviewListProps {
   locationId: string;
 }
 
+interface ApiError {
+  message: string;
+  response?: {
+    data?: {
+      message?: string;
+    };
+  };
+}
+
 export function ReviewList({ locationId }: ReviewListProps) {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchReviews();
-  }, [locationId]);
-
-  const fetchReviews = async () => {
+  const fetchReviews = useCallback(async () => {
     try {
       const response = await reviewService.getReviews(locationId);
       setReviews(response.reviews);
-    } catch (error: any) {
-      setError(error.message || "Değerlendirmeler yüklenirken bir hata oluştu");
+    } catch (error: unknown) {
+      const apiError = error as ApiError;
+      setError(
+        apiError.message ||
+          apiError.response?.data?.message ||
+          "Değerlendirmeler yüklenirken bir hata oluştu"
+      );
     } finally {
       setLoading(false);
     }
-  };
+  }, [locationId]);
+
+  useEffect(() => {
+    fetchReviews();
+  }, [fetchReviews]);
 
   const handleDelete = async (reviewId: string) => {
     try {

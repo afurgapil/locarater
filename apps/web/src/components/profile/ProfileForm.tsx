@@ -24,6 +24,7 @@ export function ProfileForm() {
           showToast("Profil başarıyla güncellendi", "success");
         } catch (error) {
           showToast("Profil güncellenirken bir hata oluştu", "error");
+          console.error("Profil güncellenirken bir hata oluştu", error);
         } finally {
           setSubmitting(false);
         }

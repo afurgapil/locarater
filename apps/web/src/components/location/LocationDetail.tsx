@@ -5,6 +5,7 @@ import Image from "next/image";
 import { StarIcon, MapPinIcon } from "@heroicons/react/24/solid";
 import { locationService } from "@/services/location.service";
 import type { Location } from "@/types/location";
+import { getCategoryLabel } from "@/constants/categories";
 
 interface LocationDetailProps {
   id: string;
@@ -17,6 +18,7 @@ export function LocationDetail({ id }: LocationDetailProps) {
 
   useEffect(() => {
     fetchLocation();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const fetchLocation = async () => {
@@ -76,17 +78,14 @@ export function LocationDetail({ id }: LocationDetailProps) {
         </div>
         <div className="mt-4 flex items-center text-gray-500 dark:text-gray-400">
           <MapPinIcon className="h-5 w-5" />
-          <span className="ml-2">{location.address}</span>
+          <span className="ml-2">
+            {location.address.city}, {location.address.district}
+          </span>
         </div>
         <div className="mt-4">
-          {location.categories.map((category) => (
-            <span
-              key={category}
-              className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mr-2"
-            >
-              {category}
-            </span>
-          ))}
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mr-2">
+            {getCategoryLabel(location.category)}
+          </span>
         </div>
         <p className="mt-4 text-gray-700 dark:text-gray-300">
           {location.description}

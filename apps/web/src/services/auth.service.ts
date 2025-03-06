@@ -17,12 +17,13 @@ export interface AuthResponse {
 }
 
 export interface LoginCredentials {
-  email: string;
+  username: string;
   password: string;
 }
 
 export interface RegisterCredentials {
   name: string;
+  username: string;
   email: string;
   password: string;
   confirmPassword: string;
@@ -71,47 +72,5 @@ export const authService = {
 
   async logout(): Promise<void> {
     await api.post(API_ENDPOINTS.auth.logout);
-  },
-
-  async getProfile(): Promise<User> {
-    const { data } = await api.get<User>(API_ENDPOINTS.auth.profile);
-    return data;
-  },
-
-  async verifyEmail(token: string): Promise<void> {
-    await api.post(API_ENDPOINTS.auth.verifyEmail, { token });
-  },
-
-  async forgotPassword(credentials: ForgotPasswordCredentials): Promise<void> {
-    await api.post(API_ENDPOINTS.auth.forgotPassword, credentials);
-  },
-
-  async resetPassword(credentials: ResetPasswordCredentials): Promise<void> {
-    await api.post(API_ENDPOINTS.auth.resetPassword, credentials);
-  },
-
-  async updatePassword(credentials: UpdatePasswordCredentials): Promise<void> {
-    await api.put(API_ENDPOINTS.users.updatePassword, credentials);
-  },
-
-  async updateProfile(credentials: UpdateProfileCredentials): Promise<User> {
-    const formData = new FormData();
-    if (credentials.name) formData.append("name", credentials.name);
-    if (credentials.avatar) formData.append("avatar", credentials.avatar);
-
-    const { data } = await api.put<User>(
-      API_ENDPOINTS.users.updateProfile,
-      formData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      }
-    );
-    return data;
-  },
-
-  async deleteAccount(): Promise<void> {
-    await api.delete(API_ENDPOINTS.users.deleteAccount);
   },
 };

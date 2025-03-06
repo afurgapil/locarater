@@ -122,14 +122,14 @@ apps/
 - [x] Proje kurulumu
 - [x] Backend API
 - [x] Frontend yapısı
-- [ ] Auth sistemi
+- [x]] Auth sistemi
 
 ### 2. Mekan Sistemi
 
-- [ ] Mekan CRUD işlemleri
+- [x] Mekan CRUD işlemleri
 - [ ] Harita entegrasyonu
 - [ ] Fotoğraf yükleme
-- [ ] Arama ve filtreleme
+- [x] Arama ve filtreleme
 
 ### 3. Değerlendirme Sistemi
 

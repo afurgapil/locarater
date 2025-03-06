@@ -2,10 +2,11 @@
 
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
-import { StarIcon } from "@heroicons/react/24/solid";
+import { StarIcon, TrashIcon } from "@heroicons/react/24/solid";
 import { FlagIcon } from "@heroicons/react/24/outline";
 import { useState } from "react";
 import { reviewService } from "@/services/review.service";
+import { useToast } from "@/hooks/useToast";
 import type { Review } from "@/types/review";
 
 interface ReviewCardProps {
@@ -17,16 +18,18 @@ interface ReviewCardProps {
 export function ReviewCard({ review, locationId, onDelete }: ReviewCardProps) {
   const [isReporting, setIsReporting] = useState(false);
   const [reportReason, setReportReason] = useState("");
+  const { showToast } = useToast();
 
-  const handleReport = async () => {
+  const handleDelete = async () => {
+    if (!onDelete) return;
+
     try {
-      await reviewService.reportReview(locationId, review._id, reportReason);
-      setIsReporting(false);
-      setReportReason("");
-      alert("Değerlendirme başarıyla raporlandı");
+      await reviewService.deleteReview(locationId, review._id);
+      onDelete();
+      showToast("Değerlendirme başarıyla silindi", "success");
     } catch (error) {
-      console.error("Error reporting review:", error);
-      alert("Değerlendirme raporlanırken bir hata oluştu");
+      console.error("Error deleting review:", error);
+      showToast("Değerlendirme silinirken bir hata oluştu", "error");
     }
   };
 
@@ -50,12 +53,24 @@ export function ReviewCard({ review, locationId, onDelete }: ReviewCardProps) {
             {format(new Date(review.createdAt), "d MMMM yyyy", { locale: tr })}
           </div>
         </div>
-        <button
-          onClick={() => setIsReporting(true)}
-          className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
-        >
-          <FlagIcon className="h-5 w-5" />
-        </button>
+        <div className="flex space-x-2">
+          {onDelete && (
+            <button
+              onClick={handleDelete}
+              className="text-gray-400 hover:text-red-500 dark:hover:text-red-400"
+              title="Değerlendirmeyi sil"
+            >
+              <TrashIcon className="h-5 w-5" />
+            </button>
+          )}
+          <button
+            onClick={() => setIsReporting(true)}
+            className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
+            title="Değerlendirmeyi raporla"
+          >
+            <FlagIcon className="h-5 w-5" />
+          </button>
+        </div>
       </div>
 
       <div className="mt-4">
@@ -86,13 +101,6 @@ export function ReviewCard({ review, locationId, onDelete }: ReviewCardProps) {
               className="px-3 py-1 text-sm text-gray-600 dark:text-gray-400"
             >
               İptal
-            </button>
-            <button
-              onClick={handleReport}
-              disabled={!reportReason}
-              className="px-3 py-1 text-sm bg-red-600 text-white rounded-md disabled:opacity-50"
-            >
-              Raporla
             </button>
           </div>
         </div>

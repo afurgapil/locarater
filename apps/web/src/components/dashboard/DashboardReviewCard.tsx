@@ -17,6 +17,8 @@ export function DashboardReviewCard({
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
+  const formatRating = (value: number) => value.toFixed(1);
+
   return (
     <>
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
@@ -35,7 +37,7 @@ export function DashboardReviewCard({
                 <div className="flex items-center">
                   <span className="text-yellow-400">⭐</span>
                   <span className="ml-1 text-sm text-gray-600 dark:text-gray-300">
-                    {review.rating.overall.toFixed(1)}
+                    {formatRating(review.rating.overall)}
                   </span>
                 </div>
                 <span className="text-gray-300">•</span>
@@ -67,18 +69,19 @@ export function DashboardReviewCard({
           <div className="mt-4 grid grid-cols-2 gap-4">
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Lezzet: ⭐ {review.rating.taste.toFixed(1)}
+                Lezzet: ⭐ {formatRating(review.rating.taste)}
               </p>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Servis: ⭐ {review.rating.service.toFixed(1)}
+                Servis: ⭐ {formatRating(review.rating.service)}
               </p>
             </div>
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Ambiyans: ⭐ {review.rating.ambiance.toFixed(1)}
+                Ambiyans: ⭐ {formatRating(review.rating.ambiance)}
               </p>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Fiyat/Performans: ⭐ {review.rating.pricePerformance.toFixed(1)}
+                Fiyat/Performans: ⭐{" "}
+                {formatRating(review.rating.pricePerformance)}
               </p>
             </div>
           </div>

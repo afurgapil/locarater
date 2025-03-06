@@ -1,7 +1,10 @@
+import { CategoryType } from "@/constants/categories";
+
 export interface Location {
   _id: string;
   name: string;
-  category: string;
+  category: CategoryType;
+  description?: string;
   address: {
     city: string;
     district: string;

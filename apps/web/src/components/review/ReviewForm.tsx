@@ -1,14 +1,28 @@
 "use client";
 
 import { useState } from "react";
-import { Formik, Form, Field } from "formik";
+import { Formik, Form, Field, FormikHelpers } from "formik";
 import { StarIcon } from "@heroicons/react/24/solid";
 import { reviewService } from "@/services/review.service";
 import * as Yup from "yup";
+import Image from "next/image";
 
 interface ReviewFormProps {
   locationId: string;
   onSuccess?: () => void;
+}
+
+interface ReviewFormValues {
+  rating: {
+    overall: number;
+    taste: number;
+    service: number;
+    ambiance: number;
+    pricePerformance: number;
+  };
+  comment: string;
+  visitDate: Date;
+  images?: File[];
 }
 
 const ReviewSchema = Yup.object().shape({
@@ -27,8 +41,9 @@ const ReviewSchema = Yup.object().shape({
 
 export function ReviewForm({ locationId, onSuccess }: ReviewFormProps) {
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const initialValues = {
+  const initialValues: ReviewFormValues = {
     rating: {
       overall: 0,
       taste: 0,
@@ -41,24 +56,25 @@ export function ReviewForm({ locationId, onSuccess }: ReviewFormProps) {
   };
 
   const handleSubmit = async (
-    values: ReviewFormValues,
-    { setSubmitting, resetForm, setErrors }: any
+    formData: ReviewFormValues,
+    { setSubmitting, resetForm }: FormikHelpers<ReviewFormValues>
   ) => {
     try {
-      await reviewService.addReview(values, locationId);
+      await reviewService.addReview(formData, locationId);
       resetForm();
       setPreviewUrls([]);
+      setSubmitError(null);
       if (onSuccess) {
         window.location.reload();
         onSuccess();
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error creating review:", error);
-      setErrors({
-        submit:
-          error.response?.data?.message ||
-          "Değerlendirme eklenirken bir hata oluştu",
-      });
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : "Değerlendirme eklenirken bir hata oluştu"
+      );
     } finally {
       setSubmitting(false);
     }
@@ -66,9 +82,11 @@ export function ReviewForm({ locationId, onSuccess }: ReviewFormProps) {
 
   const handleImageChange = (
     event: React.ChangeEvent<HTMLInputElement>,
-    setFieldValue: (field: string, value: any) => void
+    setFieldValue: (field: string, value: File[]) => void
   ) => {
-    const files = Array.from(event.target.files || []);
+    if (!event.target.files) return;
+
+    const files = Array.from(event.target.files);
     setFieldValue("images", files);
 
     const urls = files.map((file) => URL.createObjectURL(file));
@@ -81,7 +99,7 @@ export function ReviewForm({ locationId, onSuccess }: ReviewFormProps) {
       validationSchema={ReviewSchema}
       onSubmit={handleSubmit}
     >
-      {({ values, errors, touched, isSubmitting }) => (
+      {({ errors, touched, isSubmitting, setFieldValue }) => (
         <Form className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
@@ -90,7 +108,15 @@ export function ReviewForm({ locationId, onSuccess }: ReviewFormProps) {
             <div className="flex items-center space-x-1">
               {[...Array(10)].map((_, index) => (
                 <Field key={index} name="rating.overall">
-                  {({ field, form }: any) => (
+                  {({
+                    field,
+                    form,
+                  }: {
+                    field: { value: number };
+                    form: {
+                      setFieldValue: (field: string, value: number) => void;
+                    };
+                  }) => (
                     <button
                       type="button"
                       className={`p-1 ${
@@ -192,8 +218,8 @@ export function ReviewForm({ locationId, onSuccess }: ReviewFormProps) {
             />
           </div>
 
-          {errors.submit && (
-            <div className="text-red-600 text-sm">{errors.submit}</div>
+          {submitError && (
+            <div className="text-red-600 text-sm">{submitError}</div>
           )}
 
           <div>
@@ -215,9 +241,7 @@ export function ReviewForm({ locationId, onSuccess }: ReviewFormProps) {
                       multiple
                       accept="image/*"
                       className="sr-only"
-                      onChange={(e) =>
-                        handleImageChange(e, (field: string, value: any) => {})
-                      }
+                      onChange={(e) => handleImageChange(e, setFieldValue)}
                     />
                   </label>
                 </div>
@@ -230,10 +254,11 @@ export function ReviewForm({ locationId, onSuccess }: ReviewFormProps) {
               <div className="mt-4 grid grid-cols-3 gap-4">
                 {previewUrls.map((url, index) => (
                   <div key={index} className="relative h-24">
-                    <img
+                    <Image
                       src={url}
                       alt={`Preview ${index + 1}`}
-                      className="h-full w-full object-cover rounded-md"
+                      fill
+                      className="object-cover rounded-md"
                     />
                   </div>
                 ))}

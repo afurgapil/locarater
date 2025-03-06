@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { locationService } from "@/services/location.service";
 import { ReviewList } from "@/components/review/ReviewList";
@@ -14,20 +14,25 @@ export default function LocationDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchLocation();
-  }, [locationId]);
-
-  const fetchLocation = async () => {
+  const fetchLocation = useCallback(async () => {
     try {
+      setLoading(true);
       const data = await locationService.getLocationById(locationId);
       setLocation(data);
-    } catch (error: any) {
-      setError(error.message || "Mekan bilgileri yüklenirken bir hata oluştu");
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Mekan bilgileri yüklenirken bir hata oluştu";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
-  };
+  }, [locationId]);
+
+  useEffect(() => {
+    fetchLocation();
+  }, [fetchLocation]);
 
   if (loading) {
     return (

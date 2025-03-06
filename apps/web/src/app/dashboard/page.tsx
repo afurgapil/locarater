@@ -11,9 +11,10 @@ import {
   ChartBarIcon,
   UserIcon,
 } from "@heroicons/react/24/outline";
+import type { DashboardStats } from "@/services/statistics.service";
 
 export default function DashboardPage() {
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -36,6 +37,14 @@ export default function DashboardPage() {
     return <DashboardSkeleton />;
   }
 
+  if (!stats) {
+    return (
+      <div className="text-center text-gray-500 dark:text-gray-400">
+        İstatistikler yüklenirken bir hata oluştu.
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
@@ -46,24 +55,24 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <DashboardCard
           title="Toplam Mekan"
-          value={stats?.totalLocations}
+          value={stats.totalLocations}
           icon={MapPinIcon}
-          trend={"+5%"}
+          trend={stats.trends?.locations}
         />
         <DashboardCard
           title="Toplam Yorum"
-          value={stats?.totalReviews}
+          value={stats.totalReviews}
           icon={StarIcon}
-          trend={"+12%"}
+          trend={stats.trends?.reviews}
         />
         <DashboardCard
           title="Mekanlarım"
-          value={stats?.userStats.locationsCount}
+          value={stats.userStats.locationsCount}
           icon={ChartBarIcon}
         />
         <DashboardCard
           title="Yorumlarım"
-          value={stats?.userStats.reviewsCount}
+          value={stats.userStats.reviewsCount}
           icon={UserIcon}
         />
       </div>
@@ -74,7 +83,7 @@ export default function DashboardPage() {
           <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
             Son Aktiviteler
           </h2>
-          <DashboardActivityList activities={stats?.recentActivities} />
+          <DashboardActivityList activities={stats.recentActivities} />
         </div>
 
         {/* En Çok Yorum Alan Mekanlar */}
@@ -82,7 +91,7 @@ export default function DashboardPage() {
           <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
             En Çok Yorum Alan Mekanlar
           </h2>
-          <DashboardTopLocations locations={stats?.topLocations} />
+          <DashboardTopLocations locations={stats.topLocations} />
         </div>
       </div>
     </div>

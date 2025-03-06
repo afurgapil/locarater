@@ -2,13 +2,14 @@
 
 import { Formik, Form, Field } from "formik";
 import { locationService } from "@/services/location.service";
+import { reviewService } from "@/services/review.service";
 import type { Location } from "@/types/location";
-import { CATEGORIES } from "@/constants/categories";
+import { CATEGORIES, CategoryType } from "@/constants/categories";
 import { FormikHelpers } from "formik";
 
 interface LocationFormValues {
   name: string;
-  category: string;
+  category: CategoryType;
   address: {
     city: string;
     district: string;
@@ -31,10 +32,12 @@ interface LocationFormProps {
   onSuccess?: () => void;
 }
 
+type FormikValues = LocationFormValues & { submit?: string };
+
 export function LocationForm({ location, onSuccess }: LocationFormProps) {
-  const initialValues: LocationFormValues = {
+  const initialValues: FormikValues = {
     name: location?.name || "",
-    category: location?.category || "",
+    category: location?.category || CATEGORIES[0].value,
     address: {
       city: location?.address?.city || "",
       district: location?.address?.district || "",
@@ -53,8 +56,8 @@ export function LocationForm({ location, onSuccess }: LocationFormProps) {
   };
 
   const handleSubmit = async (
-    values: LocationFormValues,
-    { setSubmitting, resetForm, setErrors }: FormikHelpers<LocationFormValues>
+    values: FormikValues,
+    { setSubmitting, resetForm, setErrors }: FormikHelpers<FormikValues>
   ) => {
     try {
       const token = localStorage.getItem("token");
@@ -69,10 +72,7 @@ export function LocationForm({ location, onSuccess }: LocationFormProps) {
         const newLocation = await locationService.createLocation(values);
 
         if (values.initialReview && values.initialReview.comment.trim()) {
-          await locationService.addReview(
-            newLocation._id,
-            values.initialReview
-          );
+          await reviewService.addReview(values.initialReview, newLocation._id);
         }
       }
 
@@ -91,7 +91,7 @@ export function LocationForm({ location, onSuccess }: LocationFormProps) {
   };
 
   return (
-    <Formik initialValues={initialValues} onSubmit={handleSubmit}>
+    <Formik<FormikValues> initialValues={initialValues} onSubmit={handleSubmit}>
       {({ isSubmitting, errors }) => (
         <Form className="space-y-6">
           <div>

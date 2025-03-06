@@ -5,7 +5,7 @@ import { Formik, Form, Field } from "formik";
 import { Location } from "@/types/location";
 import { locationService } from "@/services/location.service";
 import { useToast } from "@/hooks/useToast";
-import { CATEGORIES } from "@/constants/categories";
+import { CATEGORIES, CategoryType } from "@/constants/categories";
 
 interface EditLocationDialogProps {
   isOpen: boolean;
@@ -15,7 +15,7 @@ interface EditLocationDialogProps {
 
 interface LocationFormValues {
   name: string;
-  category: string;
+  category: CategoryType;
   description: string;
   address: {
     city: string;

@@ -4,18 +4,30 @@ import { Formik, Form, Field } from "formik";
 import { profileService } from "@/services/profile.service";
 import { useToast } from "@/hooks/useToast";
 
+interface PasswordFormValues {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
+interface PasswordFormErrors {
+  currentPassword?: string;
+  newPassword?: string;
+  confirmPassword?: string;
+}
+
 export function PasswordForm() {
   const { showToast } = useToast();
 
   return (
-    <Formik
+    <Formik<PasswordFormValues>
       initialValues={{
         currentPassword: "",
         newPassword: "",
         confirmPassword: "",
       }}
       validate={(values) => {
-        const errors: any = {};
+        const errors: PasswordFormErrors = {};
         if (values.newPassword !== values.confirmPassword) {
           errors.confirmPassword = "Şifreler eşleşmiyor";
         }
@@ -29,7 +41,7 @@ export function PasswordForm() {
           });
           showToast("Şifre başarıyla güncellendi", "success");
           resetForm();
-        } catch (error) {
+        } catch {
           showToast("Şifre güncellenirken bir hata oluştu", "error");
         } finally {
           setSubmitting(false);

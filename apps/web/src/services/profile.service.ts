@@ -19,7 +19,7 @@ interface Profile {
 
 export const profileService = {
   async getProfile(): Promise<Profile> {
-    const { data } = await api.get(API_ENDPOINTS.auth.profile);
+    const { data } = await api.get(API_ENDPOINTS.user.profile);
     return data;
   },
 
@@ -36,13 +36,13 @@ export const profileService = {
       }
     });
 
-    const { data } = await api.put(API_ENDPOINTS.auth.profile, formData, {
+    const { data } = await api.put(API_ENDPOINTS.user.update, formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
     return data;
   },
 
   async deleteAccount(): Promise<void> {
-    await api.delete(API_ENDPOINTS.auth.profile);
+    await api.delete(API_ENDPOINTS.user.delete);
   },
 };

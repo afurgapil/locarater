@@ -1,11 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { useAuthStore } from "@/store/useAuthStore";
 
 export function Header() {
-  const pathname = usePathname();
   const { user, logout } = useAuthStore();
 
   return (

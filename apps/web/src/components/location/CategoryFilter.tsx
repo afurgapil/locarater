@@ -1,7 +1,11 @@
 "use client";
 
-import { useState } from "react";
 import { CATEGORIES } from "@/constants/categories";
+
+interface CategoryFilterProps {
+  selectedCategory: string;
+  onChange: (category: string) => void;
+}
 
 export function CategoryFilter({
   selectedCategory,

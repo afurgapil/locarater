@@ -1,7 +1,7 @@
 import { API_ENDPOINTS } from "@/config/api";
 import { api } from "@/lib/axios";
 
-interface DashboardStats {
+export interface DashboardStats {
   totalLocations: number;
   totalReviews: number;
   userStats: {

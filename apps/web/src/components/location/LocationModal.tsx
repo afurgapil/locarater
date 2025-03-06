@@ -5,11 +5,12 @@ import { Dialog, Transition } from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { LocationForm } from "./LocationForm";
 import { useRouter } from "next/navigation";
+import type { Location } from "@/types/location";
 
 interface LocationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  location?: any;
+  location?: Location;
 }
 
 export function LocationModal({

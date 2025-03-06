@@ -14,12 +14,13 @@ export function SearchBar({ onSearch }: SearchBarProps) {
   const searchParams = useSearchParams();
   const [query, setQuery] = useState(searchParams.get("q") || "");
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const debouncedSearch = useCallback(
-    debounce((searchQuery: string) => {
+    debounce((searchQuery: string, searchParamsString: string) => {
       if (onSearch) {
         onSearch(searchQuery);
       } else {
-        const params = new URLSearchParams(searchParams.toString());
+        const params = new URLSearchParams(searchParamsString);
         if (searchQuery) {
           params.set("q", searchQuery);
         } else {
@@ -28,18 +29,18 @@ export function SearchBar({ onSearch }: SearchBarProps) {
         router.push(`/?${params.toString()}`);
       }
     }, 500),
-    [onSearch, router, searchParams]
+    [onSearch, router]
   );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    debouncedSearch(query);
+    debouncedSearch(query, searchParams.toString());
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newQuery = e.target.value;
     setQuery(newQuery);
-    debouncedSearch(newQuery);
+    debouncedSearch(newQuery, searchParams.toString());
   };
 
   return (

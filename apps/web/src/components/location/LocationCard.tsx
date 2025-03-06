@@ -32,11 +32,11 @@ export function LocationCard({ location }: LocationCardProps) {
           <div className="flex items-center">
             <StarIcon className="h-5 w-5 text-yellow-400" />
             <span className="ml-1 text-sm font-medium text-gray-700 dark:text-gray-300">
-              {location.ratings?.average?.toFixed(1) || "Yeni"}
+              {location.averageRating?.toFixed(1) || "Yeni"}
             </span>
             <span className="mx-1 text-gray-500 dark:text-gray-400">•</span>
             <span className="text-sm text-gray-500 dark:text-gray-400">
-              {location.ratings?.count || 0} değerlendirme
+              {location.reviewCount || 0} değerlendirme
             </span>
           </div>
           <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
