@@ -10,21 +10,29 @@ interface Rating {
   pricePerformance?: number;
 }
 
-interface Review {
-  _id: Types.ObjectId;
-  user:
-    | Types.ObjectId
-    | {
-        _id: Types.ObjectId;
-        username: string;
-        name: string;
-      };
+interface BaseReview {
   rating: Rating;
   comment?: string;
   visitDate?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
+
+interface MongoReview extends BaseReview {
+  _id: Types.ObjectId;
+  user: Types.ObjectId;
+}
+
+interface PopulatedReview extends BaseReview {
+  _id: Types.ObjectId;
+  user: {
+    _id: Types.ObjectId;
+    username: string;
+    name: string;
+  };
+}
+
+type Review = MongoReview | PopulatedReview;
 
 interface AuthenticatedRequest extends Request {
   user?: {
@@ -99,43 +107,45 @@ export const addReview = async (
 export const updateReview = async (
   req: AuthenticatedRequest,
   res: Response
-): Promise<void> => {
+): Promise<Response> => {
   try {
     const { locationId, reviewId } = req.params;
     const reviewData = req.body;
 
     const location = await Location.findById(locationId);
     if (!location) {
-      res.status(404).json({ message: "Mekan bulunamadı" });
-      return;
+      return res.status(404).json({ message: "Mekan bulunamadı" });
     }
 
-    const review = (location.reviews as any).id(reviewId) as Review;
+    const review = location.reviews.find(
+      (r: any) => r._id.toString() === reviewId
+    );
+
     if (!review) {
-      res.status(404).json({ message: "Değerlendirme bulunamadı" });
-      return;
+      return res.status(404).json({ message: "Değerlendirme bulunamadı" });
     }
 
     if (
       review.user.toString() !== req.user?._id &&
       req.user?.role !== "ADMIN"
     ) {
-      res.status(403).json({ message: "Bu işlem için yetkiniz yok" });
-      return;
+      return res.status(403).json({ message: "Bu işlem için yetkiniz yok" });
     }
 
-    review.rating = {
-      overall: reviewData.rating.overall,
-      taste: reviewData.rating.taste,
-      service: reviewData.rating.service,
-      ambiance: reviewData.rating.ambiance,
-      pricePerformance: reviewData.rating.pricePerformance,
-    };
-    review.comment = reviewData.comment;
-    review.visitDate = reviewData.visitDate
-      ? new Date(reviewData.visitDate)
-      : review.visitDate;
-    review.updatedAt = new Date();
+    Object.assign(review, {
+      rating: {
+        overall: reviewData.rating.overall,
+        taste: reviewData.rating.taste,
+        service: reviewData.rating.service,
+        ambiance: reviewData.rating.ambiance,
+        pricePerformance: reviewData.rating.pricePerformance,
+      },
+      comment: reviewData.comment,
+      visitDate: reviewData.visitDate
+        ? new Date(reviewData.visitDate)
+        : review.visitDate,
+      updatedAt: new Date(),
+    });
 
     await location.save();
 
@@ -144,14 +154,16 @@ export const updateReview = async (
       "username name"
     );
 
-    res.json({
+    return res.json({
       message: "Değerlendirme başarıyla güncellendi",
-      review: updatedLocation?.reviews.id(reviewId),
+      review: updatedLocation?.reviews.find(
+        (r: any) => r._id.toString() === reviewId
+      ),
       ratings: updatedLocation?.ratings,
     });
   } catch (error: any) {
     console.error("Review güncellenirken hata:", error);
-    res.status(500).json({
+    return res.status(500).json({
       message: "Review güncellenirken hata oluştu",
       error: error.message,
     });
@@ -161,42 +173,30 @@ export const updateReview = async (
 export const deleteReview = async (
   req: AuthenticatedRequest,
   res: Response
-): Promise<void> => {
+): Promise<Response> => {
   try {
     const { locationId, reviewId } = req.params;
 
     const location = await Location.findById(locationId);
     if (!location) {
-      res.status(404).json({ message: "Mekan bulunamadı" });
-      return;
+      return res.status(404).json({ message: "Mekan bulunamadı" });
     }
 
-    const review = (location.reviews as any).id(reviewId) as Review;
-    if (!review) {
-      res.status(404).json({ message: "Değerlendirme bulunamadı" });
-      return;
-    }
-
-    if (
-      review.user.toString() !== req.user?._id &&
-      req.user?.role !== "ADMIN"
-    ) {
-      res.status(403).json({ message: "Bu işlem için yetkiniz yok" });
-      return;
-    }
-
-    review.deleteOne();
+    location.reviews = location.reviews.filter(
+      (r: any) => r._id.toString() !== reviewId
+    );
     await location.save();
 
-    res.json({
+    return res.json({
       message: "Değerlendirme başarıyla silindi",
       ratings: location.ratings,
     });
   } catch (error: any) {
     console.error("Review silinirken hata:", error);
-    res
-      .status(500)
-      .json({ message: "Review silinirken hata oluştu", error: error.message });
+    return res.status(500).json({
+      message: "Review silinirken hata oluştu",
+      error: error.message,
+    });
   }
 };
 
@@ -232,13 +232,12 @@ export const getReviews = async (
 export const getReviewsByUser = async (
   req: AuthenticatedRequest,
   res: Response
-): Promise<void> => {
+): Promise<Response> => {
   try {
     const userId = req.user?._id;
 
     if (!userId) {
-      res.status(401).json({ message: "Unauthorized" });
-      return;
+      return res.status(401).json({ message: "Unauthorized" });
     }
 
     const locations = await Location.find({
@@ -249,15 +248,13 @@ export const getReviewsByUser = async (
 
     const userReviews = locations.flatMap((location) =>
       location.reviews
-        .filter((review: Review) => {
-          const reviewUserId = (review.user as any)._id
-            ? (review.user as any)._id.toString()
+        .filter((review: any) => {
+          const reviewUserId = review.user._id
+            ? review.user._id.toString()
             : review.user.toString();
-          const isMatch = reviewUserId === userId.toString();
-
-          return isMatch;
+          return reviewUserId === userId.toString();
         })
-        .map((review: Review) => ({
+        .map((review: any) => ({
           _id: review._id.toString(),
           locationId: location._id.toString(),
           locationName: location.name,
@@ -267,17 +264,17 @@ export const getReviewsByUser = async (
           createdAt: review.createdAt,
           updatedAt: review.updatedAt,
           user: {
-            _id: (review.user as any)._id.toString(),
-            username: (review.user as any).username,
-            name: (review.user as any).name,
+            _id: review.user._id.toString(),
+            username: review.user.username,
+            name: review.user.name,
           },
         }))
     );
 
-    res.json(userReviews);
+    return res.json(userReviews);
   } catch (error: any) {
     console.error("Kullanıcı değerlendirmeleri getirilirken hata:", error);
-    res.status(500).json({
+    return res.status(500).json({
       message: "Kullanıcı değerlendirmeleri getirilirken hata oluştu",
       error: error.message,
     });
@@ -298,7 +295,10 @@ export const reportReview = async (
       return;
     }
 
-    const review = (location.reviews as any).id(reviewId) as Review;
+    const review = location.reviews.find(
+      (r: any) => r._id.toString() === reviewId
+    ) as Review | undefined;
+
     if (!review) {
       res.status(404).json({ message: "Değerlendirme bulunamadı" });
       return;
@@ -308,7 +308,7 @@ export const reportReview = async (
       message: "Değerlendirme başarıyla raporlandı",
       reportedReview: {
         reviewId,
-        reportedBy: req.user?.id,
+        reportedBy: req.user?._id,
         reason,
       },
     });
