@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { SearchBar } from "@/components/location/SearchBar";
 import { CategoryFilter } from "@/components/location/CategoryFilter";
@@ -9,7 +9,19 @@ import { locationService } from "@/services/location.service";
 import type { Location } from "@/types/location";
 import type { CategoryType } from "@/constants/categories";
 
-export default function HomePage() {
+export default function Home() {
+  return (
+    <main className="flex min-h-screen flex-col items-center p-4 md:p-24">
+      <h1 className="text-4xl font-bold mb-8">LocaRater</h1>
+
+      <Suspense fallback={<div>Yükleniyor...</div>}>
+        <HomeContent />
+      </Suspense>
+    </main>
+  );
+}
+
+function HomeContent() {
   const searchParams = useSearchParams();
   const [locations, setLocations] = useState<Location[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,7 +71,7 @@ export default function HomePage() {
   };
 
   return (
-    <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+    <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 sm:px-0">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
           Mekanları Keşfet
@@ -76,6 +88,6 @@ export default function HomePage() {
           <LocationList locations={filteredLocations} loading={loading} />
         </div>
       </div>
-    </main>
+    </div>
   );
 }
