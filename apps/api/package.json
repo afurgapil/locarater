@@ -4,7 +4,7 @@
   "description": "Locarater API - Location Rating Application",
   "main": "dist/index.js",
   "engines": {
-    "node": "14.x"
+    "node": "18.x"
   },
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
