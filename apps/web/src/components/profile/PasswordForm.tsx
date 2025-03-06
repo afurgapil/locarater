@@ -1,8 +1,10 @@
 "use client";
 
 import { Formik, Form, Field } from "formik";
+import { useRouter } from "next/navigation";
 import { profileService } from "@/services/profile.service";
 import { useToast } from "@/hooks/useToast";
+import { useAuthStore } from "@/store/useAuthStore";
 
 interface PasswordFormValues {
   currentPassword: string;
@@ -18,6 +20,8 @@ interface PasswordFormErrors {
 
 export function PasswordForm() {
   const { showToast } = useToast();
+  const router = useRouter();
+  const logout = useAuthStore((state) => state.logout);
 
   return (
     <Formik<PasswordFormValues>
@@ -35,15 +39,27 @@ export function PasswordForm() {
       }}
       onSubmit={async (values, { setSubmitting, resetForm }) => {
         try {
-          await profileService.updateProfile({
+          await profileService.changePassword({
             currentPassword: values.currentPassword,
             newPassword: values.newPassword,
           });
-          showToast("Şifre başarıyla güncellendi", "success");
+
+          showToast(
+            "Şifre başarıyla güncellendi. Lütfen tekrar giriş yapın.",
+            "success"
+          );
           resetForm();
+
+          // Kısa bir gecikme ekleyerek toast mesajının görünmesini sağlayalım
+          setTimeout(() => {
+            // Kullanıcıyı logout yap
+            logout();
+
+            // Login sayfasına yönlendir
+            router.push("/auth/login");
+          }, 2000);
         } catch {
           showToast("Şifre güncellenirken bir hata oluştu", "error");
-        } finally {
           setSubmitting(false);
         }
       }}

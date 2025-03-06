@@ -17,9 +17,14 @@ interface Profile {
   createdAt: string;
 }
 
+interface PasswordUpdateData {
+  currentPassword: string;
+  newPassword: string;
+}
+
 export const profileService = {
   async getProfile(): Promise<Profile> {
-    const { data } = await api.get(API_ENDPOINTS.user.profile);
+    const { data } = await api.get(API_ENDPOINTS.users.profile);
     return data;
   },
 
@@ -28,21 +33,23 @@ export const profileService = {
 
     Object.entries(updateData).forEach(([key, value]) => {
       if (value !== undefined) {
-        if (key === "avatar" && value instanceof File) {
-          formData.append("avatar", value);
-        } else {
-          formData.append(key, value as string);
-        }
+        formData.append(key, value as string);
       }
     });
 
-    const { data } = await api.put(API_ENDPOINTS.user.update, formData, {
+    const { data } = await api.put(API_ENDPOINTS.users.update, formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
     return data;
   },
 
-  async deleteAccount(): Promise<void> {
-    await api.delete(API_ENDPOINTS.user.delete);
+  async deleteAccount(password: string): Promise<void> {
+    await api.delete(API_ENDPOINTS.users.delete, {
+      data: { password },
+    });
+  },
+
+  async changePassword(passwordData: PasswordUpdateData): Promise<void> {
+    await api.post(API_ENDPOINTS.users.changePassword, passwordData);
   },
 };

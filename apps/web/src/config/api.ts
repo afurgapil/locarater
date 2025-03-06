@@ -23,16 +23,11 @@ export const API_ENDPOINTS = {
   upload: {
     image: `${API_BASE_URL}/upload/image`,
   },
-  user: {
-    profile: `${API_BASE_URL}/user/profile`,
-    delete: `${API_BASE_URL}/user/account`,
-    update: `${API_BASE_URL}/user/profile`,
-  },
   users: {
-    getAll: `${API_BASE_URL}/users`,
-    getById: (id: string) => `${API_BASE_URL}/users/${id}`,
-    update: (id: string) => `${API_BASE_URL}/users/${id}`,
-    delete: (id: string) => `${API_BASE_URL}/users/${id}`,
+    profile: `${API_BASE_URL}/users/profile`,
+    delete: `${API_BASE_URL}/users/account`,
+    update: `${API_BASE_URL}/users/profile`,
+    changePassword: `${API_BASE_URL}/users/change-password`,
   },
   statistics: {
     dashboard: `${API_BASE_URL}/statistics/dashboard`,

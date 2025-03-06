@@ -4,13 +4,18 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ProfileForm } from "@/components/profile/ProfileForm";
 import { PasswordForm } from "@/components/profile/PasswordForm";
+import { PasswordResetForm } from "@/components/profile/PasswordResetForm";
 import { DeleteAccountDialog } from "@/components/profile/DeleteAccountDialog";
 import { UserStats } from "@/components/profile/UserStats";
 import { profileService } from "@/services/profile.service";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useToast } from "@/hooks/useToast";
 
 export default function ProfilePage() {
   const router = useRouter();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const logout = useAuthStore((state) => state.logout);
+  const { showToast } = useToast();
 
   return (
     <div className="space-y-6">
@@ -33,6 +38,13 @@ export default function ProfilePage() {
               Şifre Değiştir
             </h2>
             <PasswordForm />
+          </div>
+
+          <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+            <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+              Şifre Sıfırlama
+            </h2>
+            <PasswordResetForm />
           </div>
 
           <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
@@ -60,12 +72,26 @@ export default function ProfilePage() {
       <DeleteAccountDialog
         isOpen={isDeleteDialogOpen}
         onClose={() => setIsDeleteDialogOpen(false)}
-        onConfirm={async () => {
+        onConfirm={async (password) => {
           try {
-            await profileService.deleteAccount();
-            router.push("/auth/login");
+            await profileService.deleteAccount(password);
+
+            // Başarı mesajı göster
+            showToast("Hesabınız başarıyla silindi", "success");
+
+            // Kısa bir gecikme ekleyerek toast mesajının görünmesini sağlayalım
+            setTimeout(() => {
+              // Auth state'ini temizle
+              logout();
+
+              // Login sayfasına yönlendir
+              router.push("/auth/login");
+            }, 2000);
           } catch (error) {
             console.error("Error deleting account:", error);
+            showToast("Hesap silinirken bir hata oluştu", "error");
+          } finally {
+            setIsDeleteDialogOpen(false);
           }
         }}
       />

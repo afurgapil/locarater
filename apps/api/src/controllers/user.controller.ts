@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { User } from "../models/user.model";
 import bcrypt from "bcryptjs";
+import { Location } from "../models/location.model";
 
 interface AuthenticatedRequest extends Request {
   user?: {
@@ -17,12 +18,10 @@ export const getUserProfile = async (
   try {
     const userId = req.params.userId || req.user?._id;
     const user = await User.findById(userId).select("-password");
-
     if (!user) {
       res.status(404).json({ message: "Kullanıcı bulunamadı" });
       return;
     }
-
     res.json(user);
   } catch (error: any) {
     res.status(500).json({
@@ -73,7 +72,6 @@ export const changePassword = async (
   try {
     const { currentPassword, newPassword } = req.body;
     const userId = req.user?._id;
-
     const user = await User.findById(userId);
     if (!user) {
       res.status(404).json({ message: "Kullanıcı bulunamadı" });
@@ -89,9 +87,14 @@ export const changePassword = async (
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(newPassword, salt);
 
-    user.password = hashedPassword;
-    user.updatedAt = new Date();
-    await user.save();
+    await User.findByIdAndUpdate(
+      userId,
+      {
+        password: hashedPassword,
+        updatedAt: new Date(),
+      },
+      { new: true }
+    );
 
     res.json({ message: "Şifre başarıyla güncellendi" });
   } catch (error: any) {
@@ -108,6 +111,12 @@ export const deleteAccount = async (
 ): Promise<void> => {
   try {
     const userId = req.user?._id;
+
+    if (!userId) {
+      res.status(401).json({ message: "Yetkilendirme hatası" });
+      return;
+    }
+
     const { password } = req.body;
 
     const user = await User.findById(userId);
@@ -122,10 +131,93 @@ export const deleteAccount = async (
       return;
     }
 
+    // Kullanıcının oluşturduğu mekanları sil
+    const deletedLocations = await Location.deleteMany({ createdBy: userId });
+    console.log(`${deletedLocations.deletedCount} mekan silindi`);
+
+    // Kullanıcının yaptığı değerlendirmeleri içeren mekanları bul
+    const locationsWithUserReviews = await Location.find({
+      "reviews.user": userId,
+    });
+
+    // Her bir mekan için kullanıcının değerlendirmelerini kaldır
+    for (const location of locationsWithUserReviews) {
+      // Kullanıcının değerlendirmelerini filtrele
+      location.reviews = location.reviews.filter(
+        (review) => review.user.toString() !== userId.toString()
+      );
+
+      // Değerlendirme istatistiklerini güncelle
+      if (location.reviews.length > 0) {
+        const totalRating = location.reviews.reduce((sum, review) => {
+          return sum + (review.rating?.overall || 0);
+        }, 0);
+
+        location.ratings.average = totalRating / location.reviews.length;
+        location.ratings.count = location.reviews.length;
+
+        // Dağılımı sıfırla
+        const distribution = {
+          10: 0,
+          9: 0,
+          8: 0,
+          7: 0,
+          6: 0,
+          5: 0,
+          4: 0,
+          3: 0,
+          2: 0,
+          1: 0,
+        };
+
+        // Yeni dağılımı hesapla
+        location.reviews.forEach((review) => {
+          if (review.rating?.overall) {
+            const rating = Math.round(review.rating.overall);
+            if (rating >= 1 && rating <= 10) {
+              distribution[rating as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10]++;
+            }
+          }
+        });
+
+        location.ratings.distribution = distribution;
+      } else {
+        // Değerlendirme kalmadıysa sıfırla
+        location.ratings.average = 0;
+        location.ratings.count = 0;
+        location.ratings.distribution = {
+          10: 0,
+          9: 0,
+          8: 0,
+          7: 0,
+          6: 0,
+          5: 0,
+          4: 0,
+          3: 0,
+          2: 0,
+          1: 0,
+        };
+      }
+
+      await location.save();
+    }
+
+    console.log(
+      `${locationsWithUserReviews.length} mekandan kullanıcı değerlendirmeleri kaldırıldı`
+    );
+
+    // Kullanıcıyı sil
     await User.findByIdAndDelete(userId);
 
-    res.json({ message: "Hesap başarıyla silindi" });
+    res.json({
+      message: "Hesap başarıyla silindi",
+      details: {
+        deletedLocations: deletedLocations.deletedCount,
+        updatedLocationsWithReviews: locationsWithUserReviews.length,
+      },
+    });
   } catch (error: any) {
+    console.error("Hesap silme hatası:", error);
     res
       .status(500)
       .json({ message: "Hesap silinirken hata oluştu", error: error.message });
@@ -166,55 +258,6 @@ export const forgotPassword = async (
   } catch (error: any) {
     res.status(500).json({
       message: "Şifre sıfırlama işlemi başlatılırken hata oluştu",
-      error: error.message,
-    });
-  }
-};
-
-export const resetPassword = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  try {
-    const { userId, resetToken, newPassword } = req.body;
-
-    const user = await User.findById(userId);
-    if (!user || !user.resetPasswordToken || !user.resetPasswordExpires) {
-      res.status(400).json({
-        message: "Geçersiz veya süresi dolmuş şifre sıfırlama talebi",
-      });
-      return;
-    }
-
-    if (user.resetPasswordExpires < new Date()) {
-      res
-        .status(400)
-        .json({ message: "Şifre sıfırlama talebinin süresi dolmuş" });
-      return;
-    }
-
-    const isValidToken = await bcrypt.compare(
-      resetToken,
-      user.resetPasswordToken
-    );
-    if (!isValidToken) {
-      res.status(400).json({ message: "Geçersiz şifre sıfırlama kodu" });
-      return;
-    }
-
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(newPassword, salt);
-
-    user.password = hashedPassword;
-    user.resetPasswordToken = undefined;
-    user.resetPasswordExpires = undefined;
-    user.updatedAt = new Date();
-    await user.save();
-
-    res.json({ message: "Şifre başarıyla sıfırlandı" });
-  } catch (error: any) {
-    res.status(500).json({
-      message: "Şifre sıfırlanırken hata oluştu",
       error: error.message,
     });
   }
