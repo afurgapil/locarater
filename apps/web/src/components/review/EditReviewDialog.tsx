@@ -95,6 +95,7 @@ export function EditReviewDialog({
                     name="rating.overall"
                     value={values.rating.overall}
                     onChange={handleChange}
+                    maxValue={10}
                   />
                 </div>
 

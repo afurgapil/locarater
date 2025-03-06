@@ -94,7 +94,6 @@ export default function LocationDetailPage() {
     );
   }
 
-  // Değerlendirme puanlarını güvenli bir şekilde alıyoruz
   const ratings = {
     taste: location.rating?.taste
       ? Number(location.rating.taste).toFixed(1)
@@ -110,25 +109,57 @@ export default function LocationDetailPage() {
       : "0.0",
   };
 
-  // Değerlendirme yüzdelerini güvenli bir şekilde hesaplıyoruz
+  if (!location.rating && location.reviews && location.reviews.length > 0) {
+    const reviewsWithRatings = location.reviews.filter(
+      (review) => review.rating
+    );
+
+    if (reviewsWithRatings.length > 0) {
+      const tasteSum = reviewsWithRatings.reduce(
+        (sum, review) => sum + (review.rating.taste || 0),
+        0
+      );
+      const serviceSum = reviewsWithRatings.reduce(
+        (sum, review) => sum + (review.rating.service || 0),
+        0
+      );
+      const ambianceSum = reviewsWithRatings.reduce(
+        (sum, review) => sum + (review.rating.ambiance || 0),
+        0
+      );
+      const pricePerformanceSum = reviewsWithRatings.reduce(
+        (sum, review) => sum + (review.rating.pricePerformance || 0),
+        0
+      );
+
+      const count = reviewsWithRatings.length;
+
+      ratings.taste = (tasteSum / count).toFixed(1);
+      ratings.service = (serviceSum / count).toFixed(1);
+      ratings.ambiance = (ambianceSum / count).toFixed(1);
+      ratings.pricePerformance = (pricePerformanceSum / count).toFixed(1);
+    }
+  }
+
   const ratingPercentages = {
-    taste: location.rating?.taste
-      ? Math.min(Number(location.rating.taste) * 20, 100)
-      : 0,
-    service: location.rating?.service
-      ? Math.min(Number(location.rating.service) * 20, 100)
-      : 0,
-    ambiance: location.rating?.ambiance
-      ? Math.min(Number(location.rating.ambiance) * 20, 100)
-      : 0,
-    pricePerformance: location.rating?.pricePerformance
-      ? Math.min(Number(location.rating.pricePerformance) * 20, 100)
-      : 0,
+    taste:
+      Number(ratings.taste) > 0 ? Math.min(Number(ratings.taste) * 10, 100) : 0,
+    service:
+      Number(ratings.service) > 0
+        ? Math.min(Number(ratings.service) * 10, 100)
+        : 0,
+    ambiance:
+      Number(ratings.ambiance) > 0
+        ? Math.min(Number(ratings.ambiance) * 10, 100)
+        : 0,
+    pricePerformance:
+      Number(ratings.pricePerformance) > 0
+        ? Math.min(Number(ratings.pricePerformance) * 10, 100)
+        : 0,
   };
 
   return (
     <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-      {/* Hero Section */}
       <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden mb-8">
         <div className="relative h-64 sm:h-80 md:h-96">
           <Image
@@ -159,9 +190,7 @@ export default function LocationDetailPage() {
         </div>
       </div>
 
-      {/* Info Section */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-        {/* Left Column - Details */}
         <div className="md:col-span-2">
           <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 mb-6">
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
@@ -226,7 +255,6 @@ export default function LocationDetailPage() {
           </div>
         </div>
 
-        {/* Right Column - Rating Summary */}
         <div>
           <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
@@ -239,17 +267,22 @@ export default function LocationDetailPage() {
                 <span className="text-3xl font-bold ml-2 text-gray-900 dark:text-white">
                   {location.averageRating
                     ? Number(location.averageRating).toFixed(1)
-                    : "0.0"}
+                    : location.reviews &&
+                        location.reviews.length > 0 &&
+                        location.reviews[0].rating?.overall
+                      ? Number(location.reviews[0].rating.overall).toFixed(1)
+                      : "0.0"}
                 </span>
               </div>
               <span className="text-sm text-gray-500 dark:text-gray-400">
-                ({location.reviewCount || 0} değerlendirme)
+                ({location.reviewCount || location.reviews?.length || 0}{" "}
+                değerlendirme)
               </span>
             </div>
 
-            {location.reviewCount > 0 ? (
+            {location.reviewCount > 0 ||
+            (location.reviews && location.reviews.length > 0) ? (
               <div className="space-y-2">
-                {/* Burada daha detaylı değerlendirme istatistikleri gösterilebilir */}
                 <div className="flex items-center">
                   <span className="text-sm text-gray-500 dark:text-gray-400 w-24">
                     Lezzet
@@ -331,7 +364,6 @@ export default function LocationDetailPage() {
         </div>
       </div>
 
-      {/* Reviews Section */}
       <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
         <div className="border-b border-gray-200 dark:border-gray-700">
           <nav className="flex -mb-px">

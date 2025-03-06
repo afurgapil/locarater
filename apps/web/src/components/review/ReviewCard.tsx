@@ -3,7 +3,6 @@
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
 import { StarIcon, TrashIcon } from "@heroicons/react/24/solid";
-import { FlagIcon } from "@heroicons/react/24/outline";
 import { useState } from "react";
 import { reviewService } from "@/services/review.service";
 import { useToast } from "@/hooks/useToast";
@@ -63,6 +62,7 @@ export function ReviewCard({ review, locationId, onDelete }: ReviewCardProps) {
               <TrashIcon className="h-5 w-5" />
             </button>
           )}
+          {/* //TODO: Report button
           <button
             onClick={() => setIsReporting(true)}
             className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
@@ -70,6 +70,7 @@ export function ReviewCard({ review, locationId, onDelete }: ReviewCardProps) {
           >
             <FlagIcon className="h-5 w-5" />
           </button>
+          */}
         </div>
       </div>
 

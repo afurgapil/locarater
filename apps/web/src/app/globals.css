@@ -22,3 +22,16 @@ body {
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.dark input[type="date"],
+input[type="date"].dark,
+.dark-mode input[type="date"],
+.dark\:bg-gray-700 input[type="date"] {
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  input[type="date"] {
+    color-scheme: dark;
+  }
+}

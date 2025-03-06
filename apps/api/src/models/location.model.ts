@@ -162,6 +162,15 @@ LocationSchema.virtual("reviewCount").get(function () {
   return this.reviews.length;
 });
 
+LocationSchema.set("toJSON", {
+  virtuals: true,
+  transform: function (doc, ret) {
+    ret.id = ret._id;
+    delete ret.__v;
+    return ret;
+  },
+});
+
 LocationSchema.pre("save", function (next) {
   if (this.reviews?.length > 0) {
     const totalRating = this.reviews.reduce((sum, review) => {

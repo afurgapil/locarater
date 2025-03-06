@@ -1,10 +1,10 @@
 "use client";
 
-import { CATEGORIES } from "@/constants/categories";
+import { CATEGORIES, CategoryType } from "@/constants/categories";
 
 interface CategoryFilterProps {
-  selectedCategory: string;
-  onChange: (category: string) => void;
+  selectedCategory: CategoryType | "";
+  onChange: (category: CategoryType | "") => void;
 }
 
 export function CategoryFilter({
