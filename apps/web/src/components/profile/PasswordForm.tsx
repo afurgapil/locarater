@@ -50,13 +50,9 @@ export function PasswordForm() {
           );
           resetForm();
 
-          // Kısa bir gecikme ekleyerek toast mesajının görünmesini sağlayalım
           setTimeout(() => {
-            // Kullanıcıyı logout yap
             logout();
-
-            // Login sayfasına yönlendir
-            router.push("/auth/login");
+            router.push("/");
           }, 2000);
         } catch {
           showToast("Şifre güncellenirken bir hata oluştu", "error");

@@ -83,16 +83,12 @@ export default function ProfilePage() {
           try {
             await profileService.deleteAccount(password);
 
-            // Başarı mesajı göster
             showToast("Hesabınız başarıyla silindi", "success");
 
-            // Kısa bir gecikme ekleyerek toast mesajının görünmesini sağlayalım
             setTimeout(() => {
-              // Auth state'ini temizle
               logout();
 
-              // Login sayfasına yönlendir
-              router.push("/auth/login");
+              router.push("/");
             }, 2000);
           } catch (error) {
             console.error("Error deleting account:", error);

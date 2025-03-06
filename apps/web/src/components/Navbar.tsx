@@ -1,10 +1,22 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/useAuthStore";
 
 export function Navbar() {
   const { isAuthenticated, logout } = useAuthStore();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      logout();
+
+      router.push("/");
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
 
   return (
     <nav className="bg-white shadow">
@@ -30,7 +42,7 @@ export function Navbar() {
           <div className="flex items-center">
             {isAuthenticated() ? (
               <button
-                onClick={logout}
+                onClick={handleLogout}
                 className="px-4 py-2 text-gray-700 hover:text-gray-900"
               >
                 Çıkış Yap

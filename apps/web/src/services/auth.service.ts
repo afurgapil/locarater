@@ -77,7 +77,13 @@ export const authService = {
   },
 
   async logout(): Promise<void> {
-    await api.post(API_ENDPOINTS.auth.logout);
+    try {
+      await api.post(API_ENDPOINTS.auth.logout);
+    } catch (error) {
+      console.error("Logout error:", error);
+    } finally {
+      localStorage.removeItem("token");
+    }
   },
 
   async updateUserRole(
