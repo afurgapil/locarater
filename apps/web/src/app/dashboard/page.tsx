@@ -39,15 +39,15 @@ export default function DashboardPage() {
 
   if (!stats) {
     return (
-      <div className="text-center text-gray-500 dark:text-gray-400">
+      <div className="p-4 text-center text-gray-500 dark:text-gray-400 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
         İstatistikler yüklenirken bir hata oluştu.
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
+    <div className="space-y-6 px-4 sm:px-0 pb-6">
+      <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white">
         Dashboard
       </h1>
 
@@ -79,19 +79,27 @@ export default function DashboardPage() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Son Aktiviteler */}
-        <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-          <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+        <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-4 sm:p-6 overflow-hidden">
+          <h2 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white mb-4">
             Son Aktiviteler
           </h2>
-          <DashboardActivityList activities={stats.recentActivities} />
+          <div className="overflow-x-auto -mx-4 sm:mx-0">
+            <div className="inline-block min-w-full align-middle px-4 sm:px-0">
+              <DashboardActivityList activities={stats.recentActivities} />
+            </div>
+          </div>
         </div>
 
         {/* En Çok Yorum Alan Mekanlar */}
-        <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-          <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+        <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-4 sm:p-6 overflow-hidden">
+          <h2 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white mb-4">
             En Çok Yorum Alan Mekanlar
           </h2>
-          <DashboardTopLocations locations={stats.topLocations} />
+          <div className="overflow-x-auto -mx-4 sm:mx-0">
+            <div className="inline-block min-w-full align-middle px-4 sm:px-0">
+              <DashboardTopLocations locations={stats.topLocations} />
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -100,14 +108,14 @@ export default function DashboardPage() {
 
 function DashboardSkeleton() {
   return (
-    <div className="space-y-6 animate-pulse">
-      <div className="h-8 w-48 bg-gray-200 dark:bg-gray-700 rounded" />
+    <div className="space-y-6 animate-pulse px-4 sm:px-0">
+      <div className="h-7 sm:h-8 w-36 sm:w-48 bg-gray-200 dark:bg-gray-700 rounded" />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {[...Array(4)].map((_, i) => (
           <div
             key={i}
-            className="h-32 bg-gray-200 dark:bg-gray-700 rounded-lg"
+            className="h-24 sm:h-32 bg-gray-200 dark:bg-gray-700 rounded-lg"
           />
         ))}
       </div>
@@ -116,7 +124,7 @@ function DashboardSkeleton() {
         {[...Array(2)].map((_, i) => (
           <div
             key={i}
-            className="h-96 bg-gray-200 dark:bg-gray-700 rounded-lg"
+            className="h-64 sm:h-96 bg-gray-200 dark:bg-gray-700 rounded-lg"
           />
         ))}
       </div>

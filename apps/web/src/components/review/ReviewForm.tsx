@@ -5,7 +5,6 @@ import { Formik, Form, Field, FormikHelpers } from "formik";
 import { StarIcon } from "@heroicons/react/24/solid";
 import { reviewService } from "@/services/review.service";
 import * as Yup from "yup";
-import Image from "next/image";
 
 interface ReviewFormProps {
   locationId: string;
@@ -40,7 +39,6 @@ const ReviewSchema = Yup.object().shape({
 });
 
 export function ReviewForm({ locationId, onSuccess }: ReviewFormProps) {
-  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const initialValues: ReviewFormValues = {
@@ -62,7 +60,6 @@ export function ReviewForm({ locationId, onSuccess }: ReviewFormProps) {
     try {
       await reviewService.addReview(formData, locationId);
       resetForm();
-      setPreviewUrls([]);
       setSubmitError(null);
       if (onSuccess) {
         window.location.reload();
@@ -80,26 +77,13 @@ export function ReviewForm({ locationId, onSuccess }: ReviewFormProps) {
     }
   };
 
-  const handleImageChange = (
-    event: React.ChangeEvent<HTMLInputElement>,
-    setFieldValue: (field: string, value: File[]) => void
-  ) => {
-    if (!event.target.files) return;
-
-    const files = Array.from(event.target.files);
-    setFieldValue("images", files);
-
-    const urls = files.map((file) => URL.createObjectURL(file));
-    setPreviewUrls(urls);
-  };
-
   return (
     <Formik
       initialValues={initialValues}
       validationSchema={ReviewSchema}
       onSubmit={handleSubmit}
     >
-      {({ errors, touched, isSubmitting, setFieldValue }) => (
+      {({ errors, touched, isSubmitting }) => (
         <Form className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
@@ -221,50 +205,6 @@ export function ReviewForm({ locationId, onSuccess }: ReviewFormProps) {
           {submitError && (
             <div className="text-red-600 text-sm">{submitError}</div>
           )}
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
-              Fotoğraflar
-            </label>
-            <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-gray-600 border-dashed rounded-md">
-              <div className="space-y-1 text-center">
-                <div className="flex text-sm text-gray-600 dark:text-gray-400">
-                  <label
-                    htmlFor="images"
-                    className="relative cursor-pointer bg-white dark:bg-gray-700 rounded-md font-medium text-blue-600 dark:text-blue-400 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500"
-                  >
-                    <span>Fotoğraf yükle</span>
-                    <input
-                      id="images"
-                      name="images"
-                      type="file"
-                      multiple
-                      accept="image/*"
-                      className="sr-only"
-                      onChange={(e) => handleImageChange(e, setFieldValue)}
-                    />
-                  </label>
-                </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  PNG, JPG, GIF up to 10MB
-                </p>
-              </div>
-            </div>
-            {previewUrls.length > 0 && (
-              <div className="mt-4 grid grid-cols-3 gap-4">
-                {previewUrls.map((url, index) => (
-                  <div key={index} className="relative h-24">
-                    <Image
-                      src={url}
-                      alt={`Preview ${index + 1}`}
-                      fill
-                      className="object-cover rounded-md"
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
 
           <button
             type="submit"

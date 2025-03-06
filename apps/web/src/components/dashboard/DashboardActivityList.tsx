@@ -53,26 +53,26 @@ export function DashboardActivityList({
                   aria-hidden="true"
                 />
               )}
-              <div className="relative flex space-x-3">
+              <div className="relative flex items-start space-x-2 sm:space-x-3">
                 <div>
-                  <span className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center">
+                  <span className="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-blue-500 flex items-center justify-center text-sm sm:text-base">
                     {activity.type === "review" ? "⭐" : "📍"}
                   </span>
                 </div>
-                <div className="flex min-w-0 flex-1 justify-between space-x-4">
+                <div className="flex min-w-0 flex-1 flex-col sm:flex-row sm:justify-between sm:space-x-4">
                   <div>
-                    <p className="text-sm text-gray-700 dark:text-gray-300">
+                    <p className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 font-medium">
                       {activity.type === "review"
                         ? `${activity.locationName} mekanına yorum yapıldı`
                         : `${activity.name} mekanı eklendi`}
                     </p>
                     {activity.type === "review" && (
-                      <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                      <p className="mt-1 text-xs sm:text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
                         {activity.comment}
                       </p>
                     )}
                   </div>
-                  <div className="whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                  <div className="mt-1 sm:mt-0 text-xs sm:text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
                     {formatDistanceToNow(new Date(activity.createdAt), {
                       addSuffix: true,
                       locale: tr,
