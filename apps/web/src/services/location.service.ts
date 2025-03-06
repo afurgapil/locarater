@@ -112,33 +112,7 @@ export const locationService = {
   },
 
   async deleteLocation(id: string): Promise<void> {
-    await api.delete(`${API_ENDPOINTS.locations}/${id}`);
-  },
-
-  async getReviews(id: string) {
-    const response = await api.get(API_ENDPOINTS.locations.getReviews(id));
-    return response.data;
-  },
-
-  async addReview(
-    id: string,
-    data: {
-      rating: {
-        overall: number;
-        taste: number;
-        service: number;
-        ambiance: number;
-        pricePerformance: number;
-      };
-      comment: string;
-      visitDate?: Date;
-    }
-  ) {
-    const response = await api.post(
-      API_ENDPOINTS.locations.addReview(id),
-      data
-    );
-    return response.data;
+    await api.delete(API_ENDPOINTS.locations.delete(id));
   },
 
   async rateLocation(id: string, rating: number): Promise<Location> {

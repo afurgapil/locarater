@@ -116,7 +116,6 @@ export const updateReview = async (
       return;
     }
 
-    // Check if the user owns the review or is admin
     if (
       review.user.toString() !== req.user?._id &&
       req.user?.role !== "ADMIN"
@@ -125,7 +124,6 @@ export const updateReview = async (
       return;
     }
 
-    // Update review fields
     review.rating = {
       overall: reviewData.rating.overall,
       taste: reviewData.rating.taste,
@@ -179,7 +177,6 @@ export const deleteReview = async (
       return;
     }
 
-    // Check if the user owns the review or is admin
     if (
       review.user.toString() !== req.user?._id &&
       req.user?.role !== "ADMIN"
@@ -307,8 +304,6 @@ export const reportReview = async (
       return;
     }
 
-    // Burada report collection'a kayıt eklenebilir
-    // Şimdilik sadece başarılı response dönüyoruz
     res.json({
       message: "Değerlendirme başarıyla raporlandı",
       reportedReview: {

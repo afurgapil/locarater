@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation";
 interface LocationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  location?: any; // Düzenleme için location objesi eklenebilir
+  location?: any;
 }
 
 export function LocationModal({
@@ -19,13 +19,12 @@ export function LocationModal({
 }: LocationModalProps) {
   const router = useRouter();
 
-  // Modal açıldığında token kontrolü yap
   useEffect(() => {
     if (isOpen) {
       const token = localStorage.getItem("token");
       if (!token) {
-        onClose(); // Modal'ı kapat
-        router.push("/auth/login"); // Login sayfasına yönlendir
+        onClose();
+        router.push("/auth/login");
         return;
       }
     }
@@ -33,7 +32,6 @@ export function LocationModal({
 
   const handleSuccess = () => {
     onClose();
-    // İsteğe bağlı: Başarılı işlem sonrası sayfayı yenile veya liste güncelle
     window.location.reload();
   };
 

@@ -60,14 +60,19 @@ export function EditReviewDialog({
             initialValues={initialValues}
             onSubmit={async (values, { setSubmitting }) => {
               try {
-                await reviewService.updateReview(review._id, {
-                  rating: values.rating,
-                  comment: values.comment,
-                  visitDate: values.visitDate
-                    ? new Date(values.visitDate)
-                    : undefined,
-                });
+                await reviewService.updateReview(
+                  review.locationId,
+                  review._id,
+                  {
+                    rating: values.rating,
+                    comment: values.comment,
+                    visitDate: values.visitDate
+                      ? new Date(values.visitDate)
+                      : undefined,
+                  }
+                );
                 showToast("Değerlendirme başarıyla güncellendi", "success");
+                window.location.reload();
                 onClose();
               } catch (err) {
                 console.error("Error updating review:", err);

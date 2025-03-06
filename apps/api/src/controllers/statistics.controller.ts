@@ -40,13 +40,11 @@ export const getDashboardStats = async (req: AuthRequest, res: Response) => {
       },
     ]);
 
-    // Son eklenen mekanlar
     const recentLocations = await Location.find()
       .sort({ createdAt: -1 })
       .limit(5)
       .select("_id name createdAt");
 
-    // Son eklenen yorumlar
     const recentReviews = await Location.aggregate([
       {
         $unwind: "$reviews",

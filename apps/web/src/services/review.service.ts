@@ -39,38 +39,41 @@ interface UpdateReviewDto {
 
 export const reviewService = {
   async getReviews(locationId: string): Promise<ReviewResponse> {
-    const { data } = await api.get(`/locations/${locationId}/reviews`);
+    const { data } = await api.get(API_ENDPOINTS.reviews.getById(locationId));
     return data;
   },
 
   async addReview(
-    locationId: string,
-    reviewData: CreateReviewDto
+    reviewData: CreateReviewDto,
+    locationId: string
   ): Promise<ReviewResponse> {
     const { data } = await api.post(
-      `/locations/${locationId}/reviews`,
+      API_ENDPOINTS.reviews.create(locationId),
       reviewData
     );
     return data;
   },
 
-  async updateReview(id: string, updateData: UpdateReviewDto): Promise<Review> {
+  async updateReview(
+    locationId: string,
+    reviewId: string,
+    updateData: UpdateReviewDto
+  ): Promise<Review> {
     const { data } = await api.put(
-      API_ENDPOINTS.reviews.update(id),
+      API_ENDPOINTS.reviews.update(locationId, reviewId),
       updateData
     );
     return data;
   },
 
-  async deleteReview(id: string): Promise<void> {
-    await api.delete(API_ENDPOINTS.reviews.delete(id));
+  async deleteReview(locationId: string, reviewId: string): Promise<void> {
+    await api.delete(API_ENDPOINTS.reviews.delete(locationId, reviewId));
   },
   async getUserReviews(): Promise<Review[]> {
     try {
       const { data } = await api.post(API_ENDPOINTS.reviews.getByUser);
-      console.log("API Response:", data);
       return data;
-    } catch (error) {
+    } catch (error: any) {
       console.error("getUserReviews error:", {
         message: error.message,
         response: error.response?.data,

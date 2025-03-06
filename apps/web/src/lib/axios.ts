@@ -6,21 +6,16 @@ export const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-  withCredentials: true, // CSRF token için gerekli
+  withCredentials: true,
 });
 
-// Request interceptor - her istekte Authorization header'ını ekle
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    console.log("Request Config:", {
-      url: config.url,
-      headers: config.headers,
-      method: config.method,
-    });
+
     return config;
   },
   (error) => {
@@ -29,13 +24,8 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor - 401 hatalarını yakala
 api.interceptors.response.use(
   (response) => {
-    console.log("Response:", {
-      status: response.status,
-      data: response.data,
-    });
     return response;
   },
   async (error) => {
@@ -47,7 +37,7 @@ api.interceptors.response.use(
 
     if (error.response?.status === 401) {
       const authStore = useAuthStore.getState();
-      authStore.logout(); // Store'dan logout fonksiyonunu çağır
+      authStore.logout();
 
       if (
         typeof window !== "undefined" &&

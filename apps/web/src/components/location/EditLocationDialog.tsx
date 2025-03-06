@@ -59,7 +59,6 @@ export function EditLocationDialog({
                 });
                 showToast("Mekan başarıyla güncellendi", "success");
                 onClose();
-                // Sayfayı yenilemek için window.location.reload() kullanabilirsiniz
                 window.location.reload();
               } catch (err) {
                 console.error("Error updating location:", err);

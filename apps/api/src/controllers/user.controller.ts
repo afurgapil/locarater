@@ -40,7 +40,6 @@ export const updateUserProfile = async (
     const userId = req.user?._id;
     const updateData = req.body;
 
-    // Remove sensitive fields from update data
     delete updateData.password;
     delete updateData.role;
 
@@ -81,18 +80,15 @@ export const changePassword = async (
       return;
     }
 
-    // Verify current password
     const isValidPassword = await user.comparePassword(currentPassword);
     if (!isValidPassword) {
       res.status(401).json({ message: "Mevcut şifre hatalı" });
       return;
     }
 
-    // Hash new password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(newPassword, salt);
 
-    // Update password
     user.password = hashedPassword;
     user.updatedAt = new Date();
     await user.save();
@@ -120,7 +116,6 @@ export const deleteAccount = async (
       return;
     }
 
-    // Verify password before deletion
     const isValidPassword = await user.comparePassword(password);
     if (!isValidPassword) {
       res.status(401).json({ message: "Şifre hatalı" });
@@ -146,27 +141,23 @@ export const forgotPassword = async (
 
     const user = await User.findOne({ email });
     if (!user) {
-      // For security reasons, don't reveal if email exists
       res.json({
         message: "Şifre sıfırlama talimatları email adresinize gönderildi",
       });
       return;
     }
 
-    // Generate password reset token
     const resetToken = Math.random().toString(36).slice(-8);
     const salt = await bcrypt.genSalt(10);
     const hashedToken = await bcrypt.hash(resetToken, salt);
 
     user.resetPasswordToken = hashedToken;
-    user.resetPasswordExpires = new Date(Date.now() + 3600000); // 1 hour
+    user.resetPasswordExpires = new Date(Date.now() + 3600000);
     await user.save();
 
     // TODO: Send email with reset token
-    // For now, just return the token in response
     res.json({
       message: "Şifre sıfırlama talimatları email adresinize gönderildi",
-      // Remove this in production
       debug: {
         resetToken,
         userId: user._id,
@@ -195,7 +186,6 @@ export const resetPassword = async (
       return;
     }
 
-    // Check if token has expired
     if (user.resetPasswordExpires < new Date()) {
       res
         .status(400)
@@ -203,7 +193,6 @@ export const resetPassword = async (
       return;
     }
 
-    // Verify reset token
     const isValidToken = await bcrypt.compare(
       resetToken,
       user.resetPasswordToken
@@ -213,7 +202,6 @@ export const resetPassword = async (
       return;
     }
 
-    // Update password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(newPassword, salt);
 

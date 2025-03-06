@@ -41,14 +41,17 @@ export function ReviewForm({ locationId, onSuccess }: ReviewFormProps) {
   };
 
   const handleSubmit = async (
-    values: any,
+    values: ReviewFormValues,
     { setSubmitting, resetForm, setErrors }: any
   ) => {
     try {
-      await reviewService.addReview(locationId, values);
+      await reviewService.addReview(values, locationId);
       resetForm();
       setPreviewUrls([]);
-      onSuccess?.();
+      if (onSuccess) {
+        window.location.reload();
+        onSuccess();
+      }
     } catch (error: any) {
       console.error("Error creating review:", error);
       setErrors({
@@ -68,7 +71,6 @@ export function ReviewForm({ locationId, onSuccess }: ReviewFormProps) {
     const files = Array.from(event.target.files || []);
     setFieldValue("images", files);
 
-    // Create preview URLs
     const urls = files.map((file) => URL.createObjectURL(file));
     setPreviewUrls(urls);
   };
@@ -214,10 +216,7 @@ export function ReviewForm({ locationId, onSuccess }: ReviewFormProps) {
                       accept="image/*"
                       className="sr-only"
                       onChange={(e) =>
-                        handleImageChange(e, (field: string, value: any) => {
-                          // This is a placeholder implementation. You might want to
-                          // implement a proper image handling logic here.
-                        })
+                        handleImageChange(e, (field: string, value: any) => {})
                       }
                     />
                   </label>

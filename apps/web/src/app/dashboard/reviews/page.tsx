@@ -18,7 +18,6 @@ export default function MyReviewsPage() {
         setIsLoading(true);
         setError(null);
         const data = await reviewService.getUserReviews();
-        console.log("Gelen değerlendirmeler:", data);
         setReviews(data);
       } catch (err) {
         console.error("Error fetching reviews:", err);
@@ -82,7 +81,10 @@ export default function MyReviewsPage() {
               review={review}
               onDelete={async () => {
                 try {
-                  await reviewService.deleteReview(review._id);
+                  await reviewService.deleteReview(
+                    review.locationId,
+                    review._id
+                  );
                   setReviews(reviews.filter((r) => r._id !== review._id));
                 } catch (error) {
                   console.error("Error deleting review:", error);

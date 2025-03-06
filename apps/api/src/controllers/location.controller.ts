@@ -35,16 +35,6 @@ export const createLocation = async (
     const locationData = req.body;
     locationData.createdBy = req.user?._id;
 
-    // Koordinatları otomatik olarak al
-    const geocodeResult = await getCoordinates(
-      locationData.address.city,
-      locationData.address.district
-    );
-
-    if (geocodeResult.coordinates) {
-      locationData.address.coordinates = geocodeResult.coordinates;
-    }
-
     const location = new Location(locationData);
     await location.save();
     res.status(201).json(location);
@@ -105,7 +95,6 @@ export const updateLocation = async (
   try {
     const locationData = req.body;
 
-    // Check if user has permission to update
     const location = await Location.findById(req.params.id);
     if (!location) {
       res.status(404).json({ message: "Location not found" });
@@ -120,7 +109,6 @@ export const updateLocation = async (
       return;
     }
 
-    // Eğer adres güncellendiyse koordinatları da güncelle
     if (locationData.address?.city && locationData.address?.district) {
       const geocodeResult = await getCoordinates(
         locationData.address.city,
@@ -161,7 +149,6 @@ export const deleteLocation = async (
       return;
     }
 
-    // Only ADMIN or the creator can delete
     if (
       location.createdBy.toString() !== req.user?._id &&
       req.user?.role !== "ADMIN"
@@ -174,97 +161,5 @@ export const deleteLocation = async (
     res.json({ message: "Location deleted successfully" });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
-  }
-};
-
-export const addReview = async (
-  req: AuthenticatedRequest,
-  res: Response
-): Promise<void> => {
-  try {
-    const locationId = req.params.id;
-    const reviewData = req.body;
-    reviewData.user = req.user?._id;
-
-    const location = await Location.findById(locationId);
-    if (!location) {
-      res.status(404).json({ message: "Location not found" });
-      return;
-    }
-
-    // Check if user has already reviewed
-    const existingReview = location.reviews.find(
-      (review) => review.user.toString() === req.user?._id
-    );
-
-    if (existingReview) {
-      res
-        .status(400)
-        .json({ message: "Bu mekan için zaten bir değerlendirmeniz var" });
-      return;
-    }
-
-    location.reviews.push({
-      user: reviewData.user,
-      rating: {
-        overall: reviewData.rating.overall,
-        taste: reviewData.rating.taste,
-        service: reviewData.rating.service,
-        ambiance: reviewData.rating.ambiance,
-        pricePerformance: reviewData.rating.pricePerformance,
-      },
-      comment: reviewData.comment,
-      visitDate: reviewData.visitDate
-        ? new Date(reviewData.visitDate)
-        : new Date(),
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
-
-    await location.save();
-
-    const updatedLocation = await Location.findById(locationId).populate(
-      "reviews.user",
-      "username name"
-    );
-
-    res.status(201).json({
-      message: "Review added successfully",
-      review: updatedLocation?.reviews[updatedLocation.reviews.length - 1],
-      ratings: updatedLocation?.ratings,
-    });
-  } catch (error: any) {
-    console.error("Error adding review:", error);
-    res
-      .status(500)
-      .json({ message: "Error adding review", error: error.message });
-  }
-};
-
-export const getReviews = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  try {
-    const locationId = req.params.id;
-    const location = await Location.findById(locationId).populate(
-      "reviews.user",
-      "username name"
-    );
-
-    if (!location) {
-      res.status(404).json({ message: "Location not found" });
-      return;
-    }
-
-    res.json({
-      reviews: location.reviews,
-      ratings: location.ratings,
-    });
-  } catch (error: any) {
-    console.error("Error getting reviews:", error);
-    res
-      .status(500)
-      .json({ message: "Error getting reviews", error: error.message });
   }
 };

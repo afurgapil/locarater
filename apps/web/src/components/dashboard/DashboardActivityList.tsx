@@ -49,7 +49,7 @@ export function DashboardActivityList({
                     <p className="text-sm text-gray-700 dark:text-gray-300">
                       {"rating" in activity
                         ? `${activity.locationName} mekanına yorum yapıldı`
-                        : `${activity.locationName} mekanı eklendi`}
+                        : `${activity.name} mekanı eklendi`}
                     </p>
                     {"comment" in activity && (
                       <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">

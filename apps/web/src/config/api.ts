@@ -18,8 +18,6 @@ export const API_ENDPOINTS = {
     create: `${API_BASE_URL}/locations`,
     update: (id: string) => `${API_BASE_URL}/locations/${id}`,
     delete: (id: string) => `${API_BASE_URL}/locations/${id}`,
-    getReviews: (id: string) => `${API_BASE_URL}/locations/${id}/reviews`,
-    addReview: (id: string) => `${API_BASE_URL}/locations/${id}/reviews`,
     search: `${API_BASE_URL}/locations/search`,
     nearby: `${API_BASE_URL}/locations/nearby`,
     featured: `${API_BASE_URL}/locations/featured`,
@@ -41,10 +39,12 @@ export const API_ENDPOINTS = {
   },
   reviews: {
     getAll: `${API_BASE_URL}/reviews`,
-    getById: (id: string) => `${API_BASE_URL}/reviews/${id}`,
-    create: `${API_BASE_URL}/reviews`,
-    update: (id: string) => `${API_BASE_URL}/reviews/${id}`,
-    delete: (id: string) => `${API_BASE_URL}/reviews/${id}`,
+    getById: (locationId: string) => `${API_BASE_URL}/reviews/${locationId}`,
+    create: (locationId: string) => `${API_BASE_URL}/reviews/${locationId}`,
+    update: (locationId: string, reviewId: string) =>
+      `${API_BASE_URL}/reviews/${locationId}/${reviewId}`,
+    delete: (locationId: string, reviewId: string) =>
+      `${API_BASE_URL}/reviews/${locationId}/${reviewId}`,
     getByUser: `${API_BASE_URL}/reviews/user`,
   },
 };

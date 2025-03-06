@@ -44,7 +44,6 @@ export const authenticateToken = async (
       username: decoded.username,
       role: decoded.role,
     };
-    console.log("req.user", req.user);
 
     next();
   } catch (error) {
@@ -63,7 +62,6 @@ export const checkRole = (roles: string[]) => {
         res.status(401).json({ message: "Yetkilendirme gerekli" });
         return;
       }
-
       if (!roles.includes(req.user.role)) {
         res.status(403).json({ message: "Bu işlem için yetkiniz yok" });
         return;

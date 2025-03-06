@@ -24,7 +24,7 @@ app.use(express.json());
 
 app.use("/api/locations", locationRoutes);
 app.use("/api/auth", authRoutes);
-app.use("/api", reviewRoutes);
+app.use("/api/reviews", reviewRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/statistics", statisticsRoutes);
 const MONGODB_URI =
