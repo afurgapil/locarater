@@ -3,8 +3,9 @@
 import { StarIcon } from "@heroicons/react/24/solid";
 import { MapPinIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
+import Image from "next/image";
 import type { Location } from "@/types/location";
-import { getCategoryLabel } from "@/constants/categories";
+import { getCategoryLabel, getCategoryImage } from "@/constants/categories";
 
 interface LocationCardProps {
   location: Location;
@@ -16,6 +17,14 @@ export function LocationCard({ location }: LocationCardProps) {
       href={`/locations/${location._id}`}
       className="block bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden border border-gray-200 dark:border-gray-700"
     >
+      <div className="relative h-40 w-full">
+        <Image
+          src={location.images?.[0] || getCategoryImage(location.category)}
+          alt={location.name}
+          fill
+          className="object-cover"
+        />
+      </div>
       <div className="p-4">
         <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-1">
           {location.name}

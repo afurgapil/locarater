@@ -1,9 +1,11 @@
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Location } from "@/types/location";
 import { TrashIcon, PencilIcon } from "@heroicons/react/24/outline";
 import { EditLocationDialog } from "../location/EditLocationDialog";
 import { DeleteConfirmDialog } from "../shared/DeleteConfirmDialog";
+import { getCategoryLabel, getCategoryImage } from "@/constants/categories";
 
 interface DashboardLocationCardProps {
   location: Location;
@@ -19,7 +21,15 @@ export function DashboardLocationCard({
 
   return (
     <>
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+        <div className="relative h-32 w-full">
+          <Image
+            src={location.images?.[0] || getCategoryImage(location.category)}
+            alt={location.name}
+            fill
+            className="object-cover"
+          />
+        </div>
         <div className="p-6">
           <div className="flex justify-between items-start">
             <div>
@@ -54,7 +64,7 @@ export function DashboardLocationCard({
           <div className="mt-4">
             <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
               <span className="font-medium text-gray-900 dark:text-white">
-                {location.category}
+                {getCategoryLabel(location.category)}
               </span>
               <span className="mx-2">•</span>
               <span>{location.reviews?.length || 0} değerlendirme</span>

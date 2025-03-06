@@ -11,7 +11,7 @@ import {
   TagIcon,
   UserIcon,
 } from "@heroicons/react/24/solid";
-import { getCategoryLabel } from "@/constants/categories";
+import { getCategoryLabel, getCategoryImage } from "@/constants/categories";
 import Image from "next/image";
 import type { Location } from "@/types/location";
 
@@ -132,7 +132,7 @@ export default function LocationDetailPage() {
       <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden mb-8">
         <div className="relative h-64 sm:h-80 md:h-96">
           <Image
-            src={location.images?.[0] || "/placeholder-location.jpg"}
+            src={getCategoryImage(location.category)}
             alt={location.name}
             fill
             className="object-cover"

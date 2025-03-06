@@ -90,6 +90,8 @@ const LocationSchema = new mongoose.Schema({
     enum: [
       "RESTAURANT",
       "FAST_FOOD",
+      "HOME_MADE",
+      "STREET_FOOD",
       "CAFE",
       "PATISSERIE",
       "FINE_DINING",

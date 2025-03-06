@@ -9,7 +9,13 @@ export interface Location {
     city: string;
     district: string;
   };
-  rating?: number;
+  rating?: {
+    overall: number;
+    taste: number;
+    service: number;
+    ambiance: number;
+    pricePerformance: number;
+  };
   reviews: Review[];
   reviewCount: number;
   averageRating: number;
