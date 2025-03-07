@@ -8,9 +8,9 @@ interface ResultState {
   success: boolean;
   message: string;
   user?: {
-    _id: string;
-    name: string;
-    email: string;
+    id?: string;
+    name?: string;
+    email?: string;
     username?: string;
     role?: string;
   };

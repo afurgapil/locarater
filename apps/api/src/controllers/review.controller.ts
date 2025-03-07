@@ -26,7 +26,7 @@ interface MongoReview extends BaseReview {
 interface PopulatedReview extends BaseReview {
   _id: Types.ObjectId;
   user: {
-    _id: Types.ObjectId;
+    id: Types.ObjectId;
     username: string;
     name: string;
   };
@@ -264,7 +264,7 @@ export const getReviewsByUser = async (
           createdAt: review.createdAt,
           updatedAt: review.updatedAt,
           user: {
-            _id: review.user._id.toString(),
+            id: review.user._id.toString(),
             username: review.user.username,
             name: review.user.name,
           },

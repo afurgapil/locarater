@@ -299,7 +299,7 @@ export const updateUserRole = async (
     res.json({
       message: "Kullanıcı rolü başarıyla güncellendi",
       user: {
-        _id: user._id,
+        id: user._id,
         username: user.username,
         email: user.email,
         name: user.name,
