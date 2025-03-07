@@ -14,10 +14,13 @@ import {
 import { getCategoryLabel, getCategoryImage } from "@/constants/categories";
 import Image from "next/image";
 import type { Location } from "@/types/location";
+import { useAuthStore } from "@/store/useAuthStore";
+import Link from "next/link";
 
 export default function LocationDetailPage() {
   const params = useParams();
   const locationId = params.id as string;
+  const { user, token } = useAuthStore();
   const [location, setLocation] = useState<Location | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -394,11 +397,35 @@ export default function LocationDetailPage() {
         <div className="p-6">
           {activeTab === "reviews" ? (
             <ReviewList locationId={location._id} />
-          ) : (
+          ) : user && token ? (
             <ReviewForm
               locationId={location._id}
               onSuccess={handleReviewSuccess}
             />
+          ) : (
+            <div className="text-center py-8">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                Değerlendirme yapmak için giriş yapmalısınız
+              </h3>
+              <p className="text-gray-500 dark:text-gray-400 mb-4">
+                Değerlendirme yapabilmek için lütfen hesabınıza giriş yapın veya
+                yeni bir hesap oluşturun.
+              </p>
+              <div className="flex justify-center space-x-4">
+                <Link
+                  href={`/auth/login?redirect=${encodeURIComponent(`/locations/${locationId}`)}`}
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  Giriş Yap
+                </Link>
+                <Link
+                  href={`/auth/register?redirect=${encodeURIComponent(`/locations/${locationId}`)}`}
+                  className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md shadow-sm text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  Kayıt Ol
+                </Link>
+              </div>
+            </div>
           )}
         </div>
       </div>

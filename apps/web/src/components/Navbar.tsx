@@ -50,13 +50,13 @@ export function Navbar() {
             ) : (
               <div className="flex space-x-4">
                 <Link
-                  href="/login"
+                  href="/auth/login"
                   className="px-4 py-2 text-gray-700 hover:text-gray-900"
                 >
                   Giriş Yap
                 </Link>
                 <Link
-                  href="/register"
+                  href="/auth/register"
                   className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
                 >
                   Kayıt Ol

@@ -4,5 +4,12 @@
       "source": "/api/(.*)",
       "destination": "https://locarater-api.vercel.app/$1"
     }
-  ]
+  ],
+  "git": {
+    "deploymentEnabled": {
+      "main": true,
+      "web": false,
+      "api": false
+    }
+  }
 }
