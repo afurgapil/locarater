@@ -48,8 +48,8 @@ export function LoginForm() {
     try {
       const response = await authService.login(values);
       setUser({
-        _id: response.user._id,
-        username: response.user.name || values.username,
+        _id: response.user.id,
+        username: values.username,
         role: response.user.role || "USER",
       });
       setToken(response.token);
@@ -57,7 +57,6 @@ export function LoginForm() {
     } catch (error: unknown) {
       console.error("Login error:", error);
 
-      // Backend'den gelen hata mesajlarını işle
       const errorResponse = error as {
         response?: { data?: { message?: string } };
       };
@@ -65,7 +64,6 @@ export function LoginForm() {
         errorResponse.response?.data?.message ||
         "Giriş yapılırken bir hata oluştu";
 
-      // Spesifik hata mesajlarını ilgili alanlara bağla
       if (errorMessage.includes("Kullanıcı adı veya şifre hatalı")) {
         setStatus("Kullanıcı adı veya şifre hatalı");
       } else {

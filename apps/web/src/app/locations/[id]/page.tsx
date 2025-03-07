@@ -29,7 +29,6 @@ export default function LocationDetailPage() {
     try {
       setLoading(true);
       const data = await locationService.getLocationById(locationId);
-      console.log("DATA", data);
       setLocation(data);
     } catch (error) {
       const errorMessage =
@@ -110,14 +109,6 @@ export default function LocationDetailPage() {
       : "0.0",
   };
 
-  console.log("Location data:", {
-    reviewCount: location.reviewCount,
-    averageRating: location.averageRating,
-    rating: location.rating,
-    ratings: location.ratings,
-    reviews: location.reviews,
-  });
-
   if (!location.rating && location.reviews && location.reviews.length > 0) {
     const reviewsWithRatings = location.reviews.filter(
       (review) => review.rating
@@ -147,8 +138,6 @@ export default function LocationDetailPage() {
       ratings.service = (serviceSum / count).toFixed(1);
       ratings.ambiance = (ambianceSum / count).toFixed(1);
       ratings.pricePerformance = (pricePerformanceSum / count).toFixed(1);
-
-      console.log("Calculated ratings from reviews:", ratings);
     }
   }
 

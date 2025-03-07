@@ -73,9 +73,8 @@ export function RegisterForm() {
   ) => {
     try {
       const response = await authService.register(values);
-      // Transform backend User to frontend User
       setUser({
-        _id: response.user._id,
+        _id: response.user.id || response.user._id,
         username: values.username,
         role: response.user.role || "USER",
       });
@@ -84,7 +83,6 @@ export function RegisterForm() {
     } catch (error: unknown) {
       console.error("Register error:", error);
 
-      // Backend'den gelen hata mesajlarını işle
       const errorResponse = error as {
         response?: { data?: { message?: string } };
       };
@@ -92,7 +90,6 @@ export function RegisterForm() {
         errorResponse.response?.data?.message ||
         "Kayıt olurken bir hata oluştu";
 
-      // Spesifik hata mesajlarını ilgili alanlara bağla
       if (errorMessage.includes("email adresi zaten kullanımda")) {
         setFieldError("email", "Bu email adresi zaten kullanımda");
         setStatus("Lütfen farklı bir email adresi kullanın");

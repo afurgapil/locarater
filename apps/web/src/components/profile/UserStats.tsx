@@ -35,7 +35,6 @@ export function UserStats() {
     const fetchStats = async () => {
       try {
         const data = await statisticsService.getUserStats();
-        console.log(data);
         setStats(data);
       } catch (error) {
         console.error("Error fetching user stats:", error);

@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { reviewService } from "@/services/review.service";
 import { ReviewCard } from "./ReviewCard";
 import type { Review } from "@/types/review";
+import { useAuthStore } from "@/store/useAuthStore";
 
 interface ReviewListProps {
   locationId: string;
@@ -22,6 +23,7 @@ export function ReviewList({ locationId }: ReviewListProps) {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { user } = useAuthStore();
 
   const fetchReviews = useCallback(async () => {
     try {
@@ -83,14 +85,22 @@ export function ReviewList({ locationId }: ReviewListProps) {
 
   return (
     <div className="space-y-4">
-      {reviews.map((review) => (
-        <ReviewCard
-          key={review._id}
-          review={review}
-          locationId={locationId}
-          onDelete={() => handleDelete(review._id)}
-        />
-      ))}
+      {reviews.map((review) => {
+        const canDeleteReview =
+          !!user &&
+          ((user._id && user._id === review.user._id) || user.role === "ADMIN");
+
+        return (
+          <ReviewCard
+            key={review._id}
+            review={review}
+            locationId={locationId}
+            onDelete={
+              canDeleteReview ? () => handleDelete(review._id) : undefined
+            }
+          />
+        );
+      })}
     </div>
   );
 }

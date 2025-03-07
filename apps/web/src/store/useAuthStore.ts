@@ -3,7 +3,7 @@ import { persist } from "zustand/middleware";
 
 interface AuthState {
   user: {
-    _id: string;
+    _id?: string;
     username: string;
     role: string;
   } | null;

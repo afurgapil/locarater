@@ -2,13 +2,15 @@ import { api } from "@/lib/axios";
 import { API_ENDPOINTS } from "@/config/api";
 
 export interface User {
-  _id: string;
-  name: string;
+  _id?: string;
+  id?: string;
+  name?: string;
+  username?: string;
   email: string;
   avatar?: string;
-  isVerified: boolean;
-  createdAt: string;
-  updatedAt: string;
+  isVerified?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
   role?: string;
 }
 

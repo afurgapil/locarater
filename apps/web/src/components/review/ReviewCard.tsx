@@ -7,6 +7,7 @@ import { useState } from "react";
 import { reviewService } from "@/services/review.service";
 import { useToast } from "@/hooks/useToast";
 import type { Review } from "@/types/review";
+import { useAuthStore } from "@/store/useAuthStore";
 
 interface ReviewCardProps {
   review: Review;
@@ -18,9 +19,14 @@ export function ReviewCard({ review, locationId, onDelete }: ReviewCardProps) {
   const [isReporting, setIsReporting] = useState(false);
   const [reportReason, setReportReason] = useState("");
   const { showToast } = useToast();
+  const { user } = useAuthStore();
+
+  const canDeleteReview =
+    !!user &&
+    ((user._id && user._id === review.user._id) || user.role === "ADMIN");
 
   const handleDelete = async () => {
-    if (!onDelete) return;
+    if (!onDelete || !canDeleteReview) return;
 
     try {
       await reviewService.deleteReview(locationId, review._id);
@@ -53,7 +59,7 @@ export function ReviewCard({ review, locationId, onDelete }: ReviewCardProps) {
           </div>
         </div>
         <div className="flex space-x-2">
-          {onDelete && (
+          {onDelete && canDeleteReview && (
             <button
               onClick={handleDelete}
               className="text-gray-400 hover:text-red-500 dark:hover:text-red-400"
