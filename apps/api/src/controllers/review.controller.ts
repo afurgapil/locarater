@@ -36,7 +36,7 @@ type Review = MongoReview | PopulatedReview;
 
 interface AuthenticatedRequest extends Request {
   user?: {
-    _id: string;
+    id: string;
     username: string;
     role: string;
   };
@@ -49,7 +49,7 @@ export const addReview = async (
   try {
     const locationId = req.params.locationId;
     const reviewData = req.body;
-    reviewData.user = req.user?._id;
+    reviewData.user = req.user?.id;
     const location = await Location.findById(locationId);
     if (!location) {
       res.status(404).json({ message: "Mekan bulunamadı" });
@@ -57,7 +57,7 @@ export const addReview = async (
     }
 
     const existingReview = location.reviews.find(
-      (review) => review.user.toString() === req.user?._id
+      (review) => review.user.toString() === req.user?.id
     );
 
     if (existingReview) {
@@ -125,10 +125,7 @@ export const updateReview = async (
       return res.status(404).json({ message: "Değerlendirme bulunamadı" });
     }
 
-    if (
-      review.user.toString() !== req.user?._id &&
-      req.user?.role !== "ADMIN"
-    ) {
+    if (review.user.toString() !== req.user?.id && req.user?.role !== "ADMIN") {
       return res.status(403).json({ message: "Bu işlem için yetkiniz yok" });
     }
 
@@ -234,7 +231,7 @@ export const getReviewsByUser = async (
   res: Response
 ): Promise<Response> => {
   try {
-    const userId = req.user?._id;
+    const userId = req.user?.id;
 
     if (!userId) {
       return res.status(401).json({ message: "Unauthorized" });
@@ -308,7 +305,7 @@ export const reportReview = async (
       message: "Değerlendirme başarıyla raporlandı",
       reportedReview: {
         reviewId,
-        reportedBy: req.user?._id,
+        reportedBy: req.user?.id,
         reason,
       },
     });

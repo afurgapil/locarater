@@ -10,7 +10,7 @@ interface JwtPayload {
 }
 
 interface AuthUser {
-  _id: string;
+  id: string;
   username: string;
   role: string;
 }
@@ -40,7 +40,7 @@ export const authenticateToken = async (
     const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
 
     req.user = {
-      _id: decoded.id,
+      id: decoded.id,
       username: decoded.username,
       role: decoded.role,
     };

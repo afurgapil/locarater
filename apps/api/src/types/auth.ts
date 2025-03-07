@@ -1,7 +1,7 @@
 import { Request } from "express";
 
 export interface AuthUser {
-  _id: string;
+  id: string;
   username: string;
   role: string;
 }

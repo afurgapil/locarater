@@ -5,7 +5,7 @@ import { Location } from "../models/location.model";
 
 interface AuthenticatedRequest extends Request {
   user?: {
-    _id: string;
+    id: string;
     username: string;
     role: string;
   };
@@ -16,7 +16,7 @@ export const getUserProfile = async (
   res: Response
 ): Promise<void> => {
   try {
-    const userId = req.params.userId || req.user?._id;
+    const userId = req.params.userId || req.user?.id;
     const user = await User.findById(userId).select("-password");
     if (!user) {
       res.status(404).json({ message: "Kullanıcı bulunamadı" });
@@ -36,7 +36,7 @@ export const updateUserProfile = async (
   res: Response
 ): Promise<void> => {
   try {
-    const userId = req.user?._id;
+    const userId = req.user?.id;
     const updateData = req.body;
 
     delete updateData.password;
@@ -71,7 +71,7 @@ export const changePassword = async (
 ): Promise<void> => {
   try {
     const { currentPassword, newPassword } = req.body;
-    const userId = req.user?._id;
+    const userId = req.user?.id;
     const user = await User.findById(userId);
     if (!user) {
       res.status(404).json({ message: "Kullanıcı bulunamadı" });
@@ -110,7 +110,7 @@ export const deleteAccount = async (
   res: Response
 ): Promise<void> => {
   try {
-    const userId = req.user?._id;
+    const userId = req.user?.id;
 
     if (!userId) {
       res.status(401).json({ message: "Yetkilendirme hatası" });

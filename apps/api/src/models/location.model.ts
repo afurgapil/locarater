@@ -159,7 +159,7 @@ LocationSchema.index({ "ratings.average": -1 });
 LocationSchema.index({ tags: 1 });
 
 LocationSchema.virtual("reviewCount").get(function () {
-  return this.reviews.length;
+  return this.reviews?.length || 0;
 });
 
 LocationSchema.set("toJSON", {

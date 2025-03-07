@@ -1,13 +1,14 @@
 import { Request, Response } from "express";
 import { Location } from "../models/location.model";
 import { AuthRequest } from "../types/auth";
+import { Types } from "mongoose";
 
 export const getDashboardStats = async (
   req: AuthRequest,
   res: Response
 ): Promise<Response> => {
   try {
-    const userId = req.user?._id;
+    const userId = req.user?.id;
 
     const totalLocations = await Location.countDocuments();
 
@@ -184,9 +185,14 @@ export const getUserStats = async (
   res: Response
 ): Promise<Response> => {
   try {
-    const userId = req.user?._id;
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ message: "Kullanıcı kimliği bulunamadı" });
+    }
 
-    const recentLocations = await Location.find({ createdBy: userId })
+    const userObjectId = new Types.ObjectId(userId);
+
+    const recentLocations = await Location.find({ createdBy: userObjectId })
       .sort({ createdAt: -1 })
       .limit(5)
       .select("name reviewCount averageRating createdAt");
@@ -197,7 +203,7 @@ export const getUserStats = async (
       },
       {
         $match: {
-          "reviews.user": userId,
+          "reviews.user": userObjectId,
         },
       },
       {
@@ -226,7 +232,7 @@ export const getUserStats = async (
       },
       {
         $match: {
-          "reviews.user": userId,
+          "reviews.user": userObjectId,
         },
       },
       {

@@ -4,7 +4,7 @@ import { RequestHandler } from "express";
 
 interface AuthenticatedRequest extends Request {
   user?: {
-    _id: string;
+    id: string;
     username: string;
     role: string;
   };
@@ -28,7 +28,7 @@ export const createLocation = async (
 ): Promise<void> => {
   try {
     const locationData = req.body;
-    locationData.createdBy = req.user?._id;
+    locationData.createdBy = req.user?.id;
 
     const location = new Location(locationData);
     await location.save();
@@ -57,7 +57,7 @@ export const getLocationByUser = async (
   res: Response
 ): Promise<void> => {
   try {
-    const userId = req.user?._id;
+    const userId = req.user?.id;
     const locations = await Location.find({ createdBy: userId });
     res.json(locations);
   } catch (error: any) {
@@ -97,7 +97,7 @@ export const updateLocation = async (
     }
 
     if (
-      location.createdBy.toString() !== req.user?._id &&
+      location.createdBy.toString() !== req.user?.id &&
       req.user?.role !== "ADMIN"
     ) {
       res.status(403).json({ message: "Bu işlem için yetkiniz yok" });
@@ -134,7 +134,7 @@ export const deleteLocation = async (
     }
 
     if (
-      location.createdBy.toString() !== req.user?._id &&
+      location.createdBy.toString() !== req.user?.id &&
       req.user?.role !== "ADMIN"
     ) {
       res.status(403).json({ message: "Bu işlem için yetkiniz yok" });
