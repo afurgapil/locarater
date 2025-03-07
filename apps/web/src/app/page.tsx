@@ -5,6 +5,11 @@ import { useSearchParams } from "next/navigation";
 import { SearchBar } from "@/components/location/SearchBar";
 import { CategoryFilter } from "@/components/location/CategoryFilter";
 import { LocationList } from "@/components/location/LocationList";
+import {
+  SortSelect,
+  sortOptions,
+  type SortOption,
+} from "@/components/location/SortSelect";
 import { locationService } from "@/services/location.service";
 import type { Location } from "@/types/location";
 import type { CategoryType } from "@/constants/categories";
@@ -28,6 +33,7 @@ function HomeContent() {
   const [selectedCategory, setSelectedCategory] = useState<CategoryType | "">(
     ""
   );
+  const [selectedSort, setSelectedSort] = useState<SortOption>(sortOptions[0]);
   const searchQuery = searchParams.get("q") || "";
 
   useEffect(() => {
@@ -46,8 +52,8 @@ function HomeContent() {
     }
   };
 
-  const filteredLocations = useMemo(() => {
-    return locations.filter((location) => {
+  const filteredAndSortedLocations = useMemo(() => {
+    const filtered = locations.filter((location) => {
       const matchesSearch = searchQuery
         ? location.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           location.address.city
@@ -64,10 +70,78 @@ function HomeContent() {
 
       return matchesSearch && matchesCategory;
     });
-  }, [locations, searchQuery, selectedCategory]);
+
+    return [...filtered].sort((a, b) => {
+      switch (selectedSort.value) {
+        case "rating-desc":
+          const aRating = a.ratings?.average || a.averageRating || 0;
+          const bRating = b.ratings?.average || b.averageRating || 0;
+          return bRating - aRating;
+        case "rating-asc":
+          const aRatingAsc = a.ratings?.average || a.averageRating || 0;
+          const bRatingAsc = b.ratings?.average || b.averageRating || 0;
+          return aRatingAsc - bRatingAsc;
+
+        case "reviews-desc":
+          const aReviews =
+            a.ratings?.count || a.reviewCount || a.reviews?.length || 0;
+          const bReviews =
+            b.ratings?.count || b.reviewCount || b.reviews?.length || 0;
+          return bReviews - aReviews;
+        case "reviews-asc":
+          const aReviewsAsc =
+            a.ratings?.count || a.reviewCount || a.reviews?.length || 0;
+          const bReviewsAsc =
+            b.ratings?.count || b.reviewCount || b.reviews?.length || 0;
+          return aReviewsAsc - bReviewsAsc;
+
+        case "date-desc":
+          return (
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
+        case "date-asc":
+          return (
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+          );
+
+        case "name-asc":
+          return a.name.localeCompare(b.name, "tr");
+        case "name-desc":
+          return b.name.localeCompare(a.name, "tr");
+
+        case "city-asc":
+          return a.address.city.localeCompare(b.address.city, "tr");
+        case "city-desc":
+          return b.address.city.localeCompare(a.address.city, "tr");
+        case "district-asc":
+          return a.address.district.localeCompare(b.address.district, "tr");
+        case "district-desc":
+          return b.address.district.localeCompare(a.address.district, "tr");
+
+        default:
+          const aRatingWeight = a.ratings?.average || a.averageRating || 0;
+          const bRatingWeight = b.ratings?.average || b.averageRating || 0;
+          const aReviewsWeight = Math.log(
+            a.ratings?.count || a.reviewCount || a.reviews?.length || 1
+          );
+          const bReviewsWeight = Math.log(
+            b.ratings?.count || b.reviewCount || b.reviews?.length || 1
+          );
+
+          const aScore = aRatingWeight * 0.7 + aReviewsWeight * 0.3;
+          const bScore = bRatingWeight * 0.7 + bReviewsWeight * 0.3;
+
+          return bScore - aScore;
+      }
+    });
+  }, [locations, searchQuery, selectedCategory, selectedSort]);
 
   const handleCategoryChange = (category: CategoryType | "") => {
     setSelectedCategory(category);
+  };
+
+  const handleSortChange = (option: SortOption) => {
+    setSelectedSort(option);
   };
 
   return (
@@ -78,14 +152,24 @@ function HomeContent() {
         </h1>
 
         <div className="space-y-4">
-          <SearchBar />
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex-1">
+              <SearchBar />
+            </div>
+            <div className="w-full sm:w-64">
+              <SortSelect selected={selectedSort} onChange={handleSortChange} />
+            </div>
+          </div>
 
           <CategoryFilter
             selectedCategory={selectedCategory}
             onChange={handleCategoryChange}
           />
 
-          <LocationList locations={filteredLocations} loading={loading} />
+          <LocationList
+            locations={filteredAndSortedLocations}
+            loading={loading}
+          />
         </div>
       </div>
     </div>

@@ -8,8 +8,7 @@
   "git": {
     "deploymentEnabled": {
       "main": true,
-      "web": false,
-      "api": false
+      "dev": false
     }
   }
 }
