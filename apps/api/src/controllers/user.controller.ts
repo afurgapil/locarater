@@ -23,6 +23,26 @@ export const getUserProfile = async (
     });
   }
 };
+export const getUserByUsername = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { username } = req.params;
+    console.log("username", username);
+    const user = await User.findOne({ username }).select("-password");
+    if (!user) {
+      res.status(404).json({ message: "Kullanıcı bulunamadı" });
+      return;
+    }
+    res.json(user);
+  } catch (error: any) {
+    res.status(500).json({
+      message: "Kullanıcı bulunurken hata oluştu",
+      error: error.message,
+    });
+  }
+};
 
 export const updateUserProfile = async (
   req: AuthRequest,
@@ -214,45 +234,6 @@ export const deleteAccount = async (
     res
       .status(500)
       .json({ message: "Hesap silinirken hata oluştu", error: error.message });
-  }
-};
-
-export const forgotPassword = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  try {
-    const { email } = req.body;
-
-    const user = await User.findOne({ email });
-    if (!user) {
-      res.json({
-        message: "Şifre sıfırlama talimatları email adresinize gönderildi",
-      });
-      return;
-    }
-
-    const resetToken = Math.random().toString(36).slice(-8);
-    const salt = await bcrypt.genSalt(10);
-    const hashedToken = await bcrypt.hash(resetToken, salt);
-
-    user.resetPasswordToken = hashedToken;
-    user.resetPasswordExpires = new Date(Date.now() + 3600000);
-    await user.save();
-
-    // TODO: Send email with reset token
-    res.json({
-      message: "Şifre sıfırlama talimatları email adresinize gönderildi",
-      debug: {
-        resetToken,
-        userId: user._id,
-      },
-    });
-  } catch (error: any) {
-    res.status(500).json({
-      message: "Şifre sıfırlama işlemi başlatılırken hata oluştu",
-      error: error.message,
-    });
   }
 };
 

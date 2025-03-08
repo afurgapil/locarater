@@ -8,6 +8,7 @@ import { reviewService } from "@/services/review.service";
 import { useToast } from "@/hooks/useToast";
 import type { Review } from "@/types/review";
 import { useAuthStore } from "@/store/useAuthStore";
+import { UserProfileLink } from "@/components/shared/UserProfileLink";
 
 interface ReviewCardProps {
   review: Review;
@@ -43,9 +44,12 @@ export function ReviewCard({ review, locationId, onDelete }: ReviewCardProps) {
       <div className="flex justify-between items-start">
         <div>
           <div className="flex items-center">
-            <span className="font-medium text-gray-900 dark:text-white">
+            <UserProfileLink
+              username={review.user.username}
+              className="font-medium text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400"
+            >
               {review.user.name}
-            </span>
+            </UserProfileLink>
             <span className="mx-2 text-gray-500 dark:text-gray-400">•</span>
             <div className="flex items-center">
               <StarIcon className="h-5 w-5 text-yellow-400" />

@@ -48,11 +48,15 @@ export function LoginForm() {
   ) => {
     try {
       const response = await authService.login(values);
+
       setUser({
-        _id: response.user.id,
-        username: values.username,
+        _id: response.user._id,
+        email: response.user.email,
+        isVerified: response.user.isVerified,
         role: response.user.role || "USER",
+        username: response.user.username || values.username,
       });
+
       setToken(response.token);
       router.push("/dashboard");
     } catch (error: unknown) {

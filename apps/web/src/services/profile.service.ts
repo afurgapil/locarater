@@ -23,8 +23,8 @@ interface PasswordUpdateData {
 }
 
 export const profileService = {
-  async getProfile(): Promise<Profile> {
-    const { data } = await api.get(API_ENDPOINTS.users.profile);
+  async getProfile(id: string): Promise<Profile> {
+    const { data } = await api.get(API_ENDPOINTS.users.getUserById(id));
     return data;
   },
 

@@ -32,9 +32,11 @@ export const API_ENDPOINTS = {
   },
   users: {
     getAll: `${API_BASE_URL}/users/all`,
-    profile: `${API_BASE_URL}/users/profile`,
     delete: `${API_BASE_URL}/users/account`,
     update: `${API_BASE_URL}/users/profile`,
+    getUserByUsername: (username: string) =>
+      `${API_BASE_URL}/users/profile/username/${username}`,
+    getUserById: (id: string) => `${API_BASE_URL}/users/profile/id/${id}`,
     changePassword: `${API_BASE_URL}/users/change-password`,
     updateRole: `${API_BASE_URL}/users/update-role`,
     forceDelete: (userId: string) =>
