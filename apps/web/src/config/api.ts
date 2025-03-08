@@ -1,3 +1,7 @@
+import dotenv from "dotenv";
+
+dotenv.config();
+
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
 
@@ -6,6 +10,9 @@ export const API_ENDPOINTS = {
     login: `${API_BASE_URL}/auth/login`,
     register: `${API_BASE_URL}/auth/register`,
     logout: `${API_BASE_URL}/auth/logout`,
+    verifyEmail: (token: string) =>
+      `${API_BASE_URL}/auth/verify-email/${token}`,
+    resendVerification: `${API_BASE_URL}/auth/resend-verification`,
   },
   locations: {
     getAll: `${API_BASE_URL}/locations`,

@@ -156,6 +156,12 @@ export default function AdminUsersPage() {
                       scope="col"
                       className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
                     >
+                      Doğrulama Durumu
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                    >
                       Kayıt Tarihi
                     </th>
                     <th
@@ -217,6 +223,13 @@ export default function AdminUsersPage() {
                             className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${user.isActive ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}
                           >
                             {user.isActive ? "Aktif" : "Pasif"}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span
+                            className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${user.isActive ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}
+                          >
+                            {user.isVerified ? "Doğrulandı" : "Doğrulanmadı"}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">

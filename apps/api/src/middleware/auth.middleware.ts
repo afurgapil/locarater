@@ -1,16 +1,22 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 
 interface JwtPayload {
-  id: string;
+  _id: string;
   username: string;
   role: string;
+  iat?: number;
+  exp?: number;
 }
 
-interface AuthUser {
+export interface AuthUser {
   id: string;
+  _id: string;
   username: string;
   role: string;
 }
@@ -40,13 +46,15 @@ export const authenticateToken = async (
     const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
 
     req.user = {
-      id: decoded.id,
+      id: decoded._id,
+      _id: decoded._id,
       username: decoded.username,
       role: decoded.role,
     };
 
     next();
   } catch (error) {
+    console.error("Token doğrulama hatası:", error);
     res.status(403).json({ message: "Geçersiz token" });
   }
 };

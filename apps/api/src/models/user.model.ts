@@ -40,6 +40,16 @@ const UserSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
   },
+  isVerified: {
+    type: Boolean,
+    default: false,
+  },
+  verificationToken: {
+    type: String,
+  },
+  verificationTokenExpires: {
+    type: Date,
+  },
   lastLogin: {
     type: Date,
   },
@@ -88,6 +98,9 @@ export interface IUser extends Document {
   name: string;
   role: "USER" | "ADMIN" | "BUSINESS_OWNER";
   isActive: boolean;
+  isVerified: boolean;
+  verificationToken?: string;
+  verificationTokenExpires?: Date;
   lastLogin?: Date;
   resetPasswordToken?: string;
   resetPasswordExpires?: Date;

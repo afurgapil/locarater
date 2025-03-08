@@ -5,12 +5,16 @@ import { useRouter } from "next/navigation";
 import { authService } from "@/services/auth.service";
 import { useAuthStore } from "@/store/useAuthStore";
 import type { RegisterCredentials } from "@/services/auth.service";
+import { useState } from "react";
+import { CheckIcon } from "@heroicons/react/24/outline";
 
 type RegisterFormValues = RegisterCredentials;
 
 export function RegisterForm() {
   const router = useRouter();
   const { setUser, setToken } = useAuthStore();
+  const [registrationSuccess, setRegistrationSuccess] = useState(false);
+  const [userEmail, setUserEmail] = useState("");
 
   const initialValues: RegisterFormValues = {
     name: "",
@@ -77,9 +81,16 @@ export function RegisterForm() {
         _id: response.user.id || response.user._id,
         username: values.username,
         role: response.user.role || "USER",
+        isVerified: response.user.isVerified || false,
       });
       setToken(response.token);
-      router.push("/dashboard");
+
+      setUserEmail(values.email);
+      setRegistrationSuccess(true);
+
+      if (response.user.isVerified) {
+        router.push("/dashboard");
+      }
     } catch (error: unknown) {
       console.error("Register error:", error);
 
@@ -103,6 +114,38 @@ export function RegisterForm() {
       setSubmitting(false);
     }
   };
+
+  if (registrationSuccess) {
+    return (
+      <div className="text-center">
+        <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 dark:bg-green-900">
+          <CheckIcon className="h-6 w-6 text-green-600 dark:text-green-300" />
+        </div>
+        <h3 className="mt-3 text-lg font-medium text-gray-900 dark:text-white">
+          Kayıt Başarılı!
+        </h3>
+        <div className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+          <p>
+            <strong>{userEmail}</strong> adresine bir doğrulama emaili
+            gönderdik.
+          </p>
+          <p className="mt-1">
+            Lütfen email kutunuzu kontrol edin ve hesabınızı doğrulamak için
+            emaildeki bağlantıya tıklayın.
+          </p>
+        </div>
+        <div className="mt-5">
+          <button
+            type="button"
+            onClick={() => router.push("/dashboard")}
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            Dashboard&apos;a Git
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Formik

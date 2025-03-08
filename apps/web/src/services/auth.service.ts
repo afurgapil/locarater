@@ -97,4 +97,16 @@ export const authService = {
     );
     return data;
   },
+
+  async verifyEmail(token: string): Promise<{ message: string; user: User }> {
+    const { data } = await api.get(API_ENDPOINTS.auth.verifyEmail(token));
+    return data;
+  },
+
+  async resendVerification(email: string): Promise<{ message: string }> {
+    const { data } = await api.post(API_ENDPOINTS.auth.resendVerification, {
+      email,
+    });
+    return data;
+  },
 };

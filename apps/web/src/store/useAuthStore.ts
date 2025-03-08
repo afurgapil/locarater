@@ -6,10 +6,12 @@ interface AuthState {
     _id?: string;
     username: string;
     role: string;
+    isVerified?: boolean;
   } | null;
   token: string | null;
   setUser: (user: AuthState["user"]) => void;
   setToken: (token: string | null) => void;
+  updateVerificationStatus: (isVerified: boolean) => void;
   logout: () => void;
   isAuthenticated: () => boolean;
 }
@@ -26,6 +28,12 @@ export const useAuthStore = create<AuthState>()(
           localStorage.setItem("token", token);
         } else {
           localStorage.removeItem("token");
+        }
+      },
+      updateVerificationStatus: (isVerified) => {
+        const currentUser = get().user;
+        if (currentUser) {
+          set({ user: { ...currentUser, isVerified } });
         }
       },
       logout: () => {
