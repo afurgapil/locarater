@@ -1,19 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { locationService } from "@/services/location.service";
 import { Location } from "@/types/location";
 import { useToast } from "@/hooks/useToast";
 
-interface PageProps {
-  params: {
-    id: string;
-  };
-}
-
-export default function AdminEditLocationPage({ params }: PageProps) {
-  const { id } = params;
+export default function AdminEditLocationPage() {
+  const params = useParams();
+  const id = params.id as string;
   const router = useRouter();
   const [location, setLocation] = useState<Location | null>(null);
   const [isLoading, setIsLoading] = useState(true);
