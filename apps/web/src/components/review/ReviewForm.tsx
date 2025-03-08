@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Formik, Form, Field, FormikHelpers } from "formik";
 import { reviewService } from "@/services/review.service";
 import * as Yup from "yup";
+import { useToast } from "@/hooks/useToast";
 
 interface ReviewFormProps {
   locationId: string;
@@ -42,6 +43,7 @@ const ReviewSchema = Yup.object().shape({
 
 export function ReviewForm({ locationId, onSuccess }: ReviewFormProps) {
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const { showToast } = useToast();
 
   const initialValues: ReviewFormValues = {
     rating: {
@@ -80,17 +82,38 @@ export function ReviewForm({ locationId, onSuccess }: ReviewFormProps) {
       await reviewService.addReview(updatedFormData, locationId);
       resetForm();
       setSubmitError(null);
+      showToast("Değerlendirmeniz başarıyla eklendi", "success");
       if (onSuccess) {
-        window.location.reload();
         onSuccess();
       }
     } catch (error) {
       console.error("Error creating review:", error);
-      setSubmitError(
-        error instanceof Error
-          ? error.message
-          : "Değerlendirme eklenirken bir hata oluştu"
-      );
+
+      let errorMessage = "Değerlendirme eklenirken bir hata oluştu";
+
+      if (error && typeof error === "object" && "response" in error) {
+        const axiosError = error as {
+          response?: { data?: { message?: string } };
+        };
+        if (axiosError.response?.data?.message) {
+          errorMessage = axiosError.response.data.message;
+        }
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+
+      if (
+        errorMessage.includes("Bu mekan için zaten bir değerlendirmeniz var") ||
+        errorMessage.includes("already has a review")
+      ) {
+        const customMessage =
+          "Bu mekan için zaten bir değerlendirme yapmışsınız";
+        setSubmitError(customMessage);
+        showToast(customMessage, "error");
+      } else {
+        setSubmitError(errorMessage);
+        showToast(errorMessage, "error");
+      }
     } finally {
       setSubmitting(false);
     }

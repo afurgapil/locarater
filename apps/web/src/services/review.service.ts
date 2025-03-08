@@ -19,6 +19,24 @@ interface ReviewResponse {
   };
 }
 
+interface AllReviewsResponse {
+  reviews: Review[];
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}
+
+interface ReviewFilters {
+  page?: number;
+  limit?: number;
+  minRating?: number;
+  startDate?: string;
+  endDate?: string;
+}
+
 interface ReviewRating {
   overall: number;
   taste?: number;
@@ -51,6 +69,13 @@ export const reviewService = {
     return data;
   },
 
+  async getAllReviews(filters?: ReviewFilters): Promise<AllReviewsResponse> {
+    const { data } = await api.get(API_ENDPOINTS.reviews.getAll, {
+      params: filters,
+    });
+    return data;
+  },
+
   async addReview(
     reviewData: CreateReviewDto,
     locationId: string
@@ -77,6 +102,7 @@ export const reviewService = {
   async deleteReview(locationId: string, reviewId: string): Promise<void> {
     await api.delete(API_ENDPOINTS.reviews.delete(locationId, reviewId));
   },
+
   async getUserReviews(): Promise<Review[]> {
     try {
       const { data } = await api.post(API_ENDPOINTS.reviews.getByUser);

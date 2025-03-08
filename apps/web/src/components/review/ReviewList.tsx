@@ -43,7 +43,8 @@ export function ReviewList({ locationId }: ReviewListProps) {
 
   useEffect(() => {
     fetchReviews();
-  }, [fetchReviews]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleDelete = async (reviewId: string) => {
     try {

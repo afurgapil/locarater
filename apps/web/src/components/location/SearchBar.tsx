@@ -44,14 +44,14 @@ export function SearchBar({ onSearch }: SearchBarProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="relative">
-      <div className="relative">
+    <form onSubmit={handleSubmit} className="relative h-full">
+      <div className="relative h-full">
         <input
           type="text"
           value={query}
           onChange={handleChange}
           placeholder="Mekan ara..."
-          className="w-full rounded-lg border border-gray-300 bg-white dark:bg-gray-700 dark:border-gray-600 py-3 pl-4 pr-10 shadow-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:text-white"
+          className="w-full h-full rounded-lg border border-gray-300 bg-white dark:bg-gray-700 dark:border-gray-600 py-2 pl-4 pr-10 shadow-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:text-white sm:min-h-[38px]"
         />
         <button
           type="submit"

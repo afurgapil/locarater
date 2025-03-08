@@ -18,11 +18,6 @@ router.get("/:id", getLocationById);
 // Protected routes
 router.post("/", authenticateToken, createLocation);
 router.put("/:id", authenticateToken, updateLocation);
-router.delete(
-  "/:id",
-  authenticateToken,
-  checkRole(["ADMIN", "BUSINESS_OWNER"]),
-  deleteLocation
-);
+router.delete("/:id", authenticateToken, deleteLocation);
 
 export default router;

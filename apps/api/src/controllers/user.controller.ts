@@ -313,3 +313,107 @@ export const updateUserRole = async (
     });
   }
 };
+
+export const getUsers = async (
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> => {
+  try {
+    const users = await User.find().select("-password");
+    res.json(users);
+  } catch (error: any) {
+    res.status(500).json({
+      message: "Kullanıcılar getirilirken hata oluştu",
+      error: error.message,
+    });
+  }
+};
+
+export const forceDeleteUser = async (
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> => {
+  try {
+    const { userId } = req.params;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      res.status(404).json({ message: "Kullanıcı bulunamadı" });
+      return;
+    }
+    const deletedLocations = await Location.deleteMany({ createdBy: userId });
+    console.log(`${deletedLocations.deletedCount} mekan silindi`);
+
+    const locationsWithUserReviews = await Location.find({
+      "reviews.user": userId,
+    });
+
+    for (const location of locationsWithUserReviews) {
+      location.reviews = location.reviews.filter(
+        (review) => review.user.toString() !== userId.toString()
+      );
+
+      if (location.reviews.length > 0) {
+        const totalRating = location.reviews.reduce((sum, review) => {
+          return sum + (review.rating?.overall || 0);
+        }, 0);
+
+        location.ratings.average = totalRating / location.reviews.length;
+        location.ratings.count = location.reviews.length;
+
+        const distribution = {
+          10: 0,
+          9: 0,
+          8: 0,
+          7: 0,
+          6: 0,
+          5: 0,
+          4: 0,
+          3: 0,
+          2: 0,
+          1: 0,
+        };
+
+        location.reviews.forEach((review) => {
+          if (review.rating?.overall) {
+            const rating = Math.round(review.rating.overall);
+            if (rating >= 1 && rating <= 10) {
+              distribution[rating as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10]++;
+            }
+          }
+        });
+
+        location.ratings.distribution = distribution;
+      } else {
+        location.ratings.average = 0;
+        location.ratings.count = 0;
+        location.ratings.distribution = {
+          10: 0,
+          9: 0,
+          8: 0,
+          7: 0,
+          6: 0,
+          5: 0,
+          4: 0,
+          3: 0,
+          2: 0,
+          1: 0,
+        };
+      }
+
+      await location.save();
+    }
+
+    console.log(
+      `${locationsWithUserReviews.length} mekandan kullanıcı değerlendirmeleri kaldırıldı`
+    );
+    await User.findByIdAndDelete(userId);
+
+    res.json({ message: "Kullanıcı başarıyla silindi" });
+  } catch (error: any) {
+    res.status(500).json({
+      message: "Kullanıcı silinirken hata oluştu",
+      error: error.message,
+    });
+  }
+};

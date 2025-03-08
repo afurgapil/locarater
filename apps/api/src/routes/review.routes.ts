@@ -6,12 +6,16 @@ import {
   getReviews,
   getReviewsByUser,
   reportReview,
+  getAllReviews,
 } from "../controllers/review.controller";
-import { authenticateToken } from "../middleware/auth.middleware";
+import { authenticateToken, checkRole } from "../middleware/auth.middleware";
 
 const router = Router();
 // Public routes
 router.get("/:locationId", getReviews);
+
+// Admin routes
+router.get("/", authenticateToken, checkRole(["ADMIN"]), getAllReviews);
 
 // Protected routes
 router.post("/user", authenticateToken, getReviewsByUser);

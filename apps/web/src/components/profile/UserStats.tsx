@@ -66,7 +66,6 @@ export function UserStats() {
 
   return (
     <div className="space-y-6">
-      {/* Son Eklenen Mekanlar */}
       <div>
         <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">
           Son Eklenen Mekanlar
@@ -89,7 +88,6 @@ export function UserStats() {
         </ul>
       </div>
 
-      {/* Son Yapılan Yorumlar */}
       <div>
         <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">
           Son Yapılan Yorumlar
@@ -112,7 +110,6 @@ export function UserStats() {
         </ul>
       </div>
 
-      {/* En Çok Yorum Yapılan Kategoriler */}
       <div>
         <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">
           En Çok Yorum Yapılan Kategoriler

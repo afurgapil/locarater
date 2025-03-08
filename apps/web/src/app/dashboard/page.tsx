@@ -51,7 +51,6 @@ export default function DashboardPage() {
         Dashboard
       </h1>
 
-      {/* İstatistik Kartları */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <DashboardCard
           title="Toplam Mekan"
@@ -78,7 +77,6 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Son Aktiviteler */}
         <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-4 sm:p-6 overflow-hidden">
           <h2 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white mb-4">
             Son Aktiviteler
@@ -90,7 +88,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* En Çok Yorum Alan Mekanlar */}
         <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-4 sm:p-6 overflow-hidden">
           <h2 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white mb-4">
             En Çok Yorum Alan Mekanlar

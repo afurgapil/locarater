@@ -317,3 +317,70 @@ export const reportReview = async (
     });
   }
 };
+
+export const getAllReviews = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const skip = (page - 1) * limit;
+
+    const filters: any = {};
+
+    if (req.query.minRating) {
+      const minRating = parseFloat(req.query.minRating as string);
+      filters["reviews.rating.overall"] = { $gte: minRating };
+    }
+
+    if (req.query.startDate && req.query.endDate) {
+      const startDate = new Date(req.query.startDate as string);
+      const endDate = new Date(req.query.endDate as string);
+      filters["reviews.createdAt"] = { $gte: startDate, $lte: endDate };
+    }
+
+    const locations = await Location.find(filters)
+      .select("name reviews")
+      .populate("reviews.user", "username name")
+      .skip(skip)
+      .limit(limit);
+
+    const allReviews = locations.flatMap((location) =>
+      location.reviews.map((review: any) => ({
+        _id: review._id.toString(),
+        locationId: location._id.toString(),
+        locationName: location.name,
+        rating: review.rating,
+        comment: review.comment,
+        visitDate: review.visitDate,
+        createdAt: review.createdAt,
+        updatedAt: review.updatedAt,
+        user: {
+          _id: review.user._id.toString(),
+          username: review.user.username,
+          name: review.user.name,
+        },
+      }))
+    );
+
+    const totalLocations = await Location.countDocuments(filters);
+    const totalReviews = allReviews.length;
+
+    res.json({
+      reviews: allReviews,
+      pagination: {
+        total: totalReviews,
+        page,
+        limit,
+        totalPages: Math.ceil(totalReviews / limit),
+      },
+    });
+  } catch (error: any) {
+    console.error("Tüm değerlendirmeler getirilirken hata:", error);
+    res.status(500).json({
+      message: "Tüm değerlendirmeler getirilirken hata oluştu",
+      error: error.message,
+    });
+  }
+};

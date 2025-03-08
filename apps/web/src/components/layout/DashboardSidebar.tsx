@@ -11,7 +11,9 @@ import {
   Bars3Icon,
   XMarkIcon,
   ArrowLeftIcon,
+  Cog6ToothIcon,
 } from "@heroicons/react/24/outline";
+import { useAuthStore } from "@/store/useAuthStore";
 
 const navigation = [
   { name: "Genel Bakış", href: "/dashboard", icon: HomeIcon },
@@ -27,8 +29,9 @@ const navigation = [
 export function DashboardSidebar() {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user } = useAuthStore();
+  const isAdmin = user?.role === "ADMIN";
 
-  // Mobil menü açıkken ve ekran boyutu değiştiğinde menüyü kapat
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth >= 768 && isMobileMenuOpen) {
@@ -40,34 +43,25 @@ export function DashboardSidebar() {
     return () => window.removeEventListener("resize", handleResize);
   }, [isMobileMenuOpen]);
 
-  // Sayfa değiştiğinde mobil menüyü kapat
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [pathname]);
 
   return (
     <>
-      {/* Mobil menü butonu */}
-      <div className="fixed top-0 left-0 z-40 w-full bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 md:hidden">
-        <div className="px-4 py-3 flex items-center justify-between">
-          <span className="text-lg font-semibold text-gray-900 dark:text-white">
-            LocaRater
-          </span>
-          <button
-            type="button"
-            className="text-gray-500 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          >
-            {isMobileMenuOpen ? (
-              <XMarkIcon className="h-6 w-6" />
-            ) : (
-              <Bars3Icon className="h-6 w-6" />
-            )}
-          </button>
-        </div>
-      </div>
+      <button
+        type="button"
+        className="fixed bottom-4 right-4 z-50 md:hidden bg-blue-600 text-white p-3 rounded-full shadow-lg"
+        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        aria-label="Toggle sidebar"
+      >
+        {isMobileMenuOpen ? (
+          <XMarkIcon className="h-6 w-6" />
+        ) : (
+          <Bars3Icon className="h-6 w-6" />
+        )}
+      </button>
 
-      {/* Mobil menü overlay */}
       {isMobileMenuOpen && (
         <div
           className="fixed inset-0 bg-gray-600 bg-opacity-75 z-30 md:hidden"
@@ -75,28 +69,14 @@ export function DashboardSidebar() {
         />
       )}
 
-      {/* Mobil menü */}
       <div
         className={`fixed inset-y-0 left-0 z-40 w-64 bg-white dark:bg-gray-800 transform ${
           isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
-        } transition-transform duration-300 ease-in-out md:hidden`}
+        } transition-transform duration-300 ease-in-out md:hidden pt-14`}
       >
         <div className="flex min-h-0 flex-1 flex-col border-r border-gray-200 dark:border-gray-800">
-          <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200 dark:border-gray-700">
-            <span className="text-lg font-semibold text-gray-900 dark:text-white">
-              LocaRater
-            </span>
-            <button
-              type="button"
-              className="text-gray-500 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              <XMarkIcon className="h-6 w-6" />
-            </button>
-          </div>
           <div className="flex flex-1 flex-col overflow-y-auto pt-5 pb-4">
             <nav className="mt-5 flex-1 space-y-1 px-2">
-              {/* Anasayfaya dönüş bağlantısı */}
               <Link
                 href="/"
                 className="text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 group flex items-center px-2 py-2 text-sm font-medium rounded-md mb-6"
@@ -125,22 +105,35 @@ export function DashboardSidebar() {
                   {item.name}
                 </Link>
               ))}
+
+              {isAdmin && (
+                <Link
+                  href="/admin"
+                  className={`${
+                    pathname.startsWith("/admin")
+                      ? "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
+                      : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  } group flex items-center px-2 py-2 text-sm font-medium rounded-md mt-6`}
+                >
+                  <Cog6ToothIcon
+                    className={`${
+                      pathname.startsWith("/admin")
+                        ? "text-gray-500 dark:text-gray-300"
+                        : "text-gray-400 dark:text-gray-400 group-hover:text-gray-500 dark:group-hover:text-gray-300"
+                    } mr-3 flex-shrink-0 h-6 w-6`}
+                  />
+                  Admin Paneli
+                </Link>
+              )}
             </nav>
           </div>
         </div>
       </div>
 
-      {/* Desktop sidebar */}
-      <div className="hidden md:flex md:w-64 md:flex-col">
+      <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 md:pt-16">
         <div className="flex min-h-0 flex-1 flex-col border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800">
-          <div className="flex items-center h-16 px-4 border-b border-gray-200 dark:border-gray-700">
-            <span className="text-lg font-semibold text-gray-900 dark:text-white">
-              LocaRater
-            </span>
-          </div>
           <div className="flex flex-1 flex-col overflow-y-auto pt-5 pb-4">
             <nav className="mt-5 flex-1 space-y-1 px-2">
-              {/* Anasayfaya dönüş bağlantısı */}
               <Link
                 href="/"
                 className="text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 group flex items-center px-2 py-2 text-sm font-medium rounded-md mb-6"
@@ -169,6 +162,26 @@ export function DashboardSidebar() {
                   {item.name}
                 </Link>
               ))}
+
+              {isAdmin && (
+                <Link
+                  href="/admin"
+                  className={`${
+                    pathname.startsWith("/admin")
+                      ? "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
+                      : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  } group flex items-center px-2 py-2 text-sm font-medium rounded-md mt-6`}
+                >
+                  <Cog6ToothIcon
+                    className={`${
+                      pathname.startsWith("/admin")
+                        ? "text-gray-500 dark:text-gray-300"
+                        : "text-gray-400 dark:text-gray-400 group-hover:text-gray-500 dark:group-hover:text-gray-300"
+                    } mr-3 flex-shrink-0 h-6 w-6`}
+                  />
+                  Admin Paneli
+                </Link>
+              )}
             </nav>
           </div>
         </div>

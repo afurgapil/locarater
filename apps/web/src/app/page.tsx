@@ -145,12 +145,12 @@ function HomeContent() {
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 sm:px-0">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 pt-8 md:pt-0">
           Mekanları Keşfet
         </h1>
 
         <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-stretch gap-4">
             <div className="flex-1">
               <SearchBar />
             </div>

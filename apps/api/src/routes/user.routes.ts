@@ -6,6 +6,8 @@ import {
   deleteAccount,
   forgotPassword,
   updateUserRole,
+  getUsers,
+  forceDeleteUser,
 } from "../controllers/user.controller";
 import { authenticateToken, checkRole } from "../middleware/auth.middleware";
 
@@ -28,5 +30,11 @@ router.post(
   checkRole(["ADMIN"]),
   updateUserRole
 );
-
+router.get("/all", authenticateToken, checkRole(["ADMIN"]), getUsers);
+router.delete(
+  "/force-delete/:userId",
+  authenticateToken,
+  checkRole(["ADMIN"]),
+  forceDeleteUser
+);
 export default router;

@@ -26,7 +26,6 @@ export default function ProfilePage() {
       </h1>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Sol Kolon - Profil Bilgileri */}
         <div className="space-y-6">
           <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
             <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
@@ -55,7 +54,6 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Sağ Kolon - İstatistikler ve Admin Paneli */}
         <div className="space-y-6">
           <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
             <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
@@ -64,7 +62,6 @@ export default function ProfilePage() {
             <UserStats />
           </div>
 
-          {/* Admin için Kullanıcı Rol Yönetimi */}
           {isAdmin && (
             <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
               <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">

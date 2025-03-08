@@ -16,6 +16,7 @@ import Image from "next/image";
 import type { Location } from "@/types/location";
 import { useAuthStore } from "@/store/useAuthStore";
 import Link from "next/link";
+import { useToast } from "@/hooks/useToast";
 
 export default function LocationDetailPage() {
   const params = useParams();
@@ -27,6 +28,7 @@ export default function LocationDetailPage() {
   const [activeTab, setActiveTab] = useState<"reviews" | "add-review">(
     "reviews"
   );
+  const { showToast } = useToast();
 
   const fetchLocation = useCallback(async () => {
     try {
@@ -46,11 +48,13 @@ export default function LocationDetailPage() {
 
   useEffect(() => {
     fetchLocation();
-  }, [fetchLocation]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleReviewSuccess = () => {
     fetchLocation();
     setActiveTab("reviews");
+    showToast("Değerlendirmeniz başarıyla eklendi", "success");
   };
 
   if (loading) {

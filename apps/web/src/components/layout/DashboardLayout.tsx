@@ -29,7 +29,6 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
-      {/* Sidebar */}
       <div className="hidden md:fixed md:inset-y-0 md:flex md:w-64 md:flex-col">
         <div className="flex min-h-0 flex-1 flex-col border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800">
           <div className="flex flex-1 flex-col overflow-y-auto pt-5 pb-4">
@@ -64,14 +63,10 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         </div>
       </div>
 
-      {/* Main content */}
       <div className="md:pl-64">
         <div className="mx-auto flex flex-col md:px-8 xl:px-0">
           <div className="sticky top-0 z-10 flex h-16 flex-shrink-0 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800">
             <div className="flex flex-1 justify-between px-4 md:px-0">
-              <div className="flex flex-1">
-                {/* Mobil menü butonu buraya eklenebilir */}
-              </div>
               <div className="ml-4 flex items-center md:ml-6">
                 <button
                   onClick={() => setIsModalOpen(true)}
@@ -92,7 +87,6 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         </div>
       </div>
 
-      {/* Location Modal */}
       <LocationModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

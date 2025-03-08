@@ -24,11 +24,14 @@ export const API_ENDPOINTS = {
     image: `${API_BASE_URL}/upload/image`,
   },
   users: {
+    getAll: `${API_BASE_URL}/users/all`,
     profile: `${API_BASE_URL}/users/profile`,
     delete: `${API_BASE_URL}/users/account`,
     update: `${API_BASE_URL}/users/profile`,
     changePassword: `${API_BASE_URL}/users/change-password`,
     updateRole: `${API_BASE_URL}/users/update-role`,
+    forceDelete: (userId: string) =>
+      `${API_BASE_URL}/users/force-delete/${userId}`,
   },
   statistics: {
     dashboard: `${API_BASE_URL}/statistics/dashboard`,

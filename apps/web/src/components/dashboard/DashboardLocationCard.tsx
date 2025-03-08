@@ -6,6 +6,7 @@ import { TrashIcon, PencilIcon } from "@heroicons/react/24/outline";
 import { EditLocationDialog } from "../location/EditLocationDialog";
 import { DeleteConfirmDialog } from "../shared/DeleteConfirmDialog";
 import { getCategoryLabel, getCategoryImage } from "@/constants/categories";
+import { useAuthStore } from "@/store/useAuthStore";
 
 interface DashboardLocationCardProps {
   location: Location;
@@ -18,6 +19,10 @@ export function DashboardLocationCard({
 }: DashboardLocationCardProps) {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const { user } = useAuthStore();
+
+  const canDelete =
+    user && (user.role === "ADMIN" || location.createdBy._id === user._id);
 
   return (
     <>
@@ -52,12 +57,14 @@ export function DashboardLocationCard({
               >
                 <PencilIcon className="h-5 w-5" />
               </button>
-              <button
-                onClick={() => setIsDeleteOpen(true)}
-                className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400"
-              >
-                <TrashIcon className="h-5 w-5" />
-              </button>
+              {canDelete && (
+                <button
+                  onClick={() => setIsDeleteOpen(true)}
+                  className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400"
+                >
+                  <TrashIcon className="h-5 w-5" />
+                </button>
+              )}
             </div>
           </div>
 
