@@ -3,7 +3,10 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import mongoose from "mongoose";
 import { User, IUser } from "../models/user.model";
-import { sendVerificationEmail } from "../services/email.service";
+import {
+  sendVerificationEmail,
+  sendPasswordResetEmail,
+} from "../services/email.service";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -231,6 +234,143 @@ export const resendVerification = async (
   } catch (error: any) {
     res.status(500).json({
       message: "Doğrulama emaili gönderilirken bir hata oluştu",
+      error: error.message,
+    });
+  }
+};
+
+export const forgotPassword = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      res.status(400).json({ message: "Email adresi gereklidir" });
+      return;
+    }
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      res.json({
+        message: "Şifre sıfırlama bağlantısı email adresinize gönderildi",
+      });
+      return;
+    }
+
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const resetTokenExpires = new Date(Date.now() + 60 * 60 * 1000);
+
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpires = resetTokenExpires;
+    await user.save();
+
+    try {
+      await sendPasswordResetEmail(user.email, resetToken, user.username);
+      res.json({
+        message: "Şifre sıfırlama bağlantısı email adresinize gönderildi",
+      });
+    } catch (emailError) {
+      console.error("Email gönderme hatası:", emailError);
+      res.status(500).json({
+        message: "Email gönderilirken bir hata oluştu",
+      });
+    }
+  } catch (error: any) {
+    console.error("Şifre sıfırlama hatası:", error);
+    res.status(500).json({
+      message: "Şifre sıfırlama işlemi sırasında bir hata oluştu",
+      error: error.message,
+    });
+  }
+};
+
+export const validateResetToken = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { token } = req.params;
+
+    const user = await User.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      res.status(400).json({
+        message: "Geçersiz veya süresi dolmuş şifre sıfırlama bağlantısı",
+      });
+      return;
+    }
+
+    res.json({
+      message: "Token geçerli",
+      userId: user._id,
+    });
+  } catch (error: any) {
+    console.error("Token doğrulama hatası:", error);
+    res.status(500).json({
+      message: "Token doğrulama sırasında bir hata oluştu",
+      error: error.message,
+    });
+  }
+};
+
+export const resetPassword = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { token, password, confirmPassword } = req.body;
+
+    if (!token || !password || !confirmPassword) {
+      res.status(400).json({
+        message: "Token, şifre ve şifre tekrarı gereklidir",
+      });
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      res.status(400).json({
+        message: "Şifreler eşleşmiyor",
+      });
+      return;
+    }
+
+    if (password.length < 6) {
+      res.status(400).json({
+        message: "Şifre en az 6 karakter olmalıdır",
+      });
+      return;
+    }
+
+    const user = await User.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      res.status(400).json({
+        message: "Geçersiz veya süresi dolmuş şifre sıfırlama bağlantısı",
+      });
+      return;
+    }
+
+    user.password = password;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
+
+    res.json({
+      message: "Şifreniz başarıyla sıfırlandı",
+    });
+  } catch (error: any) {
+    console.error("Şifre sıfırlama hatası:", error);
+    res.status(500).json({
+      message: "Şifre sıfırlama işlemi sırasında bir hata oluştu",
       error: error.message,
     });
   }

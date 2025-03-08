@@ -109,4 +109,33 @@ export const authService = {
     });
     return data;
   },
+
+  async forgotPassword(
+    credentials: ForgotPasswordCredentials
+  ): Promise<{ message: string }> {
+    const { data } = await api.post(
+      API_ENDPOINTS.auth.forgotPassword,
+      credentials
+    );
+    return data;
+  },
+
+  async validateResetToken(
+    token: string
+  ): Promise<{ message: string; userId: string }> {
+    const { data } = await api.get(
+      API_ENDPOINTS.auth.validateResetToken(token)
+    );
+    return data;
+  },
+
+  async resetPassword(
+    credentials: ResetPasswordCredentials
+  ): Promise<{ message: string }> {
+    const { data } = await api.post(
+      API_ENDPOINTS.auth.resetPassword,
+      credentials
+    );
+    return data;
+  },
 };

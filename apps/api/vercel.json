@@ -11,5 +11,12 @@
       "src": "/(.*)",
       "dest": "src/index.ts"
     }
-  ]
+  ],
+  "git": {
+    "deploymentEnabled": {
+      "main": true,
+      "dev": false,
+      "preview": false
+    }
+  }
 }

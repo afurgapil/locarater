@@ -13,6 +13,10 @@ export const API_ENDPOINTS = {
     verifyEmail: (token: string) =>
       `${API_BASE_URL}/auth/verify-email/${token}`,
     resendVerification: `${API_BASE_URL}/auth/resend-verification`,
+    forgotPassword: `${API_BASE_URL}/auth/forgot-password`,
+    validateResetToken: (token: string) =>
+      `${API_BASE_URL}/auth/reset-password/${token}`,
+    resetPassword: `${API_BASE_URL}/auth/reset-password`,
   },
   locations: {
     getAll: `${API_BASE_URL}/locations`,

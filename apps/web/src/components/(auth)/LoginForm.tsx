@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { authService } from "@/services/auth.service";
 import { useAuthStore } from "@/store/useAuthStore";
 import type { LoginCredentials } from "@/services/auth.service";
+import Link from "next/link";
 
 type LoginFormValues = LoginCredentials;
 
@@ -138,6 +139,25 @@ export function LoginForm() {
             >
               {isSubmitting ? "Giriş yapılıyor..." : "Giriş Yap"}
             </button>
+          </div>
+
+          <div className="flex items-center justify-between mt-4">
+            <div className="text-sm">
+              <Link
+                href="/auth/register"
+                className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
+              >
+                Hesabınız yok mu? Kayıt olun
+              </Link>
+            </div>
+            <div className="text-sm">
+              <Link
+                href="/auth/forgot-password"
+                className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
+              >
+                Şifrenizi mi unuttunuz?
+              </Link>
+            </div>
           </div>
         </Form>
       )}
