@@ -80,6 +80,7 @@ export function RegisterForm() {
       setUser({
         _id: response.user.id || response.user._id,
         username: values.username,
+        email: values.email,
         role: response.user.role || "USER",
         isVerified: response.user.isVerified || false,
       });
