@@ -1,14 +1,7 @@
 import { Request, Response } from "express";
 import { Location } from "../models/location.model";
 import { RequestHandler } from "express";
-
-interface AuthenticatedRequest extends Request {
-  user?: {
-    id: string;
-    username: string;
-    role: string;
-  };
-}
+import { AuthRequest } from "../types/auth";
 
 interface LocationRequest extends Request {
   body: {
@@ -23,7 +16,7 @@ interface LocationRequest extends Request {
 }
 
 export const createLocation = async (
-  req: AuthenticatedRequest,
+  req: AuthRequest,
   res: Response
 ): Promise<void> => {
   try {
@@ -53,7 +46,7 @@ export const getLocations = async (
 };
 
 export const getLocationByUser = async (
-  req: AuthenticatedRequest,
+  req: AuthRequest,
   res: Response
 ): Promise<void> => {
   try {
@@ -84,7 +77,7 @@ export const getLocationById = async (
 };
 
 export const updateLocation = async (
-  req: AuthenticatedRequest,
+  req: AuthRequest,
   res: Response
 ): Promise<void> => {
   try {
@@ -123,7 +116,7 @@ export const updateLocation = async (
 };
 
 export const deleteLocation = async (
-  req: AuthenticatedRequest,
+  req: AuthRequest,
   res: Response
 ): Promise<void> => {
   try {

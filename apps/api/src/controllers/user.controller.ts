@@ -2,17 +2,10 @@ import { Request, Response } from "express";
 import { User } from "../models/user.model";
 import bcrypt from "bcryptjs";
 import { Location } from "../models/location.model";
-
-interface AuthenticatedRequest extends Request {
-  user?: {
-    id: string;
-    username: string;
-    role: string;
-  };
-}
+import { AuthRequest } from "../types/auth";
 
 export const getUserProfile = async (
-  req: AuthenticatedRequest,
+  req: AuthRequest,
   res: Response
 ): Promise<void> => {
   try {
@@ -32,7 +25,7 @@ export const getUserProfile = async (
 };
 
 export const updateUserProfile = async (
-  req: AuthenticatedRequest,
+  req: AuthRequest,
   res: Response
 ): Promise<void> => {
   try {
@@ -66,7 +59,7 @@ export const updateUserProfile = async (
 };
 
 export const changePassword = async (
-  req: AuthenticatedRequest,
+  req: AuthRequest,
   res: Response
 ): Promise<void> => {
   try {
@@ -106,7 +99,7 @@ export const changePassword = async (
 };
 
 export const deleteAccount = async (
-  req: AuthenticatedRequest,
+  req: AuthRequest,
   res: Response
 ): Promise<void> => {
   try {
@@ -264,7 +257,7 @@ export const forgotPassword = async (
 };
 
 export const updateUserRole = async (
-  req: AuthenticatedRequest,
+  req: AuthRequest,
   res: Response
 ): Promise<void> => {
   try {
@@ -315,7 +308,7 @@ export const updateUserRole = async (
 };
 
 export const getUsers = async (
-  req: AuthenticatedRequest,
+  req: AuthRequest,
   res: Response
 ): Promise<void> => {
   try {
@@ -330,7 +323,7 @@ export const getUsers = async (
 };
 
 export const forceDeleteUser = async (
-  req: AuthenticatedRequest,
+  req: AuthRequest,
   res: Response
 ): Promise<void> => {
   try {

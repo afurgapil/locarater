@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { Location } from "../models/location.model";
 import { Types } from "mongoose";
+import { AuthRequest } from "../types/auth";
 
 interface Rating {
   overall: number;
@@ -34,16 +35,8 @@ interface PopulatedReview extends BaseReview {
 
 type Review = MongoReview | PopulatedReview;
 
-interface AuthenticatedRequest extends Request {
-  user?: {
-    id: string;
-    username: string;
-    role: string;
-  };
-}
-
 export const addReview = async (
-  req: AuthenticatedRequest,
+  req: AuthRequest,
   res: Response
 ): Promise<void> => {
   try {
@@ -105,7 +98,7 @@ export const addReview = async (
 };
 
 export const updateReview = async (
-  req: AuthenticatedRequest,
+  req: AuthRequest,
   res: Response
 ): Promise<Response> => {
   try {
@@ -168,7 +161,7 @@ export const updateReview = async (
 };
 
 export const deleteReview = async (
-  req: AuthenticatedRequest,
+  req: AuthRequest,
   res: Response
 ): Promise<Response> => {
   try {
@@ -227,7 +220,7 @@ export const getReviews = async (
 };
 
 export const getReviewsByUser = async (
-  req: AuthenticatedRequest,
+  req: AuthRequest,
   res: Response
 ): Promise<Response> => {
   try {
@@ -246,14 +239,12 @@ export const getReviewsByUser = async (
     const userReviews = locations.flatMap((location) =>
       location.reviews
         .filter((review: any) => {
-          const reviewUserId = review.user._id
-            ? review.user._id.toString()
-            : review.user.toString();
-          return reviewUserId === userId.toString();
+          const reviewUserId = review.user._id || review.user;
+          return reviewUserId.toString() === userId.toString();
         })
         .map((review: any) => ({
           _id: review._id.toString(),
-          locationId: location._id.toString(),
+          locationId: location._id ? location._id.toString() : "",
           locationName: location.name,
           rating: review.rating,
           comment: review.comment,
@@ -279,7 +270,7 @@ export const getReviewsByUser = async (
 };
 
 export const reportReview = async (
-  req: AuthenticatedRequest,
+  req: AuthRequest,
   res: Response
 ): Promise<void> => {
   try {
@@ -349,7 +340,7 @@ export const getAllReviews = async (
     const allReviews = locations.flatMap((location) =>
       location.reviews.map((review: any) => ({
         _id: review._id.toString(),
-        locationId: location._id.toString(),
+        locationId: location._id ? location._id.toString() : "",
         locationName: location.name,
         rating: review.rating,
         comment: review.comment,
