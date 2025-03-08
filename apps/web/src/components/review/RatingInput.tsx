@@ -11,7 +11,7 @@ export function RatingInput({
   name,
   value,
   onChange,
-  maxValue = 5,
+  maxValue = 10,
 }: RatingInputProps) {
   return (
     <div className="flex items-center space-x-2">
@@ -20,7 +20,7 @@ export function RatingInput({
         name={name}
         min="1"
         max={maxValue.toString()}
-        step={maxValue === 10 ? "1" : "0.5"}
+        step={"0.5"}
         value={value}
         onChange={onChange}
         className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"

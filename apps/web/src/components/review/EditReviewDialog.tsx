@@ -32,6 +32,14 @@ export function EditReviewDialog({
 }: EditReviewDialogProps) {
   const { showToast } = useToast();
 
+  const calculateOverallRating = (
+    ratings: ReviewFormValues["rating"]
+  ): number => {
+    const { taste, service, ambiance, pricePerformance } = ratings;
+    const sum = taste + service + ambiance + pricePerformance;
+    return Number((sum / 4).toFixed(1));
+  };
+
   const initialValues: ReviewFormValues = {
     rating: {
       overall: review.rating.overall,
@@ -60,14 +68,23 @@ export function EditReviewDialog({
             initialValues={initialValues}
             onSubmit={async (values, { setSubmitting }) => {
               try {
+                const overallRating = calculateOverallRating(values.rating);
+                const updatedValues = {
+                  ...values,
+                  rating: {
+                    ...values.rating,
+                    overall: overallRating,
+                  },
+                };
+
                 await reviewService.updateReview(
                   review.locationId,
                   review._id,
                   {
-                    rating: values.rating,
-                    comment: values.comment,
-                    visitDate: values.visitDate
-                      ? new Date(values.visitDate)
+                    rating: updatedValues.rating,
+                    comment: updatedValues.comment,
+                    visitDate: updatedValues.visitDate
+                      ? new Date(updatedValues.visitDate)
                       : undefined,
                   }
                 );
@@ -87,18 +104,6 @@ export function EditReviewDialog({
           >
             {({ values, handleChange, isSubmitting }) => (
               <Form className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Genel Değerlendirme
-                  </label>
-                  <RatingInput
-                    name="rating.overall"
-                    value={values.rating.overall}
-                    onChange={handleChange}
-                    maxValue={10}
-                  />
-                </div>
-
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Lezzet

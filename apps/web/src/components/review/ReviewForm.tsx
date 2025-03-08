@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Formik, Form, Field, FormikHelpers } from "formik";
-import { StarIcon } from "@heroicons/react/24/solid";
 import { reviewService } from "@/services/review.service";
 import * as Yup from "yup";
 
@@ -26,11 +25,14 @@ interface ReviewFormValues {
 
 const ReviewSchema = Yup.object().shape({
   rating: Yup.object().shape({
-    overall: Yup.number().required("Genel puan zorunludur").min(1).max(10),
-    taste: Yup.number().min(1).max(10),
-    service: Yup.number().min(1).max(10),
-    ambiance: Yup.number().min(1).max(10),
-    pricePerformance: Yup.number().min(1).max(10),
+    overall: Yup.number(),
+    taste: Yup.number().required("Lezzet puanı zorunludur").min(1).max(10),
+    service: Yup.number().required("Servis puanı zorunludur").min(1).max(10),
+    ambiance: Yup.number().required("Ambiyans puanı zorunludur").min(1).max(10),
+    pricePerformance: Yup.number()
+      .required("Fiyat/Performans puanı zorunludur")
+      .min(1)
+      .max(10),
   }),
   comment: Yup.string()
     .required("Yorum zorunludur")
@@ -53,12 +55,29 @@ export function ReviewForm({ locationId, onSuccess }: ReviewFormProps) {
     visitDate: new Date(),
   };
 
+  const calculateOverallRating = (
+    ratings: ReviewFormValues["rating"]
+  ): number => {
+    const { taste, service, ambiance, pricePerformance } = ratings;
+    const sum = taste + service + ambiance + pricePerformance;
+    return Number((sum / 4).toFixed(1));
+  };
+
   const handleSubmit = async (
     formData: ReviewFormValues,
     { setSubmitting, resetForm }: FormikHelpers<ReviewFormValues>
   ) => {
     try {
-      await reviewService.addReview(formData, locationId);
+      const overallRating = calculateOverallRating(formData.rating);
+      const updatedFormData = {
+        ...formData,
+        rating: {
+          ...formData.rating,
+          overall: overallRating,
+        },
+      };
+
+      await reviewService.addReview(updatedFormData, locationId);
       resetForm();
       setSubmitError(null);
       if (onSuccess) {
@@ -85,46 +104,6 @@ export function ReviewForm({ locationId, onSuccess }: ReviewFormProps) {
     >
       {({ errors, touched, isSubmitting }) => (
         <Form className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-              Genel Puan
-            </label>
-            <div className="flex items-center space-x-1">
-              {[...Array(10)].map((_, index) => (
-                <Field key={index} name="rating.overall">
-                  {({
-                    field,
-                    form,
-                  }: {
-                    field: { value: number };
-                    form: {
-                      setFieldValue: (field: string, value: number) => void;
-                    };
-                  }) => (
-                    <button
-                      type="button"
-                      className={`p-1 ${
-                        field.value >= index + 1
-                          ? "text-yellow-400"
-                          : "text-gray-300 dark:text-gray-600"
-                      }`}
-                      onClick={() =>
-                        form.setFieldValue("rating.overall", index + 1)
-                      }
-                    >
-                      <StarIcon className="h-6 w-6" />
-                    </button>
-                  )}
-                </Field>
-              ))}
-            </div>
-            {errors.rating?.overall && touched.rating?.overall && (
-              <div className="text-red-600 text-sm mt-1">
-                {errors.rating.overall}
-              </div>
-            )}
-          </div>
-
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
