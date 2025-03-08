@@ -23,6 +23,7 @@ export function RatingInput({
         step={"0.5"}
         value={value}
         onChange={onChange}
+        inputMode="numeric"
         className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
       />
       <span className="text-sm font-medium text-gray-900 dark:text-white">

@@ -197,6 +197,7 @@ export function LocationForm({ location, onSuccess }: LocationFormProps) {
                       max="5"
                       id={`initialReview.rating.${field}`}
                       name={`initialReview.rating.${field}`}
+                      inputMode="numeric"
                       className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white sm:text-sm"
                     />
                   </div>

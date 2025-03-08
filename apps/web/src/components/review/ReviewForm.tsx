@@ -137,6 +137,7 @@ export function ReviewForm({ locationId, onSuccess }: ReviewFormProps) {
                 name="rating.taste"
                 min="1"
                 max="10"
+                inputMode="numeric"
                 className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white sm:text-sm"
               />
             </div>
@@ -149,6 +150,7 @@ export function ReviewForm({ locationId, onSuccess }: ReviewFormProps) {
                 name="rating.service"
                 min="1"
                 max="10"
+                inputMode="numeric"
                 className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white sm:text-sm"
               />
             </div>
@@ -161,6 +163,7 @@ export function ReviewForm({ locationId, onSuccess }: ReviewFormProps) {
                 name="rating.ambiance"
                 min="1"
                 max="10"
+                inputMode="numeric"
                 className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white sm:text-sm"
               />
             </div>
@@ -173,6 +176,7 @@ export function ReviewForm({ locationId, onSuccess }: ReviewFormProps) {
                 name="rating.pricePerformance"
                 min="1"
                 max="10"
+                inputMode="numeric"
                 className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white sm:text-sm"
               />
             </div>
