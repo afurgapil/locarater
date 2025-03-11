@@ -1,106 +1,97 @@
-# Locarater - Mekan Değerlendirme Platformu
+# Locarater - Location Rating Platform
 
-## 🎯 Proje Amacı
+## 🎯 Project Overview
 
-Locarater, kullanıcıların çeşitli mekanları keşfedebileceği, değerlendirebileceği ve yorum yapabileceği bir platform. Mekan sahipleri işletmelerini ekleyebilir ve yönetebilir.
+Locarater is a comprehensive platform where users can discover, rate, and review various locations. Users can contribute by adding new locations and sharing their experiences, creating a dynamic community-driven ecosystem for location-based recommendations.
 
-## 🏗 Teknik Altyapı
+## 🏗 Technical Stack
 
 ### Frontend
 
-- Next.js 14 (App Router)
+- Next.js 14
 - TypeScript
 - Tailwind CSS
-- Zustand (State Management)
-- React Query (API State Management)
-- Formik & Yup (Form Management)
-- Leaflet (Harita)
+- Zustand
+- React Query
+- Formik
 
 ### Backend
 
 - Node.js & Express
 - MongoDB
 - JWT Authentication
-- Cloudinary (Resim Yükleme)
+- Nodemailer
 
-## 👥 Kullanıcı Rolleri
+## 👥 User Roles
 
-### 1. Ziyaretçi
+### 1. Visitor
 
-- Mekanları görüntüleme
-- Arama yapma
-- Filtreleme
-- Mekan detaylarını inceleme
+- View locations
+- Search functionality
+- Apply filters
+- View location details
 
-### 2. Kayıtlı Kullanıcı
+### 2. Registered User
 
-- Profil oluşturma ve düzenleme
-- Mekanları değerlendirme ve yorum yapma
-- Mekanları favorilere ekleme
-- Değerlendirmeleri beğenme
+- Create and edit profile
+- Add new locations
+- Rate and review locations
+- Email verification system
+- Manage their added locations
 
-### 3. Mekan Sahibi
+### 3. Admin
 
-- Mekan ekleme ve yönetme
-- Yorumlara yanıt verme
-- Mekan bilgilerini güncelleme
-- Mekan istatistiklerini görüntüleme
+- Manage all content
+- User management
+- Configure site settings
+- Moderate location submissions
 
-### 4. Admin
+## 📱 Features
 
-- Tüm içeriği yönetme
-- Kullanıcıları yönetme
-- Raporları inceleme
-- Site ayarlarını yapılandırma
+### Location Management
 
-## 📱 Özellikler
+- Community-driven location submissions
+- Add/edit/delete locations by users
+- Category system
 
-### Mekan Yönetimi
+### Rating System
 
-- Mekan ekleme/düzenleme/silme
-- Kategori sistemi
-- Konum seçimi (harita)
-- Fotoğraf yükleme
-- Çalışma saatleri
-- İletişim bilgileri
+- Star rating
+- Written reviews
 
-### Değerlendirme Sistemi
+### Search and Filtering
 
-- Yıldız puanlama
-- Yorum yazma
-- Fotoğraf ekleme
-- Beğeni sistemi
-- Yanıt verme
+- Text-based search
+- Category filters
+- Rating filters
+- Sorting options
 
-### Arama ve Filtreleme
+### User Profile
 
-- Metin bazlı arama
-- Kategori filtresi
-- Konum bazlı filtreleme
-- Puan filtresi
-- Sıralama seçenekleri
-
-### Kullanıcı Profili
-
-- Profil düzenleme
-- Değerlendirme geçmişi
-- Favori mekanlar
-- Bildirim tercihleri
+- Profile customization
+- Review history
+- Favorite locations
+- Notification preferences
+- Email verification
 
 ### Dashboard
 
-- Mekan istatistikleri
-- Değerlendirme yönetimi
-- Profil ayarları
-- Bildirimler
+- Location statistics
+- Review management
+- Profile settings
+- Notifications
 
-## 📁 Proje Yapısı
+## 📁 Project Structure
 
+```
 apps/
 ├── web/ # Frontend (Next.js)
 │ ├── src/
 │ │ ├── app/ # Pages
 │ │ ├── components/ # UI Components
+│ │ │ ├── (auth)/ # Authentication Components
+│ │ │ ├── profile/ # Profile Components
+│ │ │ └── shared/ # Shared Components
 │ │ ├── hooks/ # Custom Hooks
 │ │ ├── services/ # API Services
 │ │ ├── store/ # State Management
@@ -108,46 +99,96 @@ apps/
 │ │ └── utils/ # Helper Functions
 │
 └── api/ # Backend (Express)
-├── src/
-│ ├── controllers/ # Route Controllers
-│ ├── models/ # Database Models
-│ ├── routes/ # API Routes
-│ ├── services/ # Business Logic
-│ └── utils/ # Helper Functions
+    ├── src/
+    │ ├── controllers/ # Route Controllers
+    │ ├── models/ # Database Models
+    │ ├── routes/ # API Routes
+    │ ├── services/ # Business Logic
+    │ └── utils/ # Helper Functions
+```
 
-## 🚀 Geliştirme Aşamaları
+## 🚀 Development Progress
 
-### 1. Temel Altyapı
+### 1. Core Infrastructure
 
-- [x] Proje kurulumu
+- [x] Project setup
 - [x] Backend API
-- [x] Frontend yapısı
-- [x]] Auth sistemi
+- [x] Frontend structure
+- [x] Authentication system
+- [x] Email verification
 
-### 2. Mekan Sistemi
+### 2. Location System
 
-- [x] Mekan CRUD işlemleri
-- [ ] Harita entegrasyonu
-- [ ] Fotoğraf yükleme
-- [x] Arama ve filtreleme
+- [x] Location CRUD operations
+- [x] User-driven location submissions
+- [ ] Photo upload
+- [x] Search and filtering
+- [ ] Location moderation
 
-### 3. Değerlendirme Sistemi
+### 3. Rating System
 
-- [ ] Yorum ve puanlama
-- [ ] Beğeni sistemi
-- [ ] Yanıt sistemi
-- [ ] Raporlama
+- [ ] Comments and ratings
+- [ ] Like system
+- [ ] Response system
+- [ ] Reporting
 
-### 4. Kullanıcı Sistemi
+### 4. User System
 
-- [ ] Profil yönetimi
-- [ ] Favoriler
-- [ ] Bildirimler
-- [ ] Ayarlar
+- [x] Profile management
+- [x] User authentication
+- [x] Email verification
+- [ ] Favorites
+- [ ] Notifications
+- [ ] Settings
 
-### 5. Dashboard ve Admin
+### 5. Dashboard & Admin
 
-- [ ] Mekan yönetimi
-- [ ] İstatistikler
-- [ ] Kullanıcı yönetimi
-- [ ] Site ayarları
+- [x] Location management
+- [x] Statistics
+- [x] User management
+- [ ] Site settings
+
+## 🛠 Getting Started
+
+### Prerequisites
+
+- Node.js 18.x
+- MongoDB
+- npm or yarn
+
+### Installation
+
+1. Clone the repository
+
+```bash
+git clone https://github.com/afurgapil/locarater.git
+cd locarater
+```
+
+2. Install dependencies
+
+```bash
+npm install
+```
+
+3. Set up environment variables
+
+```bash
+# Create .env files in both apps/web and apps/api directories
+cp apps/web/.env.example apps/web/.env
+cp apps/api/.env.example apps/api/.env
+```
+
+4. Start development servers
+
+```bash
+npm run dev
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
