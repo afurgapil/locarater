@@ -10,6 +10,9 @@ const UserSchema = new mongoose.Schema({
     minlength: 3,
     maxlength: 30,
   },
+  imagePath: {
+    type: String,
+  },
   email: {
     type: String,
     required: true,
@@ -96,6 +99,7 @@ export interface IUser extends Document {
   email: string;
   password: string;
   name: string;
+  imagePath?: string;
   role: "USER" | "ADMIN" | "BUSINESS_OWNER";
   isActive: boolean;
   isVerified: boolean;

@@ -33,6 +33,9 @@ const ReviewSchema = new mongoose.Schema({
     ref: "User",
     required: true,
   },
+  imagePath: {
+    type: String,
+  },
   rating: {
     overall: {
       type: Number,
@@ -79,6 +82,9 @@ const LocationSchema = new mongoose.Schema({
     required: true,
     trim: true,
     index: true,
+  },
+  imagePath: {
+    type: String,
   },
   description: {
     type: String,
@@ -211,6 +217,7 @@ LocationSchema.pre("save", function (next) {
 export interface ILocation extends Document {
   name: string;
   description?: string;
+  imagePath?: string;
   category: string;
   cuisine: string[];
   specialties: string[];
