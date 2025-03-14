@@ -5,6 +5,7 @@ import { Formik, Form, Field, FormikHelpers } from "formik";
 import { reviewService } from "@/services/review.service";
 import * as Yup from "yup";
 import { useToast } from "@/hooks/useToast";
+import Image from "next/image";
 
 interface ReviewFormProps {
   locationId: string;
@@ -20,8 +21,8 @@ interface ReviewFormValues {
     pricePerformance: number;
   };
   comment: string;
-  visitDate: Date;
-  images?: File[];
+  visitDate: string;
+  image?: File;
 }
 
 const ReviewSchema = Yup.object().shape({
@@ -38,12 +39,19 @@ const ReviewSchema = Yup.object().shape({
   comment: Yup.string()
     .required("Yorum zorunludur")
     .min(10, "En az 10 karakter yazmalısınız"),
-  visitDate: Yup.date(),
+  visitDate: Yup.date()
+    .required("Ziyaret tarihi zorunludur")
+    .max(new Date(), "Gelecek bir tarih seçemezsiniz")
+    .typeError("Geçerli bir tarih giriniz"),
+  image: Yup.mixed(),
 });
 
 export function ReviewForm({ locationId, onSuccess }: ReviewFormProps) {
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const { showToast } = useToast();
+
+  const today = new Date().toISOString().split("T")[0];
 
   const initialValues: ReviewFormValues = {
     rating: {
@@ -54,7 +62,7 @@ export function ReviewForm({ locationId, onSuccess }: ReviewFormProps) {
       pricePerformance: 0,
     },
     comment: "",
-    visitDate: new Date(),
+    visitDate: today,
   };
 
   const calculateOverallRating = (
@@ -63,6 +71,21 @@ export function ReviewForm({ locationId, onSuccess }: ReviewFormProps) {
     const { taste, service, ambiance, pricePerformance } = ratings;
     const sum = taste + service + ambiance + pricePerformance;
     return Number((sum / 4).toFixed(1));
+  };
+
+  const handleImageChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+    setFieldValue: (field: string, value: File | undefined) => void
+  ) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setFieldValue("image", file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSubmit = async (
@@ -77,10 +100,12 @@ export function ReviewForm({ locationId, onSuccess }: ReviewFormProps) {
           ...formData.rating,
           overall: overallRating,
         },
+        visitDate: new Date(formData.visitDate),
       };
 
       await reviewService.addReview(updatedFormData, locationId);
       resetForm();
+      setImagePreview(null);
       setSubmitError(null);
       showToast("Değerlendirmeniz başarıyla eklendi", "success");
       if (onSuccess) {
@@ -125,7 +150,7 @@ export function ReviewForm({ locationId, onSuccess }: ReviewFormProps) {
       validationSchema={ReviewSchema}
       onSubmit={handleSubmit}
     >
-      {({ errors, touched, isSubmitting }) => (
+      {({ errors, touched, isSubmitting, setFieldValue }) => (
         <Form className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -204,9 +229,42 @@ export function ReviewForm({ locationId, onSuccess }: ReviewFormProps) {
             <Field
               type="date"
               name="visitDate"
+              max={today}
+              defaultValue={today}
               className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white sm:text-sm"
             />
           </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+              Fotoğraf
+            </label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => handleImageChange(e, setFieldValue)}
+              className="mt-1 block w-full text-sm text-gray-500 dark:text-gray-400
+                file:mr-4 file:py-2 file:px-4
+                file:rounded-md file:border-0
+                file:text-sm file:font-semibold
+                file:bg-blue-50 file:text-blue-700
+                hover:file:bg-blue-100
+                dark:file:bg-gray-700 dark:file:text-gray-200"
+            />
+          </div>
+
+          {imagePreview && (
+            <div className="mt-2">
+              <div className="relative h-48 w-full rounded-lg overflow-hidden">
+                <Image
+                  src={imagePreview}
+                  alt="Preview"
+                  fill
+                  className="object-cover"
+                />
+              </div>
+            </div>
+          )}
 
           {submitError && (
             <div className="text-red-600 text-sm">{submitError}</div>

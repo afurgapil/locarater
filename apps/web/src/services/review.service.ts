@@ -49,6 +49,7 @@ interface CreateReviewDto {
   rating: ReviewRating;
   comment: string;
   visitDate?: Date;
+  image?: File;
 }
 
 interface UpdateReviewDto {
@@ -61,6 +62,7 @@ interface UpdateReviewDto {
   };
   comment: string;
   visitDate?: Date;
+  image?: File;
 }
 
 export const reviewService = {
@@ -80,9 +82,41 @@ export const reviewService = {
     reviewData: CreateReviewDto,
     locationId: string
   ): Promise<ReviewResponse> {
+    const formData = new FormData();
+    formData.append("rating[overall]", reviewData.rating.overall.toString());
+    formData.append("rating[taste]", reviewData.rating.taste?.toString() || "");
+    formData.append(
+      "rating[service]",
+      reviewData.rating.service?.toString() || ""
+    );
+    formData.append(
+      "rating[ambiance]",
+      reviewData.rating.ambiance?.toString() || ""
+    );
+    formData.append(
+      "rating[pricePerformance]",
+      reviewData.rating.pricePerformance?.toString() || ""
+    );
+    formData.append("comment", reviewData.comment);
+    if (reviewData.visitDate) {
+      const visitDate =
+        reviewData.visitDate instanceof Date
+          ? reviewData.visitDate
+          : new Date(reviewData.visitDate);
+      formData.append("visitDate", visitDate.toISOString());
+    }
+    if (reviewData.image) {
+      formData.append("image", reviewData.image);
+    }
+
     const { data } = await api.post(
       API_ENDPOINTS.reviews.create(locationId),
-      reviewData
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
     );
     return data;
   },
@@ -92,9 +126,35 @@ export const reviewService = {
     reviewId: string,
     updateData: UpdateReviewDto
   ): Promise<Review> {
+    const formData = new FormData();
+    formData.append("rating[overall]", updateData.rating.overall.toString());
+    formData.append("rating[taste]", updateData.rating.taste.toString());
+    formData.append("rating[service]", updateData.rating.service.toString());
+    formData.append("rating[ambiance]", updateData.rating.ambiance.toString());
+    formData.append(
+      "rating[pricePerformance]",
+      updateData.rating.pricePerformance.toString()
+    );
+    formData.append("comment", updateData.comment);
+    if (updateData.visitDate) {
+      const visitDate =
+        updateData.visitDate instanceof Date
+          ? updateData.visitDate
+          : new Date(updateData.visitDate);
+      formData.append("visitDate", visitDate.toISOString());
+    }
+    if (updateData.image) {
+      formData.append("image", updateData.image);
+    }
+
     const { data } = await api.put(
       API_ENDPOINTS.reviews.update(locationId, reviewId),
-      updateData
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
     );
     return data;
   },

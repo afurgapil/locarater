@@ -6,6 +6,8 @@ import { Review } from "@/types/review";
 import { reviewService } from "@/services/review.service";
 import { useToast } from "@/hooks/useToast";
 import { RatingInput } from "./RatingInput";
+import { useState } from "react";
+import Image from "next/image";
 
 interface EditReviewDialogProps {
   isOpen: boolean;
@@ -23,6 +25,7 @@ interface ReviewFormValues {
   };
   comment: string;
   visitDate: string;
+  image?: File;
 }
 
 export function EditReviewDialog({
@@ -31,6 +34,9 @@ export function EditReviewDialog({
   review,
 }: EditReviewDialogProps) {
   const { showToast } = useToast();
+  const [imagePreview, setImagePreview] = useState<string | null>(
+    review.imageUrl || null
+  );
 
   const calculateOverallRating = (
     ratings: ReviewFormValues["rating"]
@@ -38,6 +44,21 @@ export function EditReviewDialog({
     const { taste, service, ambiance, pricePerformance } = ratings;
     const sum = taste + service + ambiance + pricePerformance;
     return Number((sum / 4).toFixed(1));
+  };
+
+  const handleImageChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+    setFieldValue: (field: string, value: File | undefined) => void
+  ) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setFieldValue("image", file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const initialValues: ReviewFormValues = {
@@ -86,6 +107,7 @@ export function EditReviewDialog({
                     visitDate: updatedValues.visitDate
                       ? new Date(updatedValues.visitDate)
                       : undefined,
+                    image: values.image,
                   }
                 );
                 showToast("Değerlendirme başarıyla güncellendi", "success");
@@ -102,7 +124,7 @@ export function EditReviewDialog({
               }
             }}
           >
-            {({ values, handleChange, isSubmitting }) => (
+            {({ values, handleChange, isSubmitting, setFieldValue }) => (
               <Form className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -173,6 +195,37 @@ export function EditReviewDialog({
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white sm:text-sm"
                   />
                 </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Fotoğraf
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleImageChange(e, setFieldValue)}
+                    className="mt-1 block w-full text-sm text-gray-500 dark:text-gray-400
+                      file:mr-4 file:py-2 file:px-4
+                      file:rounded-md file:border-0
+                      file:text-sm file:font-semibold
+                      file:bg-blue-50 file:text-blue-700
+                      hover:file:bg-blue-100
+                      dark:file:bg-gray-700 dark:file:text-gray-200"
+                  />
+                </div>
+
+                {imagePreview && (
+                  <div className="mt-2">
+                    <div className="relative h-48 w-full rounded-lg overflow-hidden">
+                      <Image
+                        src={imagePreview}
+                        alt="Preview"
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                  </div>
+                )}
 
                 <div className="mt-6 flex justify-end space-x-3">
                   <button

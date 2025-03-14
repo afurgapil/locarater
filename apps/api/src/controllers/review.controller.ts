@@ -104,7 +104,7 @@ export const addReview = async (
 
     const updatedLocation = await Location.findById(locationId).populate(
       "reviews.user",
-      "username name"
+      "username name imageUrl"
     );
 
     res.status(201).json({
@@ -174,7 +174,7 @@ export const updateReview = async (
 
     const updatedLocation = await Location.findById(locationId).populate(
       "reviews.user",
-      "username name"
+      "username name imageUrl"
     );
 
     if (!updatedLocation) {
@@ -259,7 +259,7 @@ export const getReviews = async (
     const { locationId } = req.params;
     const location = await Location.findById(locationId).populate(
       "reviews.user",
-      "username name"
+      "username name imageUrl"
     );
 
     if (!location) {
@@ -295,7 +295,7 @@ export const getReviewsByUser = async (
       "reviews.user": userId,
     })
       .select("name reviews")
-      .populate("reviews.user", "username name");
+      .populate("reviews.user", "username name imageUrl");
 
     const userReviews = locations.flatMap((location) =>
       location.reviews
@@ -394,7 +394,7 @@ export const getAllReviews = async (
 
     const locations = await Location.find(filters)
       .select("name reviews")
-      .populate("reviews.user", "username name")
+      .populate("reviews.user", "username name imageUrl")
       .skip(skip)
       .limit(limit);
 

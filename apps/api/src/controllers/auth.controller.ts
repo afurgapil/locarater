@@ -81,8 +81,13 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         _id: user._id,
         username: user.username,
         email: user.email,
+        name: user.name,
         role: user.role,
         isVerified: user.isVerified,
+        imageUrl: user.imageUrl,
+        lastLogin: user.lastLogin,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
       },
     });
   } catch (error: any) {
@@ -132,8 +137,13 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         _id: user._id,
         username: user.username,
         email: user.email,
+        name: user.name,
         role: user.role,
         isVerified: user.isVerified,
+        imageUrl: user.imageUrl,
+        lastLogin: user.lastLogin,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
       },
     });
   } catch (error: any) {

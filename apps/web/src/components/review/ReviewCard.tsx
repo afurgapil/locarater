@@ -1,135 +1,181 @@
 "use client";
 
+import { useState } from "react";
+import { Review } from "@/types/review";
+import { Card, CardContent } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
-import { StarIcon, TrashIcon } from "@heroicons/react/24/solid";
-import { useState } from "react";
-import { reviewService } from "@/services/review.service";
-import { useToast } from "@/hooks/useToast";
-import type { Review } from "@/types/review";
-import { useAuthStore } from "@/store/useAuthStore";
-import { UserProfileLink } from "@/components/shared/UserProfileLink";
+import { Star, X } from "lucide-react";
 import Image from "next/image";
+import { DialogTitle } from "@/components/ui/dialog";
 
 interface ReviewCardProps {
   review: Review;
-  locationId: string;
-  onDelete?: () => void;
+  onEdit?: (review: Review) => void;
+  onDelete?: (review: Review) => void;
+  isOwner?: boolean;
 }
 
-export function ReviewCard({ review, locationId, onDelete }: ReviewCardProps) {
-  const [isReporting, setIsReporting] = useState(false);
-  const [reportReason, setReportReason] = useState("");
-  const { showToast } = useToast();
-  const { user } = useAuthStore();
+export function ReviewCard({
+  review,
+  onEdit,
+  onDelete,
+  isOwner,
+}: ReviewCardProps) {
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
-  const canDeleteReview =
-    !!user &&
-    ((user._id && user._id === review.user._id) || user.role === "ADMIN");
-
-  const handleDelete = async () => {
-    if (!onDelete || !canDeleteReview) return;
-
-    try {
-      await reviewService.deleteReview(locationId, review._id);
-      onDelete();
-      showToast("Değerlendirme başarıyla silindi", "success");
-    } catch (error) {
-      console.error("Error deleting review:", error);
-      showToast("Değerlendirme silinirken bir hata oluştu", "error");
-    }
+  const renderStars = (rating: number) => {
+    return (
+      <div className="flex gap-0.5">
+        {[...Array(10)].map((_, i) => (
+          <Star
+            key={i}
+            className={`h-3 w-3 ${
+              i < rating
+                ? "fill-yellow-400 text-yellow-400"
+                : "fill-gray-200 text-gray-200"
+            }`}
+          />
+        ))}
+      </div>
+    );
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 border border-gray-200 dark:border-gray-700">
-      <div className="flex justify-between items-start">
-        <div>
-          <div className="flex items-center">
-            <UserProfileLink
-              username={review.user.username}
-              className="font-medium text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400"
-            >
-              {review.user.name}
-            </UserProfileLink>
-            <span className="mx-2 text-gray-500 dark:text-gray-400">•</span>
-            <div className="flex items-center">
-              <StarIcon className="h-5 w-5 text-yellow-400" />
-              <span className="ml-1 text-gray-700 dark:text-gray-300">
-                {review.rating.overall.toFixed(1)}
-              </span>
-            </div>
-          </div>
-          <div className="text-sm text-gray-500 dark:text-gray-400">
-            {format(new Date(review.createdAt), "d MMMM yyyy", { locale: tr })}
-          </div>
-        </div>
-        <div className="flex space-x-2">
-          {onDelete && canDeleteReview && (
-            <button
-              onClick={handleDelete}
-              className="text-gray-400 hover:text-red-500 dark:hover:text-red-400"
-              title="Değerlendirmeyi sil"
-            >
-              <TrashIcon className="h-5 w-5" />
-            </button>
-          )}
-          {/* //TODO: Report button
-          <button
-            onClick={() => setIsReporting(true)}
-            className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
-            title="Değerlendirmeyi raporla"
+    <>
+      <Card className="w-full overflow-hidden">
+        <div className="flex flex-col md:flex-row">
+          {/* Content */}
+          <CardContent
+            className={`flex-1 p-6 ${!review.imageUrl ? "md:max-w-none" : "md:max-w-[67%]"}`}
           >
-            <FlagIcon className="h-5 w-5" />
-          </button>
-          */}
+            <div className="flex flex-col gap-4">
+              {/* User Info */}
+              <div className="flex items-center gap-3">
+                <Avatar className="h-10 w-10 border">
+                  <AvatarImage
+                    src={review.user?.imageUrl}
+                    alt={review.user.name}
+                  />
+                  <AvatarFallback>{review.user.name[0]}</AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="font-medium">{review.user.name}</p>
+                  <p className="text-sm text-gray-500">
+                    {format(new Date(review.visitDate), "d MMMM yyyy", {
+                      locale: tr,
+                    })}
+                  </p>
+                </div>
+                <Badge
+                  variant="secondary"
+                  className="ml-auto bg-yellow-100 text-yellow-700"
+                >
+                  {review.rating.overall}/10
+                </Badge>
+              </div>
+
+              {/* Comment */}
+              <p className="text-gray-700">{review.comment}</p>
+
+              {/* Ratings */}
+              <div className="grid grid-cols-2 gap-2 rounded-lg bg-gray-50 p-3">
+                <div>
+                  <p className="text-sm font-medium">Lezzet</p>
+                  {renderStars(review.rating.taste)}
+                </div>
+                <div>
+                  <p className="text-sm font-medium">Servis</p>
+                  {renderStars(review.rating.service)}
+                </div>
+                <div>
+                  <p className="text-sm font-medium">Ambiyans</p>
+                  {renderStars(review.rating.ambiance)}
+                </div>
+                <div>
+                  <p className="text-sm font-medium">Fiyat/Performans</p>
+                  {renderStars(review.rating.pricePerformance)}
+                </div>
+              </div>
+
+              {/* Actions */}
+              {isOwner && (
+                <div className="flex justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onEdit?.(review)}
+                  >
+                    Düzenle
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => onDelete?.(review)}
+                  >
+                    Sil
+                  </Button>
+                </div>
+              )}
+            </div>
+          </CardContent>
+
+          {/* Review Image */}
+          {review.imageUrl && !imageError && (
+            <div className="relative h-48 md:h-auto md:w-1/3 md:min-w-[250px]">
+              <div
+                className="group relative h-full w-full cursor-pointer"
+                onClick={() => setIsImageModalOpen(true)}
+              >
+                <Image
+                  src={review.imageUrl}
+                  alt="Review"
+                  fill
+                  className="object-cover transition-transform duration-200 group-hover:scale-105"
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                  onError={() => setImageError(true)}
+                  quality={75}
+                />
+                <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                  <p className="text-white">Büyütmek için tıklayın</p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-      </div>
+      </Card>
 
-      <div className="mt-4">
-        <p className="text-gray-700 dark:text-gray-300">{review.comment}</p>
-      </div>
-
-      {review.imageUrl && (
-        <div className="mt-4">
-          <div className="relative h-48 w-full rounded-lg overflow-hidden">
+      {/* Image Modal */}
+      <Dialog open={isImageModalOpen} onOpenChange={setIsImageModalOpen}>
+        <DialogTitle>
+          <p className="text-lg font-medium">Fotoğraf</p>
+        </DialogTitle>
+        <DialogContent className="max-w-4xl p-0">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute right-2 top-2 z-50"
+            onClick={() => setIsImageModalOpen(false)}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+          <div className="relative h-[80vh] w-full">
             <Image
-              src={review.imageUrl}
-              alt="Review image"
+              src={review.imageUrl || ""}
+              alt="Review"
               fill
-              className="object-cover"
+              className="object-contain"
+              sizes="100vw"
+              quality={75}
             />
           </div>
-        </div>
-      )}
-
-      {review.rating.taste && (
-        <div className="mt-3 grid grid-cols-2 gap-2 text-sm text-gray-500 dark:text-gray-400">
-          <div>Lezzet: {review.rating.taste}</div>
-          <div>Servis: {review.rating.service}</div>
-          <div>Ambiyans: {review.rating.ambiance}</div>
-          <div>Fiyat/Performans: {review.rating.pricePerformance}</div>
-        </div>
-      )}
-
-      {isReporting && (
-        <div className="mt-4 space-y-3">
-          <textarea
-            value={reportReason}
-            onChange={(e) => setReportReason(e.target.value)}
-            placeholder="Raporlama sebebinizi yazın..."
-            className="w-full rounded-md border border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white sm:text-sm"
-            rows={3}
-          />
-          <div className="flex justify-end space-x-2">
-            <button
-              onClick={() => setIsReporting(false)}
-              className="px-3 py-1 text-sm text-gray-600 dark:text-gray-400"
-            >
-              İptal
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
