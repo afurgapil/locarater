@@ -3,6 +3,20 @@ import { User } from "../models/user.model";
 import bcrypt from "bcryptjs";
 import { Location } from "../models/location.model";
 import { AuthRequest } from "../types/auth";
+import imageService from "../services/image.service";
+
+interface UserRequest extends AuthRequest {
+  body: {
+    username?: string;
+    email?: string;
+    name?: string;
+    password?: string;
+    role?: string;
+    imagePath?: string;
+    imageUrl?: string;
+  };
+  imagePath?: string;
+}
 
 export const getUserProfile = async (
   req: AuthRequest,
@@ -45,15 +59,39 @@ export const getUserByUsername = async (
 };
 
 export const updateUserProfile = async (
-  req: AuthRequest,
+  req: UserRequest,
   res: Response
 ): Promise<void> => {
   try {
     const userId = req.user?.id;
-    const updateData = req.body;
+    const updateData = { ...req.body };
+
+    if (!userId) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
 
     delete updateData.password;
     delete updateData.role;
+
+    const existingUser = await User.findById(userId);
+    if (!existingUser) {
+      res.status(404).json({ message: "Kullanıcı bulunamadı" });
+      return;
+    }
+
+    if (req.imagePath) {
+      if (existingUser.imagePath) {
+        try {
+          await imageService.deleteImage(existingUser.imagePath, "users");
+        } catch (error) {
+          console.error("Error deleting old image:", error);
+        }
+      }
+
+      updateData.imagePath = req.imagePath;
+      updateData.imageUrl = imageService.getPublicUrl(req.imagePath, "users");
+    }
 
     const user = await User.findByIdAndUpdate(
       userId,
@@ -144,23 +182,40 @@ export const deleteAccount = async (
       return;
     }
 
-    // Kullanıcının oluşturduğu mekanları sil
+    if (user.imagePath) {
+      try {
+        await imageService.deleteImage(user.imagePath, "users");
+      } catch (error) {
+        console.error("Error deleting user image:", error);
+      }
+    }
+
     const deletedLocations = await Location.deleteMany({ createdBy: userId });
     console.log(`${deletedLocations.deletedCount} mekan silindi`);
 
-    // Kullanıcının yaptığı değerlendirmeleri içeren mekanları bul
     const locationsWithUserReviews = await Location.find({
       "reviews.user": userId,
     });
 
-    // Her bir mekan için kullanıcının değerlendirmelerini kaldır
     for (const location of locationsWithUserReviews) {
-      // Kullanıcının değerlendirmelerini filtrele
+      const userReviews = location.reviews.filter(
+        (review) => review.user.toString() === userId.toString()
+      );
+
+      for (const review of userReviews) {
+        if (review.imagePath) {
+          try {
+            await imageService.deleteImage(review.imagePath, "reviews");
+          } catch (error) {
+            console.error("Error deleting review image:", error);
+          }
+        }
+      }
+
       location.reviews = location.reviews.filter(
         (review) => review.user.toString() !== userId.toString()
       );
 
-      // Değerlendirme istatistiklerini güncelle
       if (location.reviews.length > 0) {
         const totalRating = location.reviews.reduce((sum, review) => {
           return sum + (review.rating?.overall || 0);
@@ -169,7 +224,6 @@ export const deleteAccount = async (
         location.ratings.average = totalRating / location.reviews.length;
         location.ratings.count = location.reviews.length;
 
-        // Dağılımı sıfırla
         const distribution = {
           10: 0,
           9: 0,
@@ -183,7 +237,6 @@ export const deleteAccount = async (
           1: 0,
         };
 
-        // Yeni dağılımı hesapla
         location.reviews.forEach((review) => {
           if (review.rating?.overall) {
             const rating = Math.round(review.rating.overall);
@@ -195,7 +248,6 @@ export const deleteAccount = async (
 
         location.ratings.distribution = distribution;
       } else {
-        // Değerlendirme kalmadıysa sıfırla
         location.ratings.average = 0;
         location.ratings.count = 0;
         location.ratings.distribution = {
@@ -219,7 +271,6 @@ export const deleteAccount = async (
       `${locationsWithUserReviews.length} mekandan kullanıcı değerlendirmeleri kaldırıldı`
     );
 
-    // Kullanıcıyı sil
     await User.findByIdAndDelete(userId);
 
     res.json({
@@ -315,6 +366,15 @@ export const forceDeleteUser = async (
       res.status(404).json({ message: "Kullanıcı bulunamadı" });
       return;
     }
+
+    if (user.imagePath) {
+      try {
+        await imageService.deleteImage(user.imagePath, "users");
+      } catch (error) {
+        console.error("Error deleting user image:", error);
+      }
+    }
+
     const deletedLocations = await Location.deleteMany({ createdBy: userId });
     console.log(`${deletedLocations.deletedCount} mekan silindi`);
 
@@ -323,6 +383,20 @@ export const forceDeleteUser = async (
     });
 
     for (const location of locationsWithUserReviews) {
+      const userReviews = location.reviews.filter(
+        (review) => review.user.toString() === userId.toString()
+      );
+
+      for (const review of userReviews) {
+        if (review.imagePath) {
+          try {
+            await imageService.deleteImage(review.imagePath, "reviews");
+          } catch (error) {
+            console.error("Error deleting review image:", error);
+          }
+        }
+      }
+
       location.reviews = location.reviews.filter(
         (review) => review.user.toString() !== userId.toString()
       );
@@ -381,9 +455,16 @@ export const forceDeleteUser = async (
     console.log(
       `${locationsWithUserReviews.length} mekandan kullanıcı değerlendirmeleri kaldırıldı`
     );
+
     await User.findByIdAndDelete(userId);
 
-    res.json({ message: "Kullanıcı başarıyla silindi" });
+    res.json({
+      message: "Kullanıcı başarıyla silindi",
+      details: {
+        deletedLocations: deletedLocations.deletedCount,
+        updatedLocationsWithReviews: locationsWithUserReviews.length,
+      },
+    });
   } catch (error: any) {
     res.status(500).json({
       message: "Kullanıcı silinirken hata oluştu",

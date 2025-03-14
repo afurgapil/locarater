@@ -1,7 +1,5 @@
 import multer from "multer";
 import { Request, Response, NextFunction } from "express";
-import { ParamsDictionary } from "express-serve-static-core";
-import { ParsedQs } from "qs";
 import imageService from "../services/image.service";
 
 type BucketType = "locations" | "users" | "reviews";
@@ -34,7 +32,7 @@ const upload = multer({
   storage,
   fileFilter,
   limits: {
-    fileSize: 5 * 1024 * 1024,
+    fileSize: 5 * 1024 * 1024, // 5MB limit
   },
 });
 
@@ -43,21 +41,22 @@ const upload = multer({
  * @param {BucketType} type - The type of image upload (locations, users, reviews)
  * @returns {Array} Array of middleware functions
  */
-const imageUpload = (type: BucketType) => {
+const imageUpload = (type: BucketType): any[] => {
   return [
     upload.single("image"),
-    async (req: FileRequest, res: Response, next: NextFunction) => {
+    async (req: Request, res: Response, next: NextFunction) => {
       try {
-        if (!req.file) {
-          return res.status(400).json({
+        const fileReq = req as FileRequest;
+        if (!fileReq.file) {
+          res.status(400).json({
             success: false,
             message: "Image is required",
           });
+          return;
         }
 
-        const imagePath = await imageService.uploadImage(req.file, type);
-
-        req.imagePath = imagePath;
+        const imagePath = await imageService.uploadImage(fileReq.file, type);
+        fileReq.imagePath = imagePath;
 
         next();
       } catch (error) {
@@ -67,5 +66,5 @@ const imageUpload = (type: BucketType) => {
   ];
 };
 
-export { BucketType };
+export { BucketType, FileRequest };
 export default imageUpload;

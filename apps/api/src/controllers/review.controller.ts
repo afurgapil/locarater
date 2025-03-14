@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
-import { Location } from "../models/location.model";
-import { Types } from "mongoose";
+import { Location, ILocation } from "../models/location.model";
+import mongoose from "mongoose";
 import { AuthRequest } from "../types/auth";
+import imageService from "../services/image.service";
 
 interface Rating {
   overall: number;
@@ -11,38 +12,57 @@ interface Rating {
   pricePerformance?: number;
 }
 
+interface ReviewData {
+  rating: Rating;
+  comment?: string;
+  visitDate?: string;
+  imagePath?: string;
+  imageUrl?: string;
+}
+
 interface BaseReview {
+  _id: mongoose.Types.ObjectId;
   rating: Rating;
   comment?: string;
   visitDate?: Date;
   createdAt: Date;
   updatedAt: Date;
+  imagePath?: string;
+  imageUrl?: string;
 }
 
 interface MongoReview extends BaseReview {
-  _id: Types.ObjectId;
-  user: Types.ObjectId;
+  user: mongoose.Types.ObjectId;
 }
 
 interface PopulatedReview extends BaseReview {
-  _id: Types.ObjectId;
   user: {
-    id: Types.ObjectId;
+    id: mongoose.Types.ObjectId;
     username: string;
     name: string;
   };
 }
 
+interface ReviewRequest extends AuthRequest {
+  body: ReviewData;
+  imagePath?: string;
+}
+
 type Review = MongoReview | PopulatedReview;
 
 export const addReview = async (
-  req: AuthRequest,
+  req: ReviewRequest,
   res: Response
 ): Promise<void> => {
   try {
     const locationId = req.params.locationId;
     const reviewData = req.body;
-    reviewData.user = req.user?.id;
+
+    if (!req.user?.id) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
+
     const location = await Location.findById(locationId);
     if (!location) {
       res.status(404).json({ message: "Mekan bulunamadı" });
@@ -60,8 +80,15 @@ export const addReview = async (
       return;
     }
 
-    location.reviews.push({
-      user: reviewData.user,
+    let imageUrl, imagePath;
+    if (req.imagePath) {
+      imagePath = req.imagePath;
+      imageUrl = imageService.getPublicUrl(imagePath, "reviews");
+    }
+
+    const newReview = {
+      _id: new mongoose.Types.ObjectId(),
+      user: new mongoose.Types.ObjectId(req.user.id),
       rating: {
         overall: reviewData.rating.overall,
         taste: reviewData.rating.taste,
@@ -73,10 +100,13 @@ export const addReview = async (
       visitDate: reviewData.visitDate
         ? new Date(reviewData.visitDate)
         : new Date(),
+      imagePath,
+      imageUrl,
       createdAt: new Date(),
       updatedAt: new Date(),
-    });
+    };
 
+    location.reviews.push(newReview);
     await location.save();
 
     const updatedLocation = await Location.findById(locationId).populate(
@@ -98,28 +128,43 @@ export const addReview = async (
 };
 
 export const updateReview = async (
-  req: AuthRequest,
+  req: ReviewRequest,
   res: Response
 ): Promise<Response> => {
   try {
     const { locationId, reviewId } = req.params;
     const reviewData = req.body;
 
+    if (!req.user?.id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
     const location = await Location.findById(locationId);
     if (!location) {
       return res.status(404).json({ message: "Mekan bulunamadı" });
     }
 
-    const review = location.reviews.find(
-      (r: any) => r._id.toString() === reviewId
-    );
+    const review = location.reviews.find((r) => r._id.toString() === reviewId);
 
     if (!review) {
       return res.status(404).json({ message: "Değerlendirme bulunamadı" });
     }
 
-    if (review.user.toString() !== req.user?.id && req.user?.role !== "ADMIN") {
+    if (review.user.toString() !== req.user.id && req.user.role !== "ADMIN") {
       return res.status(403).json({ message: "Bu işlem için yetkiniz yok" });
+    }
+
+    if (req.imagePath) {
+      if (review.imagePath) {
+        try {
+          await imageService.deleteImage(review.imagePath, "reviews");
+        } catch (error) {
+          console.error("Error deleting old image:", error);
+        }
+      }
+
+      review.imagePath = req.imagePath;
+      review.imageUrl = imageService.getPublicUrl(req.imagePath, "reviews");
     }
 
     Object.assign(review, {
@@ -147,7 +192,7 @@ export const updateReview = async (
     return res.json({
       message: "Değerlendirme başarıyla güncellendi",
       review: updatedLocation?.reviews.find(
-        (r: any) => r._id.toString() === reviewId
+        (r) => r._id.toString() === reviewId
       ),
       ratings: updatedLocation?.ratings,
     });
@@ -167,13 +212,35 @@ export const deleteReview = async (
   try {
     const { locationId, reviewId } = req.params;
 
+    if (!req.user?.id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
     const location = await Location.findById(locationId);
     if (!location) {
       return res.status(404).json({ message: "Mekan bulunamadı" });
     }
 
+    const review = location.reviews.find((r) => r._id.toString() === reviewId);
+
+    if (!review) {
+      return res.status(404).json({ message: "Değerlendirme bulunamadı" });
+    }
+
+    if (review.user.toString() !== req.user.id && req.user.role !== "ADMIN") {
+      return res.status(403).json({ message: "Bu işlem için yetkiniz yok" });
+    }
+
+    if (review.imagePath) {
+      try {
+        await imageService.deleteImage(review.imagePath, "reviews");
+      } catch (error) {
+        console.error("Error deleting review image:", error);
+      }
+    }
+
     location.reviews = location.reviews.filter(
-      (r: any) => r._id.toString() !== reviewId
+      (r) => r._id.toString() !== reviewId
     );
     await location.save();
 

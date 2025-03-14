@@ -1,27 +1,39 @@
 import { Request, Response } from "express";
 import { Location } from "../models/location.model";
-import { RequestHandler } from "express";
 import { AuthRequest } from "../types/auth";
+import imageService from "../services/image.service";
 
-interface LocationRequest extends Request {
+interface LocationRequest extends AuthRequest {
   body: {
     name: string;
     category: string;
-    rating?: number;
+    description?: string;
     address: {
       city: string;
       district: string;
     };
+    imagePath?: string;
+    imageUrl?: string;
+    createdBy?: string;
   };
+  imagePath?: string;
 }
 
 export const createLocation = async (
-  req: AuthRequest,
+  req: LocationRequest,
   res: Response
 ): Promise<void> => {
   try {
-    const locationData = req.body;
-    locationData.createdBy = req.user?.id;
+    const locationData = {
+      ...req.body,
+      createdBy: req.user?.id,
+    };
+
+    if (req.imagePath) {
+      const imageUrl = imageService.getPublicUrl(req.imagePath, "locations");
+      locationData.imagePath = req.imagePath;
+      locationData.imageUrl = imageUrl;
+    }
 
     const location = new Location(locationData);
     await location.save();
@@ -77,11 +89,14 @@ export const getLocationById = async (
 };
 
 export const updateLocation = async (
-  req: AuthRequest,
+  req: LocationRequest,
   res: Response
 ): Promise<void> => {
   try {
-    const locationData = req.body;
+    const locationData = {
+      ...req.body,
+      updatedAt: new Date(),
+    };
 
     const location = await Location.findById(req.params.id);
     if (!location) {
@@ -97,9 +112,23 @@ export const updateLocation = async (
       return;
     }
 
+    if (req.imagePath) {
+      if (location.imagePath) {
+        try {
+          await imageService.deleteImage(location.imagePath, "locations");
+        } catch (error) {
+          console.error("Error deleting old image:", error);
+        }
+      }
+
+      const imageUrl = imageService.getPublicUrl(req.imagePath, "locations");
+      locationData.imagePath = req.imagePath;
+      locationData.imageUrl = imageUrl;
+    }
+
     const updatedLocation = await Location.findByIdAndUpdate(
       req.params.id,
-      { ...locationData, updatedAt: new Date() },
+      locationData,
       { new: true }
     )
       .populate("createdBy", "username name")
@@ -132,6 +161,14 @@ export const deleteLocation = async (
     ) {
       res.status(403).json({ message: "Bu işlem için yetkiniz yok" });
       return;
+    }
+
+    if (location.imagePath) {
+      try {
+        await imageService.deleteImage(location.imagePath, "locations");
+      } catch (error) {
+        console.error("Error deleting image:", error);
+      }
     }
 
     await Location.findByIdAndDelete(req.params.id);

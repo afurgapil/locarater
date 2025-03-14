@@ -28,12 +28,20 @@ const PriceRangeSchema = new mongoose.Schema({
 });
 
 const ReviewSchema = new mongoose.Schema({
+  _id: {
+    type: mongoose.Schema.Types.ObjectId,
+    default: () => new mongoose.Types.ObjectId(),
+    required: true,
+  },
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
     required: true,
   },
   imagePath: {
+    type: String,
+  },
+  imageUrl: {
     type: String,
   },
   rating: {
@@ -232,7 +240,10 @@ export interface ILocation extends Document {
     priceCategory: "₺" | "₺₺" | "₺₺₺" | "₺₺₺₺";
   };
   reviews: Array<{
-    user: mongoose.Schema.Types.ObjectId;
+    _id: mongoose.Types.ObjectId;
+    user: mongoose.Types.ObjectId;
+    imagePath?: string;
+    imageUrl?: string;
     rating: {
       overall: number;
       taste?: number;

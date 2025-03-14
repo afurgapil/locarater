@@ -10,12 +10,17 @@ import {
   getUserByUsername,
 } from "../controllers/user.controller";
 import { authenticateToken, checkRole } from "../middleware/auth.middleware";
-
+import imageUpload from "../utils/imageUpload";
 const router = Router();
 
 // Protected routes
 router.get("/profile/id/:userId", authenticateToken, getUserProfile);
-router.put("/profile", authenticateToken, updateUserProfile);
+router.put(
+  "/profile",
+  authenticateToken,
+  imageUpload("users"),
+  updateUserProfile
+);
 router.get("/profile/username/:username", getUserByUsername);
 router.post("/change-password", authenticateToken, changePassword);
 router.delete("/account", authenticateToken, deleteAccount);
