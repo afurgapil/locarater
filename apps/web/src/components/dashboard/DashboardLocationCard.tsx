@@ -29,7 +29,7 @@ export function DashboardLocationCard({
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
         <div className="relative h-32 w-full">
           <Image
-            src={location.images?.[0] || getCategoryImage(location.category)}
+            src={location.imageUrl || getCategoryImage(location.category)}
             alt={location.name}
             fill
             className="object-cover"

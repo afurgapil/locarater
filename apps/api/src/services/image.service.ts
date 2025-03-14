@@ -24,13 +24,24 @@ interface MulterFile {
 }
 
 const supabaseUrl = process.env.SUPABASE_PROJECT_URL;
-const supabaseKey = process.env.SUPABASE_API_KEY;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-if (!supabaseUrl || !supabaseKey) {
+if (!supabaseUrl || !supabaseServiceKey) {
   throw new Error("Supabase credentials are not configured");
 }
 
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+  auth: {
+    persistSession: false,
+    autoRefreshToken: false,
+    detectSessionInUrl: false,
+  },
+  global: {
+    headers: {
+      Authorization: `Bearer ${supabaseServiceKey}`,
+    },
+  },
+});
 
 class ImageService {
   private readonly buckets: ImageBuckets;
@@ -47,7 +58,7 @@ class ImageService {
    * Upload an image to Supabase Storage
    * @param {MulterFile} file - The uploaded file
    * @param {BucketType} type - The type of image (locations, users, reviews)
-   * @returns {Promise<string>} The file path in storage
+   * @returns {Promise<string>} The public URL of the uploaded image
    */
   async uploadImage(file: MulterFile, type: BucketType): Promise<string> {
     if (!this.buckets[type]) {
@@ -57,8 +68,7 @@ class ImageService {
     try {
       const fileExt = path.extname(file.originalname);
       const fileName = `${Date.now()}${fileExt}`;
-
-      const filePath = `${type}/${fileName}`;
+      const filePath = `public/${fileName}`;
 
       const uploadOptions: UploadImageOptions = {
         contentType: file.mimetype,
@@ -75,7 +85,7 @@ class ImageService {
         throw error;
       }
 
-      return filePath;
+      return this.getPublicUrl(filePath, type);
     } catch (error) {
       console.error("Error uploading image:", error);
       throw new Error("Failed to upload image");
@@ -83,21 +93,25 @@ class ImageService {
   }
 
   /**
-   * Delete an image from Supabase Storage
-   * @param {string} filePath - The file path in storage
+   * Delete an image from Supabase Storage using its public URL
+   * @param {string} imageUrl - The public URL of the image
    * @param {BucketType} type - The type of image (locations, users, reviews)
    */
-  async deleteImage(filePath: string, type: BucketType): Promise<void> {
+  async deleteImage(imageUrl: string, type: BucketType): Promise<void> {
     if (!this.buckets[type]) {
       throw new Error(`Invalid image type: ${type}`);
     }
 
-    if (!filePath) {
-      console.log("No file path provided, skipping deletion");
+    if (!imageUrl) {
+      console.log("No image URL provided, skipping deletion");
       return;
     }
 
     try {
+      // Extract the file path from the public URL
+      const urlParts = imageUrl.split("/");
+      const filePath = `public/${urlParts[urlParts.length - 1]}`;
+
       const { error } = await supabase.storage
         .from(this.buckets[type])
         .remove([filePath]);

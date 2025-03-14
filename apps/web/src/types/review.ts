@@ -6,6 +6,7 @@ export interface Review {
     _id: string;
     name: string;
     username: string;
+    imageUrl?: string;
   };
   rating: {
     overall: number;
@@ -15,6 +16,7 @@ export interface Review {
     pricePerformance: number;
   };
   comment: string;
+  imageUrl?: string;
   visitDate: string;
   createdAt: string;
   updatedAt: string;

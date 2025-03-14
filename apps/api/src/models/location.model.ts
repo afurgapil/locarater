@@ -38,9 +38,6 @@ const ReviewSchema = new mongoose.Schema({
     ref: "User",
     required: true,
   },
-  imagePath: {
-    type: String,
-  },
   imageUrl: {
     type: String,
   },
@@ -91,7 +88,7 @@ const LocationSchema = new mongoose.Schema({
     trim: true,
     index: true,
   },
-  imagePath: {
+  imageUrl: {
     type: String,
   },
   description: {
@@ -225,7 +222,7 @@ LocationSchema.pre("save", function (next) {
 export interface ILocation extends Document {
   name: string;
   description?: string;
-  imagePath?: string;
+  imageUrl?: string;
   category: string;
   cuisine: string[];
   specialties: string[];
@@ -242,7 +239,6 @@ export interface ILocation extends Document {
   reviews: Array<{
     _id: mongoose.Types.ObjectId;
     user: mongoose.Types.ObjectId;
-    imagePath?: string;
     imageUrl?: string;
     rating: {
       overall: number;

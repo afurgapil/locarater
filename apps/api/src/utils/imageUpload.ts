@@ -6,7 +6,7 @@ type BucketType = "locations" | "users" | "reviews";
 
 interface FileRequest extends Request {
   file?: Express.Multer.File;
-  imagePath?: string;
+  imageUrl?: string;
 }
 
 const storage = multer.memoryStorage();
@@ -55,8 +55,8 @@ const imageUpload = (type: BucketType): any[] => {
           return;
         }
 
-        const imagePath = await imageService.uploadImage(fileReq.file, type);
-        fileReq.imagePath = imagePath;
+        const imageUrl = await imageService.uploadImage(fileReq.file, type);
+        fileReq.imageUrl = imageUrl;
 
         next();
       } catch (error) {

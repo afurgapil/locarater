@@ -84,7 +84,7 @@ export function LocationDetail({ id }: LocationDetailProps) {
       <div className="bg-white dark:bg-gray-800 shadow sm:rounded-lg overflow-hidden">
         <div className="relative h-96">
           <Image
-            src={location.images[0] || "/placeholder.jpg"}
+            src={location.imageUrl || "/placeholder.jpg"}
             alt={location.name}
             fill
             className="object-cover"

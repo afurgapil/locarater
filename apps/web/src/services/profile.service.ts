@@ -1,20 +1,24 @@
 import { API_ENDPOINTS } from "@/config/api";
 import { api } from "@/lib/axios";
 
-interface ProfileUpdateData {
-  name?: string;
-  email?: string;
-  avatar?: File;
-  currentPassword?: string;
-  newPassword?: string;
-}
-
-interface Profile {
+export interface Profile {
   _id: string;
   name: string;
   email: string;
-  avatar?: string;
+  username: string;
+  role: string;
+  isVerified: boolean;
+  imageUrl?: string;
+  lastLogin?: string;
   createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProfileUpdateData {
+  name?: string;
+  email?: string;
+  username?: string;
+  image?: File;
 }
 
 interface PasswordUpdateData {
@@ -33,7 +37,7 @@ export const profileService = {
 
     Object.entries(updateData).forEach(([key, value]) => {
       if (value !== undefined) {
-        formData.append(key, value as string);
+        formData.append(key, value as string | Blob);
       }
     });
 
@@ -51,5 +55,9 @@ export const profileService = {
 
   async changePassword(passwordData: PasswordUpdateData): Promise<void> {
     await api.post(API_ENDPOINTS.users.changePassword, passwordData);
+  },
+
+  getImageUrl(imagePath: string): string {
+    return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${imagePath}`;
   },
 };

@@ -12,11 +12,10 @@ interface LocationRequest extends AuthRequest {
       city: string;
       district: string;
     };
-    imagePath?: string;
     imageUrl?: string;
     createdBy?: string;
   };
-  imagePath?: string;
+  imageUrl?: string;
 }
 
 export const createLocation = async (
@@ -29,10 +28,8 @@ export const createLocation = async (
       createdBy: req.user?.id,
     };
 
-    if (req.imagePath) {
-      const imageUrl = imageService.getPublicUrl(req.imagePath, "locations");
-      locationData.imagePath = req.imagePath;
-      locationData.imageUrl = imageUrl;
+    if (req.imageUrl) {
+      locationData.imageUrl = req.imageUrl;
     }
 
     const location = new Location(locationData);
@@ -112,18 +109,15 @@ export const updateLocation = async (
       return;
     }
 
-    if (req.imagePath) {
-      if (location.imagePath) {
+    if (req.imageUrl) {
+      if (location.imageUrl) {
         try {
-          await imageService.deleteImage(location.imagePath, "locations");
+          await imageService.deleteImage(location.imageUrl, "locations");
         } catch (error) {
           console.error("Error deleting old image:", error);
         }
       }
-
-      const imageUrl = imageService.getPublicUrl(req.imagePath, "locations");
-      locationData.imagePath = req.imagePath;
-      locationData.imageUrl = imageUrl;
+      locationData.imageUrl = req.imageUrl;
     }
 
     const updatedLocation = await Location.findByIdAndUpdate(
@@ -163,11 +157,22 @@ export const deleteLocation = async (
       return;
     }
 
-    if (location.imagePath) {
+    if (location.imageUrl) {
       try {
-        await imageService.deleteImage(location.imagePath, "locations");
+        await imageService.deleteImage(location.imageUrl, "locations");
       } catch (error) {
         console.error("Error deleting image:", error);
+      }
+    }
+
+    // Delete review images if they exist
+    for (const review of location.reviews) {
+      if (review.imageUrl) {
+        try {
+          await imageService.deleteImage(review.imageUrl, "reviews");
+        } catch (error) {
+          console.error("Error deleting review image:", error);
+        }
       }
     }
 

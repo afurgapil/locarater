@@ -1,17 +1,13 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { User } from "@/services/auth.service";
 
 interface AuthState {
-  user: {
-    _id?: string;
-    username: string;
-    email: string;
-    role: string;
-    isVerified?: boolean;
-  } | null;
+  user: User | null;
   token: string | null;
-  setUser: (user: AuthState["user"]) => void;
+  setUser: (user: User | null) => void;
   setToken: (token: string | null) => void;
+  updateUser: (user: User) => void;
   updateVerificationStatus: (isVerified: boolean) => void;
   logout: () => void;
   isAuthenticated: () => boolean;
@@ -31,6 +27,7 @@ export const useAuthStore = create<AuthState>()(
           localStorage.removeItem("token");
         }
       },
+      updateUser: (user) => set({ user }),
       updateVerificationStatus: (isVerified) => {
         const currentUser = get().user;
         if (currentUser) {

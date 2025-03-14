@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/useToast";
 import type { Review } from "@/types/review";
 import { useAuthStore } from "@/store/useAuthStore";
 import { UserProfileLink } from "@/components/shared/UserProfileLink";
+import Image from "next/image";
 
 interface ReviewCardProps {
   review: Review;
@@ -87,6 +88,19 @@ export function ReviewCard({ review, locationId, onDelete }: ReviewCardProps) {
       <div className="mt-4">
         <p className="text-gray-700 dark:text-gray-300">{review.comment}</p>
       </div>
+
+      {review.imageUrl && (
+        <div className="mt-4">
+          <div className="relative h-48 w-full rounded-lg overflow-hidden">
+            <Image
+              src={review.imageUrl}
+              alt="Review image"
+              fill
+              className="object-cover"
+            />
+          </div>
+        </div>
+      )}
 
       {review.rating.taste && (
         <div className="mt-3 grid grid-cols-2 gap-2 text-sm text-gray-500 dark:text-gray-400">

@@ -12,10 +12,9 @@ interface UserRequest extends AuthRequest {
     name?: string;
     password?: string;
     role?: string;
-    imagePath?: string;
     imageUrl?: string;
   };
-  imagePath?: string;
+  imageUrl?: string;
 }
 
 export const getUserProfile = async (
@@ -80,17 +79,15 @@ export const updateUserProfile = async (
       return;
     }
 
-    if (req.imagePath) {
-      if (existingUser.imagePath) {
+    if (req.imageUrl) {
+      if (existingUser.imageUrl) {
         try {
-          await imageService.deleteImage(existingUser.imagePath, "users");
+          await imageService.deleteImage(existingUser.imageUrl, "users");
         } catch (error) {
           console.error("Error deleting old image:", error);
         }
       }
-
-      updateData.imagePath = req.imagePath;
-      updateData.imageUrl = imageService.getPublicUrl(req.imagePath, "users");
+      updateData.imageUrl = req.imageUrl;
     }
 
     const user = await User.findByIdAndUpdate(
@@ -182,17 +179,39 @@ export const deleteAccount = async (
       return;
     }
 
-    if (user.imagePath) {
+    // Delete user's profile image if exists
+    if (user.imageUrl) {
       try {
-        await imageService.deleteImage(user.imagePath, "users");
+        await imageService.deleteImage(user.imageUrl, "users");
       } catch (error) {
         console.error("Error deleting user image:", error);
       }
     }
 
-    const deletedLocations = await Location.deleteMany({ createdBy: userId });
-    console.log(`${deletedLocations.deletedCount} mekan silindi`);
+    // Delete user's locations and their images
+    const userLocations = await Location.find({ createdBy: userId });
+    for (const location of userLocations) {
+      if (location.imageUrl) {
+        try {
+          await imageService.deleteImage(location.imageUrl, "locations");
+        } catch (error) {
+          console.error("Error deleting location image:", error);
+        }
+      }
 
+      // Delete review images from this location
+      for (const review of location.reviews) {
+        if (review.imageUrl) {
+          try {
+            await imageService.deleteImage(review.imageUrl, "reviews");
+          } catch (error) {
+            console.error("Error deleting review image:", error);
+          }
+        }
+      }
+    }
+
+    // Delete user's reviews and their images from other locations
     const locationsWithUserReviews = await Location.find({
       "reviews.user": userId,
     });
@@ -203,9 +222,9 @@ export const deleteAccount = async (
       );
 
       for (const review of userReviews) {
-        if (review.imagePath) {
+        if (review.imageUrl) {
           try {
-            await imageService.deleteImage(review.imagePath, "reviews");
+            await imageService.deleteImage(review.imageUrl, "reviews");
           } catch (error) {
             console.error("Error deleting review image:", error);
           }
@@ -267,24 +286,15 @@ export const deleteAccount = async (
       await location.save();
     }
 
-    console.log(
-      `${locationsWithUserReviews.length} mekandan kullanıcı değerlendirmeleri kaldırıldı`
-    );
-
+    await Location.deleteMany({ createdBy: userId });
     await User.findByIdAndDelete(userId);
 
-    res.json({
-      message: "Hesap başarıyla silindi",
-      details: {
-        deletedLocations: deletedLocations.deletedCount,
-        updatedLocationsWithReviews: locationsWithUserReviews.length,
-      },
-    });
+    res.json({ message: "Hesabınız başarıyla silindi" });
   } catch (error: any) {
-    console.error("Hesap silme hatası:", error);
-    res
-      .status(500)
-      .json({ message: "Hesap silinirken hata oluştu", error: error.message });
+    res.status(500).json({
+      message: "Hesap silinirken hata oluştu",
+      error: error.message,
+    });
   }
 };
 
@@ -367,17 +377,39 @@ export const forceDeleteUser = async (
       return;
     }
 
-    if (user.imagePath) {
+    // Delete user's profile image if exists
+    if (user.imageUrl) {
       try {
-        await imageService.deleteImage(user.imagePath, "users");
+        await imageService.deleteImage(user.imageUrl, "users");
       } catch (error) {
         console.error("Error deleting user image:", error);
       }
     }
 
-    const deletedLocations = await Location.deleteMany({ createdBy: userId });
-    console.log(`${deletedLocations.deletedCount} mekan silindi`);
+    // Delete user's locations and their images
+    const userLocations = await Location.find({ createdBy: userId });
+    for (const location of userLocations) {
+      if (location.imageUrl) {
+        try {
+          await imageService.deleteImage(location.imageUrl, "locations");
+        } catch (error) {
+          console.error("Error deleting location image:", error);
+        }
+      }
 
+      // Delete review images from this location
+      for (const review of location.reviews) {
+        if (review.imageUrl) {
+          try {
+            await imageService.deleteImage(review.imageUrl, "reviews");
+          } catch (error) {
+            console.error("Error deleting review image:", error);
+          }
+        }
+      }
+    }
+
+    // Delete user's reviews and their images from other locations
     const locationsWithUserReviews = await Location.find({
       "reviews.user": userId,
     });
@@ -388,9 +420,9 @@ export const forceDeleteUser = async (
       );
 
       for (const review of userReviews) {
-        if (review.imagePath) {
+        if (review.imageUrl) {
           try {
-            await imageService.deleteImage(review.imagePath, "reviews");
+            await imageService.deleteImage(review.imageUrl, "reviews");
           } catch (error) {
             console.error("Error deleting review image:", error);
           }
@@ -452,19 +484,10 @@ export const forceDeleteUser = async (
       await location.save();
     }
 
-    console.log(
-      `${locationsWithUserReviews.length} mekandan kullanıcı değerlendirmeleri kaldırıldı`
-    );
-
+    await Location.deleteMany({ createdBy: userId });
     await User.findByIdAndDelete(userId);
 
-    res.json({
-      message: "Kullanıcı başarıyla silindi",
-      details: {
-        deletedLocations: deletedLocations.deletedCount,
-        updatedLocationsWithReviews: locationsWithUserReviews.length,
-      },
-    });
+    res.json({ message: "Kullanıcı başarıyla silindi" });
   } catch (error: any) {
     res.status(500).json({
       message: "Kullanıcı silinirken hata oluştu",

@@ -45,7 +45,7 @@ interface PopulatedReview extends BaseReview {
 
 interface ReviewRequest extends AuthRequest {
   body: ReviewData;
-  imagePath?: string;
+  imageUrl?: string;
 }
 
 type Review = MongoReview | PopulatedReview;
@@ -80,12 +80,6 @@ export const addReview = async (
       return;
     }
 
-    let imageUrl, imagePath;
-    if (req.imagePath) {
-      imagePath = req.imagePath;
-      imageUrl = imageService.getPublicUrl(imagePath, "reviews");
-    }
-
     const newReview = {
       _id: new mongoose.Types.ObjectId(),
       user: new mongoose.Types.ObjectId(req.user.id),
@@ -100,8 +94,7 @@ export const addReview = async (
       visitDate: reviewData.visitDate
         ? new Date(reviewData.visitDate)
         : new Date(),
-      imagePath,
-      imageUrl,
+      imageUrl: req.imageUrl,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -120,10 +113,7 @@ export const addReview = async (
       ratings: updatedLocation?.ratings,
     });
   } catch (error: any) {
-    console.error("Review eklenirken hata:", error);
-    res
-      .status(500)
-      .json({ message: "Review eklenirken hata oluştu", error: error.message });
+    res.status(400).json({ message: error.message });
   }
 };
 
@@ -154,17 +144,15 @@ export const updateReview = async (
       return res.status(403).json({ message: "Bu işlem için yetkiniz yok" });
     }
 
-    if (req.imagePath) {
-      if (review.imagePath) {
+    if (req.imageUrl) {
+      if (review.imageUrl) {
         try {
-          await imageService.deleteImage(review.imagePath, "reviews");
+          await imageService.deleteImage(review.imageUrl, "reviews");
         } catch (error) {
           console.error("Error deleting old image:", error);
         }
       }
-
-      review.imagePath = req.imagePath;
-      review.imageUrl = imageService.getPublicUrl(req.imagePath, "reviews");
+      review.imageUrl = req.imageUrl;
     }
 
     Object.assign(review, {
@@ -189,12 +177,18 @@ export const updateReview = async (
       "username name"
     );
 
+    if (!updatedLocation) {
+      return res.status(404).json({ message: "Location not found" });
+    }
+
+    const updatedReview = updatedLocation.reviews.find(
+      (r) => r._id.toString() === reviewId
+    );
+
     return res.json({
       message: "Değerlendirme başarıyla güncellendi",
-      review: updatedLocation?.reviews.find(
-        (r) => r._id.toString() === reviewId
-      ),
-      ratings: updatedLocation?.ratings,
+      review: updatedReview,
+      ratings: updatedLocation.ratings,
     });
   } catch (error: any) {
     console.error("Review güncellenirken hata:", error);
@@ -231,9 +225,9 @@ export const deleteReview = async (
       return res.status(403).json({ message: "Bu işlem için yetkiniz yok" });
     }
 
-    if (review.imagePath) {
+    if (review.imageUrl) {
       try {
-        await imageService.deleteImage(review.imagePath, "reviews");
+        await imageService.deleteImage(review.imageUrl, "reviews");
       } catch (error) {
         console.error("Error deleting review image:", error);
       }

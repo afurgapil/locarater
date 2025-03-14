@@ -39,8 +39,9 @@ export interface Location {
     _id: string;
     username: string;
     name: string;
+    imageUrl?: string;
   };
-  images: string[];
+  imageUrl?: string;
   createdAt: string;
   updatedAt: string;
   id?: string;
@@ -52,6 +53,7 @@ export interface Review {
     _id: string;
     username: string;
     name: string;
+    imageUrl?: string;
   };
   rating: {
     overall: number;
@@ -61,6 +63,7 @@ export interface Review {
     pricePerformance: number;
   };
   comment: string;
+  imageUrl?: string;
   visitDate: string;
   createdAt: string;
   updatedAt: string;

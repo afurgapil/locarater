@@ -19,7 +19,7 @@ export function LocationCard({ location }: LocationCardProps) {
     >
       <div className="relative h-40 w-full">
         <Image
-          src={location.images?.[0] || getCategoryImage(location.category)}
+          src={location.imageUrl || getCategoryImage(location.category)}
           alt={location.name}
           fill
           className="object-cover"
