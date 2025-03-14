@@ -87,6 +87,8 @@ export function LocationDetail({ id }: LocationDetailProps) {
             src={location.imageUrl || "/placeholder.jpg"}
             alt={location.name}
             fill
+            sizes="100vw"
+            priority
             className="object-cover"
           />
         </div>

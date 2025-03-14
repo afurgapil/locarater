@@ -22,6 +22,8 @@ export function LocationCard({ location }: LocationCardProps) {
           src={location.imageUrl || getCategoryImage(location.category)}
           alt={location.name}
           fill
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          priority
           className="object-cover"
         />
       </div>

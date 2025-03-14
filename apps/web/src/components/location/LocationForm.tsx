@@ -6,6 +6,8 @@ import { reviewService } from "@/services/review.service";
 import type { Location } from "@/types/location";
 import { CATEGORIES, CategoryType } from "@/constants/categories";
 import { FormikHelpers } from "formik";
+import Image from "next/image";
+import { useState } from "react";
 
 interface LocationFormValues {
   name: string;
@@ -14,6 +16,7 @@ interface LocationFormValues {
     city: string;
     district: string;
   };
+  image?: File;
   initialReview?: {
     rating: {
       overall: number;
@@ -35,6 +38,10 @@ interface LocationFormProps {
 type FormikValues = LocationFormValues & { submit?: string };
 
 export function LocationForm({ location, onSuccess }: LocationFormProps) {
+  const [previewUrl, setPreviewUrl] = useState<string | null>(
+    location?.imageUrl || null
+  );
+
   const initialValues: FormikValues = {
     name: location?.name || "",
     category: location?.category || CATEGORIES[0].value,
@@ -55,6 +62,21 @@ export function LocationForm({ location, onSuccess }: LocationFormProps) {
     },
   };
 
+  const handleImageChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    setFieldValue: (field: string, value: File | null) => void
+  ) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setFieldValue("image", file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewUrl(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSubmit = async (
     values: FormikValues,
     { setSubmitting, resetForm, setErrors }: FormikHelpers<FormikValues>
@@ -66,10 +88,17 @@ export function LocationForm({ location, onSuccess }: LocationFormProps) {
         return;
       }
 
+      const locationData = {
+        name: values.name,
+        category: values.category,
+        address: values.address,
+        image: values.image,
+      };
+
       if (location) {
-        await locationService.updateLocation(location._id, values);
+        await locationService.updateLocation(location._id, locationData);
       } else {
-        const newLocation = await locationService.createLocation(values);
+        const newLocation = await locationService.createLocation(locationData);
 
         if (values.initialReview && values.initialReview.comment.trim()) {
           await reviewService.addReview(values.initialReview, newLocation._id);
@@ -77,6 +106,7 @@ export function LocationForm({ location, onSuccess }: LocationFormProps) {
       }
 
       resetForm();
+      setPreviewUrl(null);
       onSuccess?.();
     } catch (error) {
       console.error("Error saving location:", error);
@@ -92,7 +122,7 @@ export function LocationForm({ location, onSuccess }: LocationFormProps) {
 
   return (
     <Formik<FormikValues> initialValues={initialValues} onSubmit={handleSubmit}>
-      {({ isSubmitting, errors }) => (
+      {({ isSubmitting, errors, setFieldValue }) => (
         <Form className="space-y-6">
           <div>
             <label
@@ -129,6 +159,38 @@ export function LocationForm({ location, onSuccess }: LocationFormProps) {
                 </option>
               ))}
             </Field>
+          </div>
+
+          <div>
+            <label
+              htmlFor="image"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-200"
+            >
+              Mekan Fotoğrafı
+            </label>
+            <input
+              type="file"
+              id="image"
+              accept="image/*"
+              onChange={(e) => handleImageChange(e, setFieldValue)}
+              className="mt-1 block w-full text-sm text-gray-500
+                file:mr-4 file:py-2 file:px-4
+                file:rounded-md file:border-0
+                file:text-sm file:font-semibold
+                file:bg-blue-50 file:text-blue-700
+                hover:file:bg-blue-100
+                dark:file:bg-gray-700 dark:file:text-gray-200"
+            />
+            {previewUrl && (
+              <div className="mt-2 relative w-full h-48">
+                <Image
+                  src={previewUrl}
+                  alt="Preview"
+                  fill
+                  className="rounded-lg object-cover"
+                />
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -250,7 +312,7 @@ export function LocationForm({ location, onSuccess }: LocationFormProps) {
               ? "Kaydediliyor..."
               : location
                 ? "Güncelle"
-                : "Mekan Ekle"}
+                : "Kaydet"}
           </button>
         </Form>
       )}

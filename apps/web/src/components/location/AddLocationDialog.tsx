@@ -6,6 +6,8 @@ import { locationService } from "@/services/location.service";
 import { useToast } from "@/hooks/useToast";
 import { CATEGORIES } from "@/constants/categories";
 import * as Yup from "yup";
+import Image from "next/image";
+import { useState } from "react";
 
 interface AddLocationDialogProps {
   isOpen: boolean;
@@ -19,6 +21,7 @@ interface LocationFormValues {
     city: string;
     district: string;
   };
+  image?: File;
 }
 
 const LocationSchema = Yup.object().shape({
@@ -32,6 +35,7 @@ const LocationSchema = Yup.object().shape({
 
 export function AddLocationDialog({ isOpen, onClose }: AddLocationDialogProps) {
   const { showToast } = useToast();
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const initialValues: LocationFormValues = {
     name: "",
@@ -40,6 +44,21 @@ export function AddLocationDialog({ isOpen, onClose }: AddLocationDialogProps) {
       city: "",
       district: "",
     },
+  };
+
+  const handleImageChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    setFieldValue: (field: string, value: File | null) => void
+  ) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setFieldValue("image", file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewUrl(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   return (
@@ -69,7 +88,7 @@ export function AddLocationDialog({ isOpen, onClose }: AddLocationDialogProps) {
               }
             }}
           >
-            {({ errors, touched, isSubmitting }) => (
+            {({ errors, touched, isSubmitting, setFieldValue }) => (
               <Form className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -105,6 +124,34 @@ export function AddLocationDialog({ isOpen, onClose }: AddLocationDialogProps) {
                   {errors.category && touched.category && (
                     <div className="mt-1 text-sm text-red-600">
                       {errors.category}
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Mekan Fotoğrafı
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleImageChange(e, setFieldValue)}
+                    className="mt-1 block w-full text-sm text-gray-500
+                      file:mr-4 file:py-2 file:px-4
+                      file:rounded-md file:border-0
+                      file:text-sm file:font-semibold
+                      file:bg-blue-50 file:text-blue-700
+                      hover:file:bg-blue-100
+                      dark:file:bg-gray-700 dark:file:text-gray-200"
+                  />
+                  {previewUrl && (
+                    <div className="mt-2 relative w-full h-48">
+                      <Image
+                        src={previewUrl}
+                        alt="Preview"
+                        fill
+                        className="rounded-lg object-cover"
+                      />
                     </div>
                   )}
                 </div>

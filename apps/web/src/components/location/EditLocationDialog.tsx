@@ -6,6 +6,8 @@ import { Location } from "@/types/location";
 import { locationService } from "@/services/location.service";
 import { useToast } from "@/hooks/useToast";
 import { CATEGORIES, CategoryType } from "@/constants/categories";
+import Image from "next/image";
+import { useState } from "react";
 
 interface EditLocationDialogProps {
   isOpen: boolean;
@@ -21,6 +23,7 @@ interface LocationFormValues {
     city: string;
     district: string;
   };
+  image?: File;
 }
 
 export function EditLocationDialog({
@@ -29,6 +32,9 @@ export function EditLocationDialog({
   location,
 }: EditLocationDialogProps) {
   const { showToast } = useToast();
+  const [previewUrl, setPreviewUrl] = useState<string | null>(
+    location.imageUrl || null
+  );
 
   const initialValues: LocationFormValues = {
     name: location.name,
@@ -38,6 +44,21 @@ export function EditLocationDialog({
       city: location.address.city,
       district: location.address.district,
     },
+  };
+
+  const handleImageChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    setFieldValue: (field: string, value: File | null) => void
+  ) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setFieldValue("image", file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewUrl(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   return (
@@ -68,7 +89,7 @@ export function EditLocationDialog({
               }
             }}
           >
-            {({ isSubmitting }) => (
+            {({ isSubmitting, setFieldValue }) => (
               <Form className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -96,6 +117,34 @@ export function EditLocationDialog({
                       </option>
                     ))}
                   </Field>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Mekan Fotoğrafı
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleImageChange(e, setFieldValue)}
+                    className="mt-1 block w-full text-sm text-gray-500
+                      file:mr-4 file:py-2 file:px-4
+                      file:rounded-md file:border-0
+                      file:text-sm file:font-semibold
+                      file:bg-blue-50 file:text-blue-700
+                      hover:file:bg-blue-100
+                      dark:file:bg-gray-700 dark:file:text-gray-200"
+                  />
+                  {previewUrl && (
+                    <div className="mt-2 relative w-full h-48">
+                      <Image
+                        src={previewUrl}
+                        alt="Preview"
+                        fill
+                        className="rounded-lg object-cover"
+                      />
+                    </div>
+                  )}
                 </div>
 
                 <div>

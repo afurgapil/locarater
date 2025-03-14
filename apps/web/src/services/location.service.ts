@@ -10,7 +10,7 @@ interface CreateLocationDto {
     city: string;
     district: string;
   };
-  images?: File[];
+  image?: File;
 }
 
 interface UpdateLocationDto {
@@ -20,7 +20,7 @@ interface UpdateLocationDto {
     city: string;
     district: string;
   };
-  images?: File[];
+  image?: File;
   description?: string;
 }
 
@@ -48,54 +48,56 @@ export const locationService = {
   },
 
   async createLocation(data: CreateLocationDto): Promise<Location> {
-    let imageUrls: string[] = [];
-    if (data.images && data.images.length > 0) {
-      const formData = new FormData();
-      data.images.forEach((image) => {
-        formData.append("images", image);
-      });
-      const uploadResponse = await api.post(
-        API_ENDPOINTS.upload.image,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-      imageUrls = uploadResponse.data.urls;
+    const formData = new FormData();
+
+    // Append basic data
+    formData.append("name", data.name);
+    formData.append("category", data.category);
+    if (data.description) {
+      formData.append("description", data.description);
+    }
+    formData.append("address[city]", data.address.city);
+    formData.append("address[district]", data.address.district);
+
+    // Append image if exists
+    if (data.image) {
+      formData.append("image", data.image);
     }
 
-    const locationData = {
-      ...data,
-      images: imageUrls,
-    };
-
-    const response = await api.post(
-      API_ENDPOINTS.locations.create,
-      locationData
-    );
+    const response = await api.post(API_ENDPOINTS.locations.create, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
     return response.data;
   },
 
   async updateLocation(id: string, data: UpdateLocationDto): Promise<Location> {
-    let imageUrls: string[] = [];
-    if (data.images && data.images.length > 0) {
-      const formData = new FormData();
-      data.images.forEach((image) => {
-        formData.append("images", image);
-      });
-      const uploadResponse = await api.post(
-        API_ENDPOINTS.upload.image,
-        formData
-      );
-      imageUrls = uploadResponse.data.urls;
+    const formData = new FormData();
+
+    // Append basic data
+    if (data.name) formData.append("name", data.name);
+    if (data.category) formData.append("category", data.category);
+    if (data.description) formData.append("description", data.description);
+    if (data.address) {
+      formData.append("address[city]", data.address.city);
+      formData.append("address[district]", data.address.district);
     }
 
-    const response = await api.put(API_ENDPOINTS.locations.update(id), {
-      ...data,
-      ...(imageUrls.length > 0 && { images: imageUrls }),
-    });
+    // Append image if exists
+    if (data.image) {
+      formData.append("image", data.image);
+    }
+
+    const response = await api.put(
+      API_ENDPOINTS.locations.update(id),
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
     return response.data;
   },
 
