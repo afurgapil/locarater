@@ -5,9 +5,10 @@ import { locationService } from "@/services/location.service";
 import { reviewService } from "@/services/review.service";
 import type { Location } from "@/types/location";
 import { CATEGORIES, CategoryType } from "@/constants/categories";
+import { COUNTRIES } from "@/constants/cities";
 import { FormikHelpers } from "formik";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
 interface LocationFormValues {
   name: string;
@@ -41,6 +42,10 @@ export function LocationForm({ location, onSuccess }: LocationFormProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(
     location?.imageUrl || null
   );
+  const [selectedCountry, setSelectedCountry] = useState<string>("TR");
+  const [selectedCity, setSelectedCity] = useState<string>(
+    location?.address?.city || ""
+  );
 
   const initialValues: FormikValues = {
     name: location?.name || "",
@@ -61,6 +66,17 @@ export function LocationForm({ location, onSuccess }: LocationFormProps) {
       visitDate: new Date(),
     },
   };
+
+  const cities = useMemo(() => {
+    const country = COUNTRIES.find((c) => c.code === selectedCountry);
+    return country ? country.cities : [];
+  }, [selectedCountry]);
+
+  const districts = useMemo(() => {
+    const country = COUNTRIES.find((c) => c.code === selectedCountry);
+    const city = country?.cities.find((c) => c.name === selectedCity);
+    return city ? city.districts : [];
+  }, [selectedCountry, selectedCity]);
 
   const handleImageChange = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -193,7 +209,34 @@ export function LocationForm({ location, onSuccess }: LocationFormProps) {
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label
+                htmlFor="country"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-200"
+              >
+                Ülke
+              </label>
+              <select
+                id="country"
+                value={selectedCountry}
+                onChange={(e) => {
+                  const newCountry = e.target.value;
+                  setSelectedCountry(newCountry);
+                  setSelectedCity("");
+                  setFieldValue("address.city", "");
+                  setFieldValue("address.district", "");
+                }}
+                className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white sm:text-sm"
+              >
+                {COUNTRIES.map((country) => (
+                  <option key={country.code} value={country.code}>
+                    {country.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <div>
               <label
                 htmlFor="address.city"
@@ -202,12 +245,26 @@ export function LocationForm({ location, onSuccess }: LocationFormProps) {
                 Şehir
               </label>
               <Field
-                type="text"
+                as="select"
                 id="address.city"
                 name="address.city"
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+                  const newCity = e.target.value;
+                  setSelectedCity(newCity);
+                  setFieldValue("address.city", newCity);
+                  setFieldValue("address.district", "");
+                }}
                 className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white sm:text-sm"
-              />
+              >
+                <option value="">Şehir Seçin</option>
+                {cities.map((city) => (
+                  <option key={city.name} value={city.name}>
+                    {city.name}
+                  </option>
+                ))}
+              </Field>
             </div>
+
             <div>
               <label
                 htmlFor="address.district"
@@ -216,11 +273,19 @@ export function LocationForm({ location, onSuccess }: LocationFormProps) {
                 İlçe
               </label>
               <Field
-                type="text"
+                as="select"
                 id="address.district"
                 name="address.district"
-                className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white sm:text-sm"
-              />
+                disabled={!selectedCity}
+                className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <option value="">İlçe Seçin</option>
+                {districts.map((district) => (
+                  <option key={district} value={district}>
+                    {district}
+                  </option>
+                ))}
+              </Field>
             </div>
           </div>
 
