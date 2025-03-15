@@ -58,3 +58,4 @@ export const userService = {
     return data;
   },
 };
+export type { User };

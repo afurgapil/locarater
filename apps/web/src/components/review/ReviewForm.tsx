@@ -22,7 +22,7 @@ interface ReviewFormValues {
   };
   comment: string;
   visitDate: string;
-  image?: File;
+  image?: File | null;
 }
 
 const ReviewSchema = Yup.object().shape({
@@ -43,7 +43,7 @@ const ReviewSchema = Yup.object().shape({
     .required("Ziyaret tarihi zorunludur")
     .max(new Date(), "Gelecek bir tarih seçemezsiniz")
     .typeError("Geçerli bir tarih giriniz"),
-  image: Yup.mixed(),
+  image: Yup.mixed().nullable(),
 });
 
 export function ReviewForm({ locationId, onSuccess }: ReviewFormProps) {
@@ -63,6 +63,7 @@ export function ReviewForm({ locationId, onSuccess }: ReviewFormProps) {
     },
     comment: "",
     visitDate: today,
+    image: null,
   };
 
   const calculateOverallRating = (
@@ -75,7 +76,7 @@ export function ReviewForm({ locationId, onSuccess }: ReviewFormProps) {
 
   const handleImageChange = (
     event: React.ChangeEvent<HTMLInputElement>,
-    setFieldValue: (field: string, value: File | undefined) => void
+    setFieldValue: (field: string, value: File | null) => void
   ) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -85,6 +86,9 @@ export function ReviewForm({ locationId, onSuccess }: ReviewFormProps) {
         setImagePreview(reader.result as string);
       };
       reader.readAsDataURL(file);
+    } else {
+      setFieldValue("image", null);
+      setImagePreview(null);
     }
   };
 
@@ -101,6 +105,7 @@ export function ReviewForm({ locationId, onSuccess }: ReviewFormProps) {
           overall: overallRating,
         },
         visitDate: new Date(formData.visitDate),
+        image: formData.image || undefined,
       };
 
       await reviewService.addReview(updatedFormData, locationId);
@@ -230,7 +235,6 @@ export function ReviewForm({ locationId, onSuccess }: ReviewFormProps) {
               type="date"
               name="visitDate"
               max={today}
-              defaultValue={today}
               className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white sm:text-sm"
             />
           </div>

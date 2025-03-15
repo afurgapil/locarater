@@ -47,16 +47,12 @@ const imageUpload = (type: BucketType): any[] => {
     async (req: Request, res: Response, next: NextFunction) => {
       try {
         const fileReq = req as FileRequest;
-        if (!fileReq.file) {
-          res.status(400).json({
-            success: false,
-            message: "Image is required",
-          });
-          return;
-        }
 
-        const imageUrl = await imageService.uploadImage(fileReq.file, type);
-        fileReq.imageUrl = imageUrl;
+        // If there's a file, upload it
+        if (fileReq.file) {
+          const imageUrl = await imageService.uploadImage(fileReq.file, type);
+          fileReq.imageUrl = imageUrl;
+        }
 
         next();
       } catch (error) {

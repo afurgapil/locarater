@@ -6,12 +6,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
 import { Star, X } from "lucide-react";
 import Image from "next/image";
-import { DialogTitle } from "@/components/ui/dialog";
+import Link from "next/link";
 
 interface ReviewCardProps {
   review: Review;
@@ -57,15 +57,20 @@ export function ReviewCard({
             <div className="flex flex-col gap-4">
               {/* User Info */}
               <div className="flex items-center gap-3">
-                <Avatar className="h-10 w-10 border">
-                  <AvatarImage
-                    src={review.user?.imageUrl}
-                    alt={review.user.name}
-                  />
-                  <AvatarFallback>{review.user.name[0]}</AvatarFallback>
-                </Avatar>
+                <Link href={`/users/${review.user.username}`}>
+                  <Avatar className="h-10 w-10 border">
+                    <AvatarImage
+                      src={review.user?.imageUrl}
+                      alt={review.user.name}
+                    />
+                    <AvatarFallback>{review.user.name[0]}</AvatarFallback>
+                  </Avatar>
+                </Link>
+
                 <div>
-                  <p className="font-medium">{review.user.name}</p>
+                  <Link href={`/users/${review.user.username}`}>
+                    <p className="font-medium">{review.user.name}</p>
+                  </Link>
                   <p className="text-sm text-gray-500">
                     {format(new Date(review.visitDate), "d MMMM yyyy", {
                       locale: tr,
@@ -81,10 +86,12 @@ export function ReviewCard({
               </div>
 
               {/* Comment */}
-              <p className="text-gray-700">{review.comment}</p>
+              <p className="text-gray-700 dark:text-gray-300">
+                {review.comment}
+              </p>
 
               {/* Ratings */}
-              <div className="grid grid-cols-2 gap-2 rounded-lg bg-gray-50 p-3">
+              <div className="grid grid-cols-2 gap-2 rounded-lg bg-gray-50 dark:bg-gray-900 p-3">
                 <div>
                   <p className="text-sm font-medium">Lezzet</p>
                   {renderStars(review.rating.taste)}
@@ -152,10 +159,10 @@ export function ReviewCard({
 
       {/* Image Modal */}
       <Dialog open={isImageModalOpen} onOpenChange={setIsImageModalOpen}>
-        <DialogTitle>
-          <p className="text-lg font-medium">Fotoğraf</p>
-        </DialogTitle>
         <DialogContent className="max-w-4xl p-0">
+          <DialogTitle className="p-6 pb-0">
+            {review.user.name} değerlendirmesi
+          </DialogTitle>
           <Button
             variant="ghost"
             size="icon"

@@ -6,7 +6,7 @@ import { userService, User } from "@/services/user.service";
 import { useToast } from "@/hooks/useToast";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Spinner } from "@/components/ui/Spinner";
-
+import Image from "next/image";
 export default function UserProfilePage() {
   const { username } = useParams();
   const [user, setUser] = useState<User | null>(null);
@@ -72,9 +72,21 @@ export default function UserProfilePage() {
           <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
             <div className="flex-shrink-0">
               <div className="w-24 h-24 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center text-2xl font-bold text-gray-600 dark:text-gray-300">
-                {user.name?.charAt(0).toUpperCase() ||
-                  (user.username && user.username.charAt(0).toUpperCase()) ||
-                  "U"}
+                {user.imageUrl ? (
+                  <Image
+                    src={user.imageUrl}
+                    alt={user.name}
+                    width={96}
+                    height={96}
+                    className="rounded-full"
+                  />
+                ) : (
+                  <span>
+                    {user.name?.[0]?.toUpperCase() ||
+                      user.username?.[0]?.toUpperCase() ||
+                      "?"}
+                  </span>
+                )}
               </div>
             </div>
 
