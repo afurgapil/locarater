@@ -19,12 +19,14 @@ router.get("/", authenticateToken, checkRole(["ADMIN"]), getAllReviews);
 
 // Protected routes
 router.post("/user", authenticateToken, getReviewsByUser);
+// @ts-ignore
 router.post(
   "/:locationId",
   authenticateToken,
   imageUpload("reviews"),
   addReview
 );
+// @ts-ignore
 router.put(
   "/:locationId/:reviewId",
   authenticateToken,

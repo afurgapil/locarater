@@ -11,10 +11,10 @@ interface FileRequest extends Request {
 
 const storage = multer.memoryStorage();
 
-const fileFilter: multer.Options["fileFilter"] = (
-  _req,
-  file,
-  callback
+const fileFilter = (
+  _req: any,
+  file: Express.Multer.File,
+  callback: multer.FileFilterCallback
 ): void => {
   try {
     imageService.validateImage(file);
@@ -39,27 +39,31 @@ const upload = multer({
 /**
  * Middleware for handling image uploads
  * @param {BucketType} type - The type of image upload (locations, users, reviews)
- * @returns {Array} Array of middleware functions
+ * @returns Express middleware function
  */
-const imageUpload = (type: BucketType): any[] => {
-  return [
-    upload.single("image"),
-    async (req: Request, res: Response, next: NextFunction) => {
-      try {
-        const fileReq = req as FileRequest;
+const imageUpload = (type: BucketType) => {
+  const uploadMiddleware = upload.single("image");
 
-        // If there's a file, upload it
-        if (fileReq.file) {
-          const imageUrl = await imageService.uploadImage(fileReq.file, type);
-          fileReq.imageUrl = imageUrl;
-        }
+  return async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      await new Promise<void>((resolve, reject) => {
+        // @ts-ignore - Temporarily ignoring type issues with multer middleware
+        uploadMiddleware(req, res, (err) => {
+          if (err) reject(err);
+          else resolve();
+        });
+      });
 
-        next();
-      } catch (error) {
-        next(error);
+      const fileReq = req as FileRequest;
+      if (fileReq.file) {
+        const imageUrl = await imageService.uploadImage(fileReq.file, type);
+        fileReq.imageUrl = imageUrl;
       }
-    },
-  ];
+      next();
+    } catch (error) {
+      next(error);
+    }
+  };
 };
 
 export { BucketType, FileRequest };
