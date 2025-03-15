@@ -15,8 +15,9 @@ import Link from "next/link";
 
 interface ReviewCardProps {
   review: Review;
+  locationId: string;
   onEdit?: (review: Review) => void;
-  onDelete?: (review: Review) => void;
+  onDelete?: () => Promise<void>;
   isOwner?: boolean;
 }
 
@@ -123,7 +124,7 @@ export function ReviewCard({
                   <Button
                     variant="destructive"
                     size="sm"
-                    onClick={() => onDelete?.(review)}
+                    onClick={() => onDelete?.()}
                   >
                     Sil
                   </Button>

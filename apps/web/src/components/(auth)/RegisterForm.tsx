@@ -78,11 +78,17 @@ export function RegisterForm() {
     try {
       const response = await authService.register(values);
       setUser({
-        _id: response.user.id || response.user._id,
-        username: values.username,
-        email: values.email,
-        role: response.user.role || "USER",
-        isVerified: response.user.isVerified || false,
+        _id: response.user._id,
+        email: response.user.email,
+        name: response.user.name,
+        username: response.user.username,
+        role: response.user.role,
+        isVerified: response.user.isVerified,
+        imageUrl: response.user.imageUrl,
+        lastLogin: response.user.lastLogin,
+        createdAt: response.user.createdAt,
+        updatedAt: response.user.updatedAt,
+        isActive: response.user.isActive,
       });
       setToken(response.token);
 

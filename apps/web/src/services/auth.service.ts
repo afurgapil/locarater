@@ -12,6 +12,7 @@ export interface User {
   lastLogin?: string;
   createdAt: string;
   updatedAt: string;
+  isActive: boolean;
 }
 
 export interface AuthResponse {

@@ -52,9 +52,15 @@ export function LoginForm() {
       setUser({
         _id: response.user._id,
         email: response.user.email,
+        name: response.user.name,
+        username: response.user.username,
+        role: response.user.role,
         isVerified: response.user.isVerified,
-        role: response.user.role || "USER",
-        username: response.user.username || values.username,
+        imageUrl: response.user.imageUrl,
+        lastLogin: response.user.lastLogin,
+        createdAt: response.user.createdAt,
+        updatedAt: response.user.updatedAt,
+        isActive: response.user.isActive,
       });
 
       setToken(response.token);
