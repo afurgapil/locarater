@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import { Location } from "../models/location.model";
 import { AuthRequest } from "../types/auth";
 import { Types } from "mongoose";
+import { User } from "../models/user.model";
+import mongoose from "mongoose";
 
 export const getDashboardStats = async (
   req: AuthRequest,
@@ -259,6 +261,166 @@ export const getUserStats = async (
     console.error("Error fetching user stats:", error);
     return res.status(500).json({
       message: "Kullanıcı istatistikleri alınırken bir hata oluştu",
+    });
+  }
+};
+
+export const getPublicProfileStats = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  try {
+    const { username } = req.params;
+
+    if (!username) {
+      return res.status(400).json({ message: "Geçersiz kullanıcı adı" });
+    }
+
+    const user = await User.findOne({ username })
+      .select("username name imageUrl createdAt")
+      .lean();
+
+    if (!user) {
+      return res.status(404).json({ message: "Kullanıcı bulunamadı" });
+    }
+
+    const userObjectId = user._id;
+
+    const userLocationsCount = await Location.countDocuments({
+      createdBy: userObjectId,
+    });
+
+    const userReviewsStats = await Location.aggregate([
+      {
+        $unwind: "$reviews",
+      },
+      {
+        $match: {
+          "reviews.user": userObjectId,
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          count: { $sum: 1 },
+          averageRating: { $avg: "$reviews.rating.overall" },
+        },
+      },
+    ]);
+
+    const userReviewsCount = userReviewsStats[0]?.count || 0;
+    const userAverageRating = userReviewsStats[0]?.averageRating || 0;
+
+    const recentLocations = await Location.find({ createdBy: userObjectId })
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .select("name category averageRating reviewCount createdAt")
+      .lean();
+
+    const locationsWithStats = await Promise.all(
+      recentLocations.map(async (location) => {
+        const locationWithReviews = await Location.findById(location._id)
+          .select("reviews")
+          .lean();
+
+        const reviewCount = locationWithReviews?.reviews?.length || 0;
+
+        let averageRating = 0;
+        if (
+          reviewCount > 0 &&
+          locationWithReviews &&
+          locationWithReviews.reviews
+        ) {
+          const totalRating = locationWithReviews.reviews.reduce(
+            (sum, review) => sum + (review.rating?.overall || 0),
+            0
+          );
+          averageRating = totalRating / reviewCount;
+        }
+
+        return {
+          ...location,
+          reviewCount,
+          averageRating: parseFloat(averageRating.toFixed(1)) || 0,
+        };
+      })
+    );
+
+    const recentReviews = await Location.aggregate([
+      {
+        $unwind: "$reviews",
+      },
+      {
+        $match: {
+          "reviews.user": userObjectId,
+        },
+      },
+      {
+        $sort: { "reviews.createdAt": -1 },
+      },
+      {
+        $limit: 5,
+      },
+      {
+        $project: {
+          _id: "$reviews._id",
+          location: {
+            _id: "$_id",
+            name: "$name",
+          },
+          rating: "$reviews.rating",
+          comment: "$reviews.comment",
+          createdAt: "$reviews.createdAt",
+        },
+      },
+    ]);
+
+    const topCategories = await Location.aggregate([
+      {
+        $unwind: "$reviews",
+      },
+      {
+        $match: {
+          "reviews.user": userObjectId,
+        },
+      },
+      {
+        $group: {
+          _id: "$category",
+          count: { $sum: 1 },
+          averageRating: { $avg: "$reviews.rating.overall" },
+        },
+      },
+      {
+        $sort: { count: -1 },
+      },
+      {
+        $limit: 5,
+      },
+    ]);
+
+    return res.json({
+      user,
+      stats: {
+        locationsCount: userLocationsCount,
+        reviewsCount: userReviewsCount,
+        averageRating: parseFloat(userAverageRating.toFixed(1)) || 0,
+        memberSince: user.createdAt,
+      },
+      recentActivity: {
+        locations: locationsWithStats,
+        reviews: recentReviews,
+      },
+      topCategories: topCategories.map((category) => ({
+        category: category._id,
+        count: category.count,
+        averageRating: parseFloat(category.averageRating?.toFixed(1)) || 0,
+      })),
+    });
+  } catch (error) {
+    console.error("Error fetching public profile stats:", error);
+    return res.status(500).json({
+      message: "Genel profil istatistikleri alınırken bir hata oluştu",
     });
   }
 };

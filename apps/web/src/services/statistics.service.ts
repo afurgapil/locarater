@@ -61,6 +61,53 @@ interface UserStats {
   }>;
 }
 
+export interface PublicProfileStats {
+  user: {
+    _id: string;
+    username: string;
+    name: string;
+    imageUrl?: string;
+    createdAt: string;
+  };
+  stats: {
+    locationsCount: number;
+    reviewsCount: number;
+    averageRating: number;
+    memberSince: string;
+  };
+  recentActivity: {
+    locations: Array<{
+      _id: string;
+      name: string;
+      category: string;
+      averageRating: number;
+      reviewCount: number;
+      createdAt: string;
+    }>;
+    reviews: Array<{
+      _id: string;
+      location: {
+        _id: string;
+        name: string;
+      };
+      rating: {
+        overall: number;
+        taste?: number;
+        service?: number;
+        ambiance?: number;
+        pricePerformance?: number;
+      };
+      comment: string;
+      createdAt: string;
+    }>;
+  };
+  topCategories: Array<{
+    category: string;
+    count: number;
+    averageRating: number;
+  }>;
+}
+
 export const statisticsService = {
   async getDashboardStats(): Promise<DashboardStats> {
     const { data } = await api.get(API_ENDPOINTS.statistics.dashboard);
@@ -69,6 +116,13 @@ export const statisticsService = {
 
   async getUserStats(): Promise<UserStats> {
     const { data } = await api.get(API_ENDPOINTS.statistics.user);
+    return data;
+  },
+
+  async getPublicProfileStats(username: string): Promise<PublicProfileStats> {
+    const { data } = await api.get(
+      API_ENDPOINTS.statistics.publicProfileStats(username)
+    );
     return data;
   },
 };

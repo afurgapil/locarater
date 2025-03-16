@@ -42,7 +42,6 @@ export const getUserByUsername = async (
 ): Promise<void> => {
   try {
     const { username } = req.params;
-    console.log("username", username);
     const user = await User.findOne({ username }).select("-password");
     if (!user) {
       res.status(404).json({ message: "Kullanıcı bulunamadı" });

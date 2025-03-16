@@ -47,6 +47,8 @@ export const API_ENDPOINTS = {
   statistics: {
     dashboard: `${API_BASE_URL}/statistics/dashboard`,
     user: `${API_BASE_URL}/statistics/user`,
+    publicProfileStats: (username: string) =>
+      `${API_BASE_URL}/statistics/public-profile-stats/${username}`,
   },
   reviews: {
     getAll: `${API_BASE_URL}/reviews`,

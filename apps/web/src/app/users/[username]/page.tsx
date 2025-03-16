@@ -3,14 +3,22 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { userService, User } from "@/services/user.service";
+import {
+  statisticsService,
+  PublicProfileStats,
+} from "@/services/statistics.service";
 import { useToast } from "@/hooks/useToast";
 import { Spinner } from "@/components/ui/Spinner";
 import Image from "next/image";
 import { formatDate } from "@/lib/utils";
+import Link from "next/link";
+import { getCategoryLabel, CategoryType } from "@/constants/categories";
 
 export default function UserProfilePage() {
   const { username } = useParams();
   const [user, setUser] = useState<User | null>(null);
+  const [publicProfileStats, setPublicProfileStats] =
+    useState<PublicProfileStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { showToast } = useToast();
@@ -22,7 +30,13 @@ export default function UserProfilePage() {
         const userData = await userService.getUserByUsername(
           username as string
         );
+
+        const profileStats = await statisticsService.getPublicProfileStats(
+          username as string
+        );
+
         setUser(userData);
+        setPublicProfileStats(profileStats);
       } catch (err: unknown) {
         const errorMessage =
           err instanceof Error ? err.message : "Bilinmeyen hata";
@@ -35,7 +49,6 @@ export default function UserProfilePage() {
         setLoading(false);
       }
     };
-
     if (username) {
       fetchUserData();
     }
@@ -147,6 +160,169 @@ export default function UserProfilePage() {
             </div>
           </div>
         </div>
+
+        {publicProfileStats && (
+          <>
+            <div className="p-6 border-t border-gray-200 dark:border-gray-700">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                Kullanıcı İstatistikleri
+              </h2>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    Eklenen Mekanlar
+                  </p>
+                  <p className="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">
+                    {publicProfileStats.stats?.locationsCount || 0}
+                  </p>
+                </div>
+
+                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    Yapılan Yorumlar
+                  </p>
+                  <p className="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">
+                    {publicProfileStats.stats?.reviewsCount || 0}
+                  </p>
+                </div>
+
+                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    Ortalama Puan
+                  </p>
+                  <p className="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">
+                    {typeof publicProfileStats.stats?.averageRating === "number"
+                      ? publicProfileStats.stats.averageRating.toFixed(1)
+                      : "0.0"}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {publicProfileStats.topCategories &&
+              publicProfileStats.topCategories.length > 0 && (
+                <div className="p-6 border-t border-gray-200 dark:border-gray-700">
+                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                    En Çok Yorum Yapılan Kategoriler
+                  </h2>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {publicProfileStats.topCategories.map((category, index) => (
+                      <div
+                        key={index}
+                        className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg"
+                      >
+                        <p className="text-sm font-medium text-gray-900 dark:text-white">
+                          {getCategoryLabel(category.category as CategoryType)}
+                        </p>
+                        <div className="flex justify-between mt-2">
+                          <span className="text-gray-500 dark:text-gray-400">
+                            {category.count} yorum
+                          </span>
+                          <span className="text-yellow-500">
+                            {typeof category.averageRating === "number"
+                              ? category.averageRating.toFixed(1)
+                              : "0.0"}{" "}
+                            ★
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+            {publicProfileStats.recentActivity &&
+              publicProfileStats.recentActivity.locations &&
+              publicProfileStats.recentActivity.locations.length > 0 && (
+                <div className="p-6 border-t border-gray-200 dark:border-gray-700">
+                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                    Son Eklenen Mekanlar
+                  </h2>
+
+                  <div className="space-y-4">
+                    {publicProfileStats.recentActivity.locations.map(
+                      (location) => (
+                        <div
+                          key={location._id}
+                          className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg"
+                        >
+                          <Link href={`/locations/${location._id}`}>
+                            <h3 className="text-lg font-medium text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400">
+                              {location.name}
+                            </h3>
+                          </Link>
+                          <div className="flex justify-between mt-2">
+                            <span className="text-sm text-gray-500 dark:text-gray-400">
+                              {getCategoryLabel(
+                                location.category as CategoryType
+                              )}
+                            </span>
+                            <span className="text-sm text-gray-500 dark:text-gray-400">
+                              {formatDate(location.createdAt)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between mt-2">
+                            <span className="text-sm text-gray-500 dark:text-gray-400">
+                              {location.reviewCount || 0} yorum
+                            </span>
+                            <span className="text-yellow-500">
+                              {typeof location.averageRating === "number"
+                                ? location.averageRating.toFixed(1)
+                                : "0.0"}{" "}
+                              ★
+                            </span>
+                          </div>
+                        </div>
+                      )
+                    )}
+                  </div>
+                </div>
+              )}
+
+            {publicProfileStats.recentActivity &&
+              publicProfileStats.recentActivity.reviews &&
+              publicProfileStats.recentActivity.reviews.length > 0 && (
+                <div className="p-6 border-t border-gray-200 dark:border-gray-700">
+                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                    Son Yapılan Yorumlar
+                  </h2>
+
+                  <div className="space-y-4">
+                    {publicProfileStats.recentActivity.reviews.map((review) => (
+                      <div
+                        key={review._id}
+                        className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg"
+                      >
+                        <Link href={`/locations/${review.location._id}`}>
+                          <h3 className="text-lg font-medium text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400">
+                            {review.location.name}
+                          </h3>
+                        </Link>
+                        <div className="flex items-center mt-2">
+                          <span className="text-yellow-500 mr-2">
+                            {typeof review.rating.overall === "number"
+                              ? review.rating.overall.toFixed(1)
+                              : "0.0"}{" "}
+                            ★
+                          </span>
+                          <span className="text-sm text-gray-500 dark:text-gray-400">
+                            {formatDate(review.createdAt)}
+                          </span>
+                        </div>
+                        {review.comment && (
+                          <p className="mt-2 text-gray-700 dark:text-gray-300">
+                            {review.comment}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+          </>
+        )}
       </div>
     </div>
   );
