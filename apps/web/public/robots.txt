@@ -1,0 +1,12 @@
+# *
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+Disallow: /dashboard/
+
+# Host
+Host: https://locarater.com
+
+# Sitemaps
+Sitemap: https://locarater.com/sitemap.xml 
