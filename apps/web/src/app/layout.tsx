@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
@@ -36,11 +36,6 @@ export const metadata: Metadata = {
     icon: "/favicon.ico",
     apple: [{ url: "/apple-icon.png" }],
   },
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 1,
-  },
   robots: {
     index: true,
     follow: true,
@@ -61,6 +56,12 @@ export const metadata: Metadata = {
     description:
       "Mekanları keşfet, değerlendir ve paylaş. Locarater ile en iyi restoranları, kafeleri ve eğlence mekanlarını bulun.",
   },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
 };
 
 export default function RootLayout({
