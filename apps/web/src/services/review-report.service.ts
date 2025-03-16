@@ -65,6 +65,13 @@ class ReviewReportService {
     );
     return response.data;
   }
+
+  async deleteReport(reportId: string) {
+    const response = await api.delete(
+      API_ENDPOINTS.reviewReports.delete(reportId)
+    );
+    return response.data;
+  }
 }
 
 export const reviewReportService = new ReviewReportService();

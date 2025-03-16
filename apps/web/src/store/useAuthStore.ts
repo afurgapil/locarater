@@ -5,6 +5,8 @@ import { User } from "@/services/auth.service";
 interface AuthState {
   user: User | null;
   token: string | null;
+  loading: boolean;
+  error: string | null;
   setUser: (user: User | null) => void;
   setToken: (token: string | null) => void;
   updateUser: (user: User) => void;
@@ -18,6 +20,8 @@ export const useAuthStore = create<AuthState>()(
     (set, get) => ({
       user: null,
       token: null,
+      loading: false,
+      error: null,
       setUser: (user) => set({ user }),
       setToken: (token) => {
         set({ token });
@@ -35,7 +39,7 @@ export const useAuthStore = create<AuthState>()(
         }
       },
       logout: () => {
-        set({ user: null, token: null });
+        set({ user: null, token: null, error: null });
         localStorage.removeItem("token");
       },
       isAuthenticated: () => {

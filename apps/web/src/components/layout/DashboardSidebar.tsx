@@ -24,6 +24,7 @@ const navigation = [
     icon: StarIcon,
   },
   { name: "Profil", href: "/dashboard/profile", icon: UserIcon },
+  { name: "Raporlarım", href: "/dashboard/reports", icon: Bars3Icon },
 ];
 
 export function DashboardSidebar() {

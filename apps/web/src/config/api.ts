@@ -64,6 +64,7 @@ export const API_ENDPOINTS = {
     getByUser: `${API_BASE_URL}/review-reports/user`,
     updateStatus: (reportId: string) =>
       `${API_BASE_URL}/review-reports/${reportId}/status`,
+    delete: (reportId: string) => `${API_BASE_URL}/review-reports/${reportId}`,
   },
 };
 

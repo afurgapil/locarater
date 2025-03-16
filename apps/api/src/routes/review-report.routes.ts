@@ -4,6 +4,7 @@ import {
   getAllReports,
   updateReportStatus,
   getUserReports,
+  deleteReport,
 } from "../controllers/review-report.controller";
 import { authenticateToken, checkRole } from "../middleware/auth.middleware";
 
@@ -19,6 +20,12 @@ router.put(
   authenticateToken,
   checkRole(["ADMIN"]),
   updateReportStatus
+);
+router.delete(
+  "/:reportId",
+  authenticateToken,
+  checkRole(["ADMIN"]),
+  deleteReport
 );
 
 export default router;

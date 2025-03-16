@@ -42,6 +42,17 @@ export default function ReportsPage() {
     }
   };
 
+  const handleDeleteReport = async (reportId: string) => {
+    try {
+      await reviewReportService.deleteReport(reportId);
+      showToast("Rapor başarıyla silindi", "success");
+      fetchReports();
+    } catch (error) {
+      console.error("Error deleting report:", error);
+      showToast("Rapor silinirken bir hata oluştu", "error");
+    }
+  };
+
   const handleStatusUpdate = async (
     reportId: string,
     status: "RESOLVED" | "REJECTED"
@@ -138,7 +149,7 @@ export default function ReportsPage() {
                     </div>
                     <p className="text-sm">{report.reason}</p>
                   </div>
-                  <div className="flex justify-end">
+                  <div className="flex justify-end gap-2">
                     <Button
                       variant="outline"
                       size="sm"
@@ -148,6 +159,13 @@ export default function ReportsPage() {
                       }}
                     >
                       Detaylar
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => handleDeleteReport(report._id)}
+                    >
+                      Sil
                     </Button>
                   </div>
                 </div>

@@ -512,3 +512,29 @@ export const getUserReports = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ message: "Raporlar yüklenirken bir hata oluştu" });
   }
 };
+
+export const deleteReport = async (req: AuthRequest, res: Response) => {
+  try {
+    const { reportId } = req.params;
+
+    const report = await ReviewReportModel.findById(reportId).lean();
+
+    if (!report) {
+      return res.status(404).json({ message: "Rapor bulunamadı" });
+    }
+
+    await ReviewReportModel.findByIdAndDelete(reportId);
+
+    res.status(200).json({ message: "Rapor başarıyla silindi" });
+  } catch (error) {
+    console.error("Error deleting review report:", error);
+
+    if (error instanceof Error) {
+      res.status(500).json({
+        message: `Rapor silinirken bir hata oluştu: ${error.message}`,
+      });
+    } else {
+      res.status(500).json({ message: "Rapor silinirken bir hata oluştu" });
+    }
+  }
+};
