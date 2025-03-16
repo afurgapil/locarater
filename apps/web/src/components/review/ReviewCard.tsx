@@ -9,9 +9,12 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
-import { Star, PencilIcon, TrashIcon } from "lucide-react";
+import { Star, PencilIcon, TrashIcon, ImageIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useAuthStore } from "@/store/useAuthStore";
+import { locationService } from "@/services/location.service";
+import { useToast } from "@/hooks/useToast";
 
 interface ReviewCardProps {
   review: Review;
@@ -20,10 +23,21 @@ interface ReviewCardProps {
   onDelete?: () => Promise<void>;
 }
 
-export function ReviewCard({ review, onEdit, onDelete }: ReviewCardProps) {
+export function ReviewCard({
+  review,
+  locationId,
+  onEdit,
+  onDelete,
+}: ReviewCardProps) {
   const [isImageOpen, setIsImageOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [isImageCopyDialogOpen, setIsImageCopyDialogOpen] = useState(false);
+  const [isCopyingImage, setIsCopyingImage] = useState(false);
+  const { user } = useAuthStore();
+  const { showToast } = useToast();
+
+  const isAdmin = user?.role === "ADMIN";
 
   const handleDelete = async () => {
     try {
@@ -31,6 +45,25 @@ export function ReviewCard({ review, onEdit, onDelete }: ReviewCardProps) {
       setIsDeleteDialogOpen(false);
     } catch (error) {
       console.error("Error deleting review:", error);
+    }
+  };
+
+  const handleCopyImage = async () => {
+    if (!review.imageUrl) return;
+
+    try {
+      setIsCopyingImage(true);
+      await locationService.updateLocationImageFromReview(
+        locationId,
+        review.imageUrl
+      );
+      showToast("Görsel başarıyla mekan görseli olarak ayarlandı", "success");
+      setIsImageCopyDialogOpen(false);
+    } catch (error) {
+      console.error("Error copying image:", error);
+      showToast("Görsel kopyalanırken bir hata oluştu", "error");
+    } finally {
+      setIsCopyingImage(false);
     }
   };
 
@@ -131,31 +164,40 @@ export function ReviewCard({ review, onEdit, onDelete }: ReviewCardProps) {
                 </div>
               </div>
 
-              {(onEdit || onDelete) && (
-                <div className="flex justify-end gap-2">
-                  {onEdit && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => onEdit(review)}
-                      className="text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400"
-                    >
-                      <PencilIcon className="h-4 w-4 mr-1" />
-                      Düzenle
-                    </Button>
-                  )}
-                  {onDelete && (
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => setIsDeleteDialogOpen(true)}
-                    >
-                      <TrashIcon className="h-4 w-4 mr-1" />
-                      Sil
-                    </Button>
-                  )}
-                </div>
-              )}
+              <div className="flex justify-end gap-2">
+                {isAdmin && review.imageUrl && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsImageCopyDialogOpen(true)}
+                    className="text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400"
+                  >
+                    <ImageIcon className="h-4 w-4 mr-1" />
+                    Görseli Mekana Taşı
+                  </Button>
+                )}
+                {onEdit && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onEdit(review)}
+                    className="text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400"
+                  >
+                    <PencilIcon className="h-4 w-4 mr-1" />
+                    Düzenle
+                  </Button>
+                )}
+                {onDelete && (
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => setIsDeleteDialogOpen(true)}
+                  >
+                    <TrashIcon className="h-4 w-4 mr-1" />
+                    Sil
+                  </Button>
+                )}
+              </div>
             </div>
           </CardContent>
 
@@ -221,6 +263,39 @@ export function ReviewCard({ review, onEdit, onDelete }: ReviewCardProps) {
             </Button>
             <Button variant="destructive" onClick={handleDelete}>
               Sil
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Image Copy Dialog */}
+      <Dialog
+        open={isImageCopyDialogOpen}
+        onOpenChange={setIsImageCopyDialogOpen}
+      >
+        <DialogContent>
+          <DialogTitle>Görseli Mekana Taşı</DialogTitle>
+          <div className="mt-4">
+            <p className="text-gray-600 dark:text-gray-300">
+              Bu değerlendirmenin görselini mekanın ana görseli olarak ayarlamak
+              istediğinizden emin misiniz? Mevcut mekan görseli varsa
+              değiştirilecektir.
+            </p>
+          </div>
+          <div className="mt-6 flex justify-end space-x-3">
+            <Button
+              variant="outline"
+              onClick={() => setIsImageCopyDialogOpen(false)}
+              disabled={isCopyingImage}
+            >
+              Vazgeç
+            </Button>
+            <Button
+              variant="default"
+              onClick={handleCopyImage}
+              disabled={isCopyingImage}
+            >
+              {isCopyingImage ? "İşleniyor..." : "Görseli Taşı"}
             </Button>
           </div>
         </DialogContent>

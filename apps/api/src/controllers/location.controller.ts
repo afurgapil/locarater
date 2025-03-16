@@ -182,3 +182,38 @@ export const deleteLocation = async (
     res.status(500).json({ message: error.message });
   }
 };
+
+export const updateLocationImageFromReview = async (
+  req: AuthRequest,
+  res: Response
+): Promise<void> => {
+  try {
+    const { locationId } = req.params;
+    const { imageUrl } = req.body;
+
+    if (!req.user?.role || req.user.role !== "ADMIN") {
+      res
+        .status(403)
+        .json({ message: "Bu işlem için admin yetkisi gereklidir" });
+      return;
+    }
+
+    if (!imageUrl) {
+      res.status(400).json({ message: "Görsel URL'i gereklidir" });
+      return;
+    }
+
+    const location = await Location.findById(locationId);
+    if (!location) {
+      res.status(404).json({ message: "Mekan bulunamadı" });
+      return;
+    }
+
+    location.imageUrl = imageUrl;
+    await location.save();
+
+    res.json({ message: "Mekan görseli başarıyla güncellendi", location });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+};

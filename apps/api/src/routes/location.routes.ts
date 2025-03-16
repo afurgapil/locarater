@@ -6,6 +6,7 @@ import {
   updateLocation,
   deleteLocation,
   getLocationByUser,
+  updateLocationImageFromReview,
 } from "../controllers/location.controller";
 import { authenticateToken, checkRole } from "../middleware/auth.middleware";
 import imageUpload from "../utils/imageUpload";
@@ -24,4 +25,11 @@ router.post("/", authenticateToken, imageUpload("locations"), createLocation);
 router.put("/:id", authenticateToken, imageUpload("locations"), updateLocation);
 router.delete("/:id", authenticateToken, deleteLocation);
 
+// Admin routes
+router.put(
+  "/:locationId/image-from-review",
+  authenticateToken,
+  checkRole(["ADMIN"]),
+  updateLocationImageFromReview
+);
 export default router;

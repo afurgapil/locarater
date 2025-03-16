@@ -163,4 +163,15 @@ export const locationService = {
     const { data } = await api.get(API_ENDPOINTS.locations.getByUser);
     return data;
   },
+
+  async updateLocationImageFromReview(
+    locationId: string,
+    imageUrl: string
+  ): Promise<Location> {
+    const response = await api.put(
+      `${API_ENDPOINTS.locations.imageFromReview(locationId)}`,
+      { imageUrl }
+    );
+    return response.data.location;
+  },
 };

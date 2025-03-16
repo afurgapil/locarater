@@ -26,6 +26,8 @@ export const API_ENDPOINTS = {
     featured: `${API_BASE_URL}/locations/featured`,
     categories: `${API_BASE_URL}/locations/categories`,
     rate: (id: string) => `${API_BASE_URL}/locations/${id}/rate`,
+    imageFromReview: (locationId: string) =>
+      `${API_BASE_URL}/locations/${locationId}/image-from-review`,
   },
   upload: {
     image: `${API_BASE_URL}/upload/image`,

@@ -170,7 +170,7 @@ export default function LocationDetailPage() {
       <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden mb-8">
         <div className="relative h-64 sm:h-80 md:h-96">
           <Image
-            src={getCategoryImage(location.category)}
+            src={location.imageUrl || getCategoryImage(location.category)}
             alt={location.name}
             fill
             className="object-cover"
