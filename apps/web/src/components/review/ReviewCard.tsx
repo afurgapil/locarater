@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, ChangeEvent } from "react";
 import { Review } from "@/types/review";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -9,12 +9,14 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
-import { Star, PencilIcon, TrashIcon, ImageIcon } from "lucide-react";
+import { Star, PencilIcon, TrashIcon, ImageIcon, Flag } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useAuthStore } from "@/store/useAuthStore";
 import { locationService } from "@/services/location.service";
+import { reviewReportService } from "@/services/review-report.service";
 import { useToast } from "@/hooks/useToast";
+import { Textarea } from "@/components/ui/textarea";
 
 interface ReviewCardProps {
   review: Review;
@@ -34,10 +36,14 @@ export function ReviewCard({
   const [imageError, setImageError] = useState(false);
   const [isImageCopyDialogOpen, setIsImageCopyDialogOpen] = useState(false);
   const [isCopyingImage, setIsCopyingImage] = useState(false);
+  const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
+  const [reportReason, setReportReason] = useState("");
+  const [isSubmittingReport, setIsSubmittingReport] = useState(false);
   const { user } = useAuthStore();
   const { showToast } = useToast();
 
   const isAdmin = user?.role === "ADMIN";
+  const isOwnReview = user?._id === review.user._id;
 
   const handleDelete = async () => {
     try {
@@ -64,6 +70,34 @@ export function ReviewCard({
       showToast("Görsel kopyalanırken bir hata oluştu", "error");
     } finally {
       setIsCopyingImage(false);
+    }
+  };
+
+  const handleReport = async () => {
+    if (!reportReason.trim()) {
+      showToast("Lütfen bir rapor nedeni girin", "error");
+      return;
+    }
+
+    try {
+      setIsSubmittingReport(true);
+      await reviewReportService.createReport({
+        locationId,
+        reviewId: review._id,
+        reason: reportReason,
+      });
+      showToast("Değerlendirme başarıyla raporlandı", "success");
+      setIsReportDialogOpen(false);
+      setReportReason("");
+    } catch (error: unknown) {
+      console.error("Error reporting review:", error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Değerlendirme raporlanırken bir hata oluştu";
+      showToast(errorMessage, "error");
+    } finally {
+      setIsSubmittingReport(false);
     }
   };
 
@@ -165,6 +199,17 @@ export function ReviewCard({
               </div>
 
               <div className="flex justify-end gap-2">
+                {user && !isOwnReview && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsReportDialogOpen(true)}
+                    className="text-gray-600 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400"
+                  >
+                    <Flag className="h-4 w-4 mr-1" />
+                    Raporla
+                  </Button>
+                )}
                 {isAdmin && review.imageUrl && (
                   <Button
                     variant="outline"
@@ -296,6 +341,45 @@ export function ReviewCard({
               disabled={isCopyingImage}
             >
               {isCopyingImage ? "İşleniyor..." : "Görseli Taşı"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Report Dialog */}
+      <Dialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
+        <DialogContent>
+          <DialogTitle>Değerlendirmeyi Raporla</DialogTitle>
+          <div className="mt-4">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+              Bu değerlendirmeyi neden uygunsuz bulduğunuzu açıklayın.
+            </p>
+            <Textarea
+              value={reportReason}
+              onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
+                setReportReason(e.target.value)
+              }
+              placeholder="Rapor nedeninizi yazın..."
+              className="min-h-[100px]"
+            />
+          </div>
+          <div className="mt-6 flex justify-end space-x-3">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsReportDialogOpen(false);
+                setReportReason("");
+              }}
+              disabled={isSubmittingReport}
+            >
+              Vazgeç
+            </Button>
+            <Button
+              variant="default"
+              onClick={handleReport}
+              disabled={isSubmittingReport}
+            >
+              {isSubmittingReport ? "Gönderiliyor..." : "Raporla"}
             </Button>
           </div>
         </DialogContent>

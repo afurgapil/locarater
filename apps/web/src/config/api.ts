@@ -58,6 +58,13 @@ export const API_ENDPOINTS = {
       `${API_BASE_URL}/reviews/${locationId}/${reviewId}`,
     getByUser: `${API_BASE_URL}/reviews/user`,
   },
+  reviewReports: {
+    create: `${API_BASE_URL}/review-reports`,
+    getAll: `${API_BASE_URL}/review-reports`,
+    getByUser: `${API_BASE_URL}/review-reports/user`,
+    updateStatus: (reportId: string) =>
+      `${API_BASE_URL}/review-reports/${reportId}/status`,
+  },
 };
 
 export type ApiEndpoints = typeof API_ENDPOINTS;

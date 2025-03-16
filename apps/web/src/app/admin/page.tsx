@@ -47,6 +47,18 @@ export default function AdminPage() {
             Tüm değerlendirmeleri yönetin
           </p>
         </Link>
+
+        <Link
+          href="/admin/reports"
+          className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 hover:shadow-md transition-shadow"
+        >
+          <h2 className="text-xl font-medium text-gray-900 dark:text-white">
+            Raporlar
+          </h2>
+          <p className="mt-2 text-gray-500 dark:text-gray-400">
+            Tüm raporları yönetin
+          </p>
+        </Link>
       </div>
     </div>
   );
