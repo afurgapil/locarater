@@ -140,18 +140,29 @@ export const getDashboardStats = async (
     const currentReviewCount = reviewTrends[0]?.currentPeriod || 0;
     const previousReviewCount = reviewTrends[0]?.previousPeriod || 0;
 
-    const locationTrend =
-      previousLocationCount === 0
-        ? 100
-        : ((currentLocationCount - previousLocationCount) /
-            previousLocationCount) *
-          100;
+    let locationTrend = 0;
+    let reviewTrend = 0;
 
-    const reviewTrend =
-      previousReviewCount === 0
-        ? 100
-        : ((currentReviewCount - previousReviewCount) / previousReviewCount) *
-          100;
+    if (previousLocationCount === 0 && currentLocationCount === 0) {
+      locationTrend = 0;
+    } else if (previousLocationCount === 0) {
+      locationTrend = 100;
+    } else {
+      locationTrend =
+        ((currentLocationCount - previousLocationCount) /
+          previousLocationCount) *
+        100;
+    }
+
+    if (previousReviewCount === 0 && currentReviewCount === 0) {
+      reviewTrend = 0;
+    } else if (previousReviewCount === 0) {
+      reviewTrend = 100;
+    } else {
+      reviewTrend =
+        ((currentReviewCount - previousReviewCount) / previousReviewCount) *
+        100;
+    }
 
     return res.json({
       totalLocations,
