@@ -1,14 +1,23 @@
+import dotenv from "dotenv";
+import path from "path";
+
+const environment = process.env.NODE_ENV || "development";
+console.log(`Loading environment: ${environment}`);
+const envPath = path.resolve(__dirname, `../.env.${environment}`);
+console.log(`Looking for .env file at: ${envPath}`);
+dotenv.config({
+  path: envPath,
+});
+
 import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
-import dotenv from "dotenv";
 import locationRoutes from "./routes/location.routes";
 import authRoutes from "./routes/auth.routes";
 import reviewRoutes from "./routes/review.routes";
 import userRoutes from "./routes/user.routes";
 import statisticsRoutes from "./routes/statistics.routes";
 import reviewReportRoutes from "./routes/review-report.routes";
-dotenv.config();
 
 const app = express();
 
@@ -29,6 +38,7 @@ app.use("/api/reviews", reviewRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/statistics", statisticsRoutes);
 app.use("/api/review-reports", reviewReportRoutes);
+
 const MONGODB_URI =
   process.env.MONGODB_URI || "mongodb://localhost:27017/locarater";
 

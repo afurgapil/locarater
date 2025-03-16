@@ -1,8 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
 import path from "path";
-import dotenv from "dotenv";
-
-dotenv.config();
 
 type BucketType = "locations" | "users" | "reviews";
 
