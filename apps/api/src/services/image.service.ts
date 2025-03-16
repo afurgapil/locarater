@@ -99,13 +99,7 @@ class ImageService {
       throw new Error(`Invalid image type: ${type}`);
     }
 
-    if (!imageUrl) {
-      console.log("No image URL provided, skipping deletion");
-      return;
-    }
-
     try {
-      // Extract the file path from the public URL
       const urlParts = imageUrl.split("/");
       const filePath = `public/${urlParts[urlParts.length - 1]}`;
 
@@ -117,8 +111,6 @@ class ImageService {
         console.error("Supabase delete error:", error);
         throw error;
       }
-
-      console.log(`Successfully deleted file: ${filePath}`);
     } catch (error) {
       console.error("Error deleting image:", error);
       throw new Error("Failed to delete image");

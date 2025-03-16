@@ -43,6 +43,10 @@ export const API_ENDPOINTS = {
     updateRole: `${API_BASE_URL}/users/update-role`,
     forceDelete: (userId: string) =>
       `${API_BASE_URL}/users/force-delete/${userId}`,
+    follow: (userId: string) => `${API_BASE_URL}/users/follow/${userId}`,
+    unfollow: (userId: string) => `${API_BASE_URL}/users/unfollow/${userId}`,
+    following: (userId: string) => `${API_BASE_URL}/users/following/${userId}`,
+    followers: (userId: string) => `${API_BASE_URL}/users/followers/${userId}`,
   },
   statistics: {
     dashboard: `${API_BASE_URL}/statistics/dashboard`,
@@ -67,6 +71,21 @@ export const API_ENDPOINTS = {
     updateStatus: (reportId: string) =>
       `${API_BASE_URL}/review-reports/${reportId}/status`,
     delete: (reportId: string) => `${API_BASE_URL}/review-reports/${reportId}`,
+  },
+  feed: {
+    get: `${API_BASE_URL}/feed`,
+    likeReview: (reviewId: string) =>
+      `${API_BASE_URL}/feed/reviews/${reviewId}/like`,
+    dislikeReview: (reviewId: string) =>
+      `${API_BASE_URL}/feed/reviews/${reviewId}/dislike`,
+    removeReaction: (reviewId: string) =>
+      `${API_BASE_URL}/feed/reviews/${reviewId}/reaction`,
+    getComments: (reviewId: string) =>
+      `${API_BASE_URL}/feed/reviews/${reviewId}/comments`,
+    addComment: (reviewId: string) =>
+      `${API_BASE_URL}/feed/reviews/${reviewId}/comments`,
+    deleteComment: (reviewId: string, commentId: string) =>
+      `${API_BASE_URL}/feed/reviews/${reviewId}/comments/${commentId}`,
   },
 };
 

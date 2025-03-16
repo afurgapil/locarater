@@ -1,9 +1,10 @@
 import { Request, Response } from "express";
-import { User } from "../models/user.model";
+import { User, IUser } from "../models/user.model";
 import bcrypt from "bcryptjs";
 import { Location } from "../models/location.model";
 import { AuthRequest } from "../types/auth";
 import imageService from "../services/image.service";
+import mongoose from "mongoose";
 
 interface UserRequest extends AuthRequest {
   body: {
@@ -169,12 +170,6 @@ export const deleteAccount = async (
     const user = await User.findById(userId);
     if (!user) {
       res.status(404).json({ message: "Kullanıcı bulunamadı" });
-      return;
-    }
-
-    const isValidPassword = await user.comparePassword(password);
-    if (!isValidPassword) {
-      res.status(401).json({ message: "Şifre hatalı" });
       return;
     }
 
@@ -492,5 +487,171 @@ export const forceDeleteUser = async (
       message: "Kullanıcı silinirken hata oluştu",
       error: error.message,
     });
+  }
+};
+
+// Kullanıcıyı takip etme
+export const followUser = async (
+  req: AuthRequest,
+  res: Response
+): Promise<Response> => {
+  try {
+    const { userId } = req.params;
+    const currentUserId = req.user?.id;
+
+    if (!currentUserId) {
+      return res.status(401).json({ message: "Yetkilendirme hatası" });
+    }
+
+    if (userId === currentUserId) {
+      return res.status(400).json({ message: "Kendinizi takip edemezsiniz" });
+    }
+
+    const userToFollow = await User.findById(userId);
+    if (!userToFollow) {
+      return res.status(404).json({ message: "Kullanıcı bulunamadı" });
+    }
+
+    const currentUser = await User.findById(currentUserId);
+    if (!currentUser) {
+      return res.status(404).json({ message: "Kullanıcı bulunamadı" });
+    }
+
+    // Kullanıcı zaten takip ediliyor mu kontrol et
+    const userToFollowId = new mongoose.Types.ObjectId(userId);
+    if (currentUser.following.some((id) => id.equals(userToFollowId))) {
+      return res
+        .status(400)
+        .json({ message: "Bu kullanıcıyı zaten takip ediyorsunuz" });
+    }
+
+    // Takip et
+    await User.findByIdAndUpdate(currentUserId, {
+      $addToSet: { following: userToFollowId },
+    });
+
+    // Takipçi olarak ekle
+    const currentUserId_obj = new mongoose.Types.ObjectId(currentUserId);
+    await User.findByIdAndUpdate(userId, {
+      $addToSet: { followers: currentUserId_obj },
+    });
+
+    return res
+      .status(200)
+      .json({ message: "Kullanıcı başarıyla takip edildi" });
+  } catch (error) {
+    console.error("Kullanıcı takip hatası:", error);
+    return res
+      .status(500)
+      .json({ message: "Kullanıcı takip edilirken bir hata oluştu" });
+  }
+};
+
+// Kullanıcı takibini bırakma
+export const unfollowUser = async (
+  req: AuthRequest,
+  res: Response
+): Promise<Response> => {
+  try {
+    const { userId } = req.params;
+    const currentUserId = req.user?.id;
+
+    if (!currentUserId) {
+      return res.status(401).json({ message: "Yetkilendirme hatası" });
+    }
+
+    if (userId === currentUserId) {
+      return res
+        .status(400)
+        .json({ message: "Kendinizi takipten çıkaramazsınız" });
+    }
+
+    const userToUnfollow = await User.findById(userId);
+    if (!userToUnfollow) {
+      return res.status(404).json({ message: "Kullanıcı bulunamadı" });
+    }
+
+    const currentUser = await User.findById(currentUserId);
+    if (!currentUser) {
+      return res.status(404).json({ message: "Kullanıcı bulunamadı" });
+    }
+
+    // Kullanıcı takip ediliyor mu kontrol et
+    const userToUnfollowId = new mongoose.Types.ObjectId(userId);
+    if (!currentUser.following.some((id) => id.equals(userToUnfollowId))) {
+      return res
+        .status(400)
+        .json({ message: "Bu kullanıcıyı takip etmiyorsunuz" });
+    }
+
+    // Takibi bırak
+    await User.findByIdAndUpdate(currentUserId, {
+      $pull: { following: userToUnfollowId },
+    });
+
+    // Takipçilerden çıkar
+    const currentUserId_obj = new mongoose.Types.ObjectId(currentUserId);
+    await User.findByIdAndUpdate(userId, {
+      $pull: { followers: currentUserId_obj },
+    });
+
+    return res
+      .status(200)
+      .json({ message: "Kullanıcı takibi başarıyla bırakıldı" });
+  } catch (error) {
+    console.error("Kullanıcı takibi bırakma hatası:", error);
+    return res
+      .status(500)
+      .json({ message: "Kullanıcı takibi bırakılırken bir hata oluştu" });
+  }
+};
+
+// Takip edilen kullanıcıları getirme
+export const getFollowing = async (
+  req: AuthRequest,
+  res: Response
+): Promise<Response> => {
+  try {
+    const { userId } = req.params;
+
+    const user = await User.findById(userId).populate(
+      "following",
+      "username name imageUrl"
+    );
+    if (!user) {
+      return res.status(404).json({ message: "Kullanıcı bulunamadı" });
+    }
+
+    return res.status(200).json({ following: user.following });
+  } catch (error) {
+    console.error("Takip edilen kullanıcıları getirme hatası:", error);
+    return res.status(500).json({
+      message: "Takip edilen kullanıcılar getirilirken bir hata oluştu",
+    });
+  }
+};
+
+// Takipçileri getirme
+export const getFollowers = async (
+  req: AuthRequest,
+  res: Response
+): Promise<Response> => {
+  try {
+    const { userId } = req.params;
+
+    const user = await User.findById(userId).populate(
+      "followers",
+      "username name imageUrl"
+    );
+    if (!user) {
+      return res.status(404).json({ message: "Kullanıcı bulunamadı" });
+    }
+
+    return res.status(200).json({ followers: user.followers });
+  } catch (error) {
+    console.error("Takipçileri getirme hatası:", error);
+    return res
+      .status(500)
+      .json({ message: "Takipçiler getirilirken bir hata oluştu" });
   }
 };

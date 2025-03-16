@@ -76,12 +76,18 @@ export function Header({
           <div className="hidden md:flex items-center space-x-4">
             {user ? (
               <>
+                <Link
+                  href="/feed"
+                  className="text-base font-medium text-gray-500 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+                >
+                  Akış
+                </Link>
                 {showDashboardLink && (
                   <Link
                     href="/dashboard"
                     className="text-base font-medium text-gray-500 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
                   >
-                    Dashboard
+                    Arayüz
                   </Link>
                 )}
                 <button
@@ -116,13 +122,22 @@ export function Header({
             {user ? (
               <>
                 {showDashboardLink && (
-                  <Link
-                    href="/dashboard"
-                    className="block px-3 py-2 text-base font-medium text-gray-500 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Dashboard
-                  </Link>
+                  <>
+                    <Link
+                      href="/feed"
+                      className="block px-3 py-2 text-base font-medium text-gray-500 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Akış
+                    </Link>
+                    <Link
+                      href="/dashboard"
+                      className="block px-3 py-2 text-base font-medium text-gray-500 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Arayüz
+                    </Link>
+                  </>
                 )}
                 <button
                   onClick={() => {

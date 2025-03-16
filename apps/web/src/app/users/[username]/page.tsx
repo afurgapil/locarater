@@ -13,6 +13,7 @@ import Image from "next/image";
 import { formatDate } from "@/lib/utils";
 import Link from "next/link";
 import { getCategoryLabel, CategoryType } from "@/constants/categories";
+import { useUser } from "@/hooks/useUser";
 
 export default function UserProfilePage() {
   const { username } = useParams();
@@ -21,8 +22,10 @@ export default function UserProfilePage() {
     useState<PublicProfileStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
   const { showToast } = useToast();
-
+  const { user: currentUser } = useUser();
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -37,6 +40,10 @@ export default function UserProfilePage() {
 
         setUser(userData);
         setPublicProfileStats(profileStats);
+
+        if (currentUser && currentUser._id !== userData._id) {
+          checkFollowStatus(userData._id);
+        }
       } catch (err: unknown) {
         const errorMessage =
           err instanceof Error ? err.message : "Bilinmeyen hata";
@@ -53,7 +60,44 @@ export default function UserProfilePage() {
       fetchUserData();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [username]);
+  }, [username, currentUser]);
+
+  const checkFollowStatus = async (userId: string) => {
+    try {
+      const { following } = await userService.getFollowing(
+        currentUser?._id || ""
+      );
+      setIsFollowing(following.some((user) => user._id === userId));
+    } catch (error) {
+      console.error("Takip durumu kontrol edilirken hata oluştu:", error);
+    }
+  };
+
+  const handleFollow = async () => {
+    if (!currentUser || !user) return;
+
+    try {
+      setFollowLoading(true);
+
+      if (isFollowing) {
+        await userService.unfollowUser(user._id);
+        showToast(`${user.name} kullanıcısını takipten çıktınız`, "success");
+        setIsFollowing(false);
+      } else {
+        await userService.followUser(user._id);
+        showToast(
+          `${user.name} kullanıcısını takip etmeye başladınız`,
+          "success"
+        );
+        setIsFollowing(true);
+      }
+    } catch (error) {
+      console.error("Takip işlemi sırasında hata oluştu:", error);
+      showToast("Takip işlemi sırasında bir hata oluştu", "error");
+    } finally {
+      setFollowLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -102,14 +146,42 @@ export default function UserProfilePage() {
             </div>
 
             <div className="flex-grow">
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                {user.name || user.username || "Kullanıcı"}
-              </h1>
-              {user.username && (
-                <p className="text-gray-600 dark:text-gray-400 mt-1">
-                  @{user.username}
-                </p>
-              )}
+              <div className="flex flex-col md:flex-row md:items-center justify-between">
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {user.name || user.username || "Kullanıcı"}
+                  </h1>
+                  {user.username && (
+                    <p className="text-gray-600 dark:text-gray-400 mt-1">
+                      @{user.username}
+                    </p>
+                  )}
+                </div>
+
+                {currentUser &&
+                  user &&
+                  currentUser._id &&
+                  user._id &&
+                  currentUser._id.toString() !== user._id.toString() && (
+                    <button
+                      onClick={handleFollow}
+                      disabled={followLoading}
+                      className={`mt-4 md:mt-0 px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                        isFollowing
+                          ? "bg-gray-200 text-gray-800 hover:bg-gray-300 focus:ring-gray-500"
+                          : "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500"
+                      }`}
+                    >
+                      {followLoading ? (
+                        <Spinner size="sm" />
+                      ) : isFollowing ? (
+                        "Takibi Bırak"
+                      ) : (
+                        "Takip Et"
+                      )}
+                    </button>
+                  )}
+              </div>
 
               <div className="mt-4 flex flex-wrap gap-2">
                 <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">

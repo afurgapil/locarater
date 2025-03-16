@@ -59,7 +59,6 @@ export default function AdminUsersPage() {
   };
 
   const handleDeleteClick = (userId: string) => {
-    console.log(userId);
     setUserToDelete(userId);
   };
 

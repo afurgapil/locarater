@@ -18,6 +18,7 @@ import reviewRoutes from "./routes/review.routes";
 import userRoutes from "./routes/user.routes";
 import statisticsRoutes from "./routes/statistics.routes";
 import reviewReportRoutes from "./routes/review-report.routes";
+import feedRoutes from "./routes/feed.routes";
 
 const app = express();
 
@@ -38,6 +39,7 @@ app.use("/api/reviews", reviewRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/statistics", statisticsRoutes);
 app.use("/api/review-reports", reviewReportRoutes);
+app.use("/api/feed", feedRoutes);
 
 const MONGODB_URI =
   process.env.MONGODB_URI || "mongodb://localhost:27017/locarater";

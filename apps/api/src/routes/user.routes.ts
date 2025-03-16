@@ -8,6 +8,10 @@ import {
   getUsers,
   forceDeleteUser,
   getUserByUsername,
+  followUser,
+  unfollowUser,
+  getFollowing,
+  getFollowers,
 } from "../controllers/user.controller";
 import { authenticateToken, checkRole } from "../middleware/auth.middleware";
 import imageUpload from "../utils/imageUpload";
@@ -36,5 +40,10 @@ router.delete(
   checkRole(["ADMIN"]),
   forceDeleteUser
 );
+
+router.post("/follow/:userId", authenticateToken, followUser);
+router.post("/unfollow/:userId", authenticateToken, unfollowUser);
+router.get("/following/:userId", getFollowing);
+router.get("/followers/:userId", getFollowers);
 
 export default router;
