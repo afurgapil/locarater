@@ -1,21 +1,23 @@
 "use client";
 
-import { Dialog } from "@headlessui/react";
+import { Dialog, Transition } from "@headlessui/react";
+import { Fragment } from "react";
 import { Formik, Form } from "formik";
+import * as Yup from "yup";
 import { Review } from "@/types/review";
 import { reviewService } from "@/services/review.service";
 import { useToast } from "@/hooks/useToast";
 import { RatingInput } from "./RatingInput";
-import { useState } from "react";
-import Image from "next/image";
+import { XMarkIcon } from "@heroicons/react/24/outline";
 
 interface EditReviewDialogProps {
   isOpen: boolean;
   onClose: () => void;
   review: Review;
+  onSuccess?: () => void;
 }
 
-interface ReviewFormValues {
+interface UpdateReviewValues {
   rating: {
     overall: number;
     taste: number;
@@ -25,229 +27,206 @@ interface ReviewFormValues {
   };
   comment: string;
   visitDate: string;
-  image?: File;
 }
+
+const validationSchema = Yup.object().shape({
+  rating: Yup.object().shape({
+    overall: Yup.number().required().min(0).max(10),
+    taste: Yup.number().required().min(0).max(10),
+    service: Yup.number().required().min(0).max(10),
+    ambiance: Yup.number().required().min(0).max(10),
+    pricePerformance: Yup.number().required().min(0).max(10),
+  }),
+  comment: Yup.string()
+    .required("Yorum alanı zorunludur")
+    .min(10, "Yorum en az 10 karakter olmalıdır"),
+  visitDate: Yup.string().required("Ziyaret tarihi zorunludur"),
+});
 
 export function EditReviewDialog({
   isOpen,
   onClose,
   review,
+  onSuccess,
 }: EditReviewDialogProps) {
   const { showToast } = useToast();
-  const [imagePreview, setImagePreview] = useState<string | null>(
-    review.imageUrl || null
-  );
 
-  const calculateOverallRating = (
-    ratings: ReviewFormValues["rating"]
-  ): number => {
-    const { taste, service, ambiance, pricePerformance } = ratings;
-    const sum = taste + service + ambiance + pricePerformance;
-    return Number((sum / 4).toFixed(1));
-  };
-
-  const handleImageChange = (
-    event: React.ChangeEvent<HTMLInputElement>,
-    setFieldValue: (field: string, value: File | undefined) => void
-  ) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setFieldValue("image", file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+  const handleSubmit = async (values: UpdateReviewValues) => {
+    try {
+      await reviewService.updateReview(review.locationId, review._id, {
+        rating: values.rating,
+        comment: values.comment,
+        visitDate: new Date(values.visitDate),
+      });
+      showToast("Değerlendirme başarıyla güncellendi", "success");
+      onSuccess?.();
+      onClose();
+    } catch (error) {
+      console.error("Error updating review:", error);
+      showToast("Değerlendirme güncellenirken bir hata oluştu", "error");
     }
   };
 
-  const initialValues: ReviewFormValues = {
-    rating: {
-      overall: review.rating.overall,
-      taste: review.rating.taste || 5,
-      service: review.rating.service || 5,
-      ambiance: review.rating.ambiance || 5,
-      pricePerformance: review.rating.pricePerformance || 5,
-    },
-    comment: review.comment,
-    visitDate: review.visitDate
-      ? new Date(review.visitDate).toISOString().split("T")[0]
-      : "",
-  };
-
   return (
-    <Dialog open={isOpen} onClose={onClose} className="relative z-50">
-      <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+    <Transition appear show={isOpen} as={Fragment}>
+      <Dialog as="div" className="relative z-50" onClose={onClose}>
+        <Transition.Child
+          as={Fragment}
+          enter="ease-out duration-300"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          leave="ease-in duration-200"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+        >
+          <div className="fixed inset-0 bg-black/25" />
+        </Transition.Child>
 
-      <div className="fixed inset-0 flex items-center justify-center p-4">
-        <Dialog.Panel className="mx-auto max-w-lg w-full rounded-lg bg-white dark:bg-gray-800 p-6">
-          <Dialog.Title className="text-lg font-medium text-gray-900 dark:text-white mb-4">
-            Değerlendirmeyi Düzenle
-          </Dialog.Title>
-
-          <Formik
-            initialValues={initialValues}
-            onSubmit={async (values, { setSubmitting }) => {
-              try {
-                const overallRating = calculateOverallRating(values.rating);
-                const updatedValues = {
-                  ...values,
-                  rating: {
-                    ...values.rating,
-                    overall: overallRating,
-                  },
-                };
-
-                await reviewService.updateReview(
-                  review.locationId,
-                  review._id,
-                  {
-                    rating: updatedValues.rating,
-                    comment: updatedValues.comment,
-                    visitDate: updatedValues.visitDate
-                      ? new Date(updatedValues.visitDate)
-                      : undefined,
-                    image: values.image,
-                  }
-                );
-                showToast("Değerlendirme başarıyla güncellendi", "success");
-                window.location.reload();
-                onClose();
-              } catch (err) {
-                console.error("Error updating review:", err);
-                showToast(
-                  "Değerlendirme güncellenirken bir hata oluştu",
-                  "error"
-                );
-              } finally {
-                setSubmitting(false);
-              }
-            }}
-          >
-            {({ values, handleChange, isSubmitting, setFieldValue }) => (
-              <Form className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Lezzet
-                  </label>
-                  <RatingInput
-                    name="rating.taste"
-                    value={values.rating.taste}
-                    onChange={handleChange}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Servis
-                  </label>
-                  <RatingInput
-                    name="rating.service"
-                    value={values.rating.service}
-                    onChange={handleChange}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Ambiyans
-                  </label>
-                  <RatingInput
-                    name="rating.ambiance"
-                    value={values.rating.ambiance}
-                    onChange={handleChange}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Fiyat/Performans
-                  </label>
-                  <RatingInput
-                    name="rating.pricePerformance"
-                    value={values.rating.pricePerformance}
-                    onChange={handleChange}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Yorum
-                  </label>
-                  <textarea
-                    name="comment"
-                    value={values.comment}
-                    onChange={handleChange}
-                    rows={4}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white sm:text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Ziyaret Tarihi
-                  </label>
-                  <input
-                    type="date"
-                    name="visitDate"
-                    value={values.visitDate}
-                    onChange={handleChange}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white sm:text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Fotoğraf
-                  </label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => handleImageChange(e, setFieldValue)}
-                    className="mt-1 block w-full text-sm text-gray-500 dark:text-gray-400
-                      file:mr-4 file:py-2 file:px-4
-                      file:rounded-md file:border-0
-                      file:text-sm file:font-semibold
-                      file:bg-blue-50 file:text-blue-700
-                      hover:file:bg-blue-100
-                      dark:file:bg-gray-700 dark:file:text-gray-200"
-                  />
-                </div>
-
-                {imagePreview && (
-                  <div className="mt-2">
-                    <div className="relative h-48 w-full rounded-lg overflow-hidden">
-                      <Image
-                        src={imagePreview}
-                        alt="Preview"
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                <div className="mt-6 flex justify-end space-x-3">
+        <div className="fixed inset-0 overflow-y-auto">
+          <div className="flex min-h-full items-center justify-center p-4 text-center">
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0 scale-95"
+              enterTo="opacity-100 scale-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100 scale-100"
+              leaveTo="opacity-0 scale-95"
+            >
+              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 p-6 text-left align-middle shadow-xl transition-all">
+                <Dialog.Title
+                  as="div"
+                  className="flex justify-between items-center mb-4"
+                >
+                  <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white">
+                    Değerlendirmeyi Düzenle
+                  </h3>
                   <button
                     type="button"
+                    className="text-gray-400 hover:text-gray-500"
                     onClick={onClose}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                   >
-                    İptal
+                    <XMarkIcon className="h-6 w-6" />
                   </button>
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-                  >
-                    {isSubmitting ? "Güncelleniyor..." : "Güncelle"}
-                  </button>
-                </div>
-              </Form>
-            )}
-          </Formik>
-        </Dialog.Panel>
-      </div>
-    </Dialog>
+                </Dialog.Title>
+
+                <Formik
+                  initialValues={{
+                    rating: review.rating,
+                    comment: review.comment,
+                    visitDate: review.visitDate.split("T")[0],
+                  }}
+                  validationSchema={validationSchema}
+                  onSubmit={handleSubmit}
+                >
+                  {({ values, errors, touched, setFieldValue }) => (
+                    <Form className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                          Yorum
+                        </label>
+                        <textarea
+                          name="comment"
+                          value={values.comment}
+                          onChange={(e) =>
+                            setFieldValue("comment", e.target.value)
+                          }
+                          className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          rows={4}
+                        />
+                        {errors.comment && touched.comment && (
+                          <p className="mt-1 text-sm text-red-600">
+                            {errors.comment}
+                          </p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                          Ziyaret Tarihi
+                        </label>
+                        <input
+                          type="date"
+                          name="visitDate"
+                          value={values.visitDate}
+                          onChange={(e) =>
+                            setFieldValue("visitDate", e.target.value)
+                          }
+                          className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        {errors.visitDate && touched.visitDate && (
+                          <p className="mt-1 text-sm text-red-600">
+                            {errors.visitDate}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="space-y-3">
+                        <RatingInput
+                          label="Genel Değerlendirme"
+                          name="rating.overall"
+                          value={values.rating.overall}
+                          onChange={(value) =>
+                            setFieldValue("rating.overall", value)
+                          }
+                        />
+                        <RatingInput
+                          label="Lezzet"
+                          name="rating.taste"
+                          value={values.rating.taste}
+                          onChange={(value) =>
+                            setFieldValue("rating.taste", value)
+                          }
+                        />
+                        <RatingInput
+                          label="Servis"
+                          name="rating.service"
+                          value={values.rating.service}
+                          onChange={(value) =>
+                            setFieldValue("rating.service", value)
+                          }
+                        />
+                        <RatingInput
+                          label="Ambiyans"
+                          name="rating.ambiance"
+                          value={values.rating.ambiance}
+                          onChange={(value) =>
+                            setFieldValue("rating.ambiance", value)
+                          }
+                        />
+                        <RatingInput
+                          label="Fiyat/Performans"
+                          name="rating.pricePerformance"
+                          value={values.rating.pricePerformance}
+                          onChange={(value) =>
+                            setFieldValue("rating.pricePerformance", value)
+                          }
+                        />
+                      </div>
+
+                      <div className="mt-6 flex justify-end gap-3">
+                        <button
+                          type="button"
+                          className="inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                          onClick={onClose}
+                        >
+                          Vazgeç
+                        </button>
+                        <button
+                          type="submit"
+                          className="inline-flex justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                        >
+                          Güncelle
+                        </button>
+                      </div>
+                    </Form>
+                  )}
+                </Formik>
+              </Dialog.Panel>
+            </Transition.Child>
+          </div>
+        </div>
+      </Dialog>
+    </Transition>
   );
 }

@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { reviewService } from "@/services/review.service";
 import { ReviewCard } from "./ReviewCard";
+import { EditReviewDialog } from "./EditReviewDialog";
 import type { Review } from "@/types/review";
 import { useAuthStore } from "@/store/useAuthStore";
 
@@ -23,12 +24,18 @@ export function ReviewList({ locationId }: ReviewListProps) {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [selectedReview, setSelectedReview] = useState<Review | null>(null);
   const { user } = useAuthStore();
 
   const fetchReviews = useCallback(async () => {
     try {
       const response = await reviewService.getReviews(locationId);
-      setReviews(response.reviews);
+      const reviewsWithLocationId = response.reviews.map((review) => ({
+        ...review,
+        locationId,
+      }));
+      setReviews(reviewsWithLocationId);
     } catch (error: unknown) {
       const apiError = error as ApiError;
       setError(
@@ -43,16 +50,26 @@ export function ReviewList({ locationId }: ReviewListProps) {
 
   useEffect(() => {
     fetchReviews();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [fetchReviews]);
 
   const handleDelete = async (reviewId: string) => {
     try {
       await reviewService.deleteReview(locationId, reviewId);
-      fetchReviews();
+      await fetchReviews();
     } catch (error) {
       console.error("Error deleting review:", error);
     }
+  };
+
+  const handleEdit = (review: Review) => {
+    setSelectedReview(review);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleEditSuccess = () => {
+    fetchReviews();
+    setIsEditDialogOpen(false);
+    setSelectedReview(null);
   };
 
   if (loading) {
@@ -87,7 +104,7 @@ export function ReviewList({ locationId }: ReviewListProps) {
   return (
     <div className="space-y-4">
       {reviews.map((review) => {
-        const canDeleteReview =
+        const canModifyReview =
           !!user &&
           ((user._id && user._id === review.user._id) || user.role === "ADMIN");
 
@@ -97,11 +114,24 @@ export function ReviewList({ locationId }: ReviewListProps) {
             review={review}
             locationId={locationId}
             onDelete={
-              canDeleteReview ? () => handleDelete(review._id) : undefined
+              canModifyReview ? () => handleDelete(review._id) : undefined
             }
+            onEdit={canModifyReview ? () => handleEdit(review) : undefined}
           />
         );
       })}
+
+      {selectedReview && (
+        <EditReviewDialog
+          isOpen={isEditDialogOpen}
+          onClose={() => {
+            setIsEditDialogOpen(false);
+            setSelectedReview(null);
+          }}
+          review={selectedReview}
+          onSuccess={handleEditSuccess}
+        />
+      )}
     </div>
   );
 }
