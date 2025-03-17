@@ -9,11 +9,9 @@ import {
 import { authenticateToken, checkRole } from "../middleware/auth.middleware";
 
 const router = Router();
-//public routes
 router.post("/", authenticateToken, createReviewReport);
 router.get("/user", authenticateToken, getUserReports);
 
-//admin routes
 router.get("/", authenticateToken, checkRole(["ADMIN"]), getAllReports);
 router.put(
   "/:reportId/status",

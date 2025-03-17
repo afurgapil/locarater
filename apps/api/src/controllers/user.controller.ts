@@ -173,7 +173,6 @@ export const deleteAccount = async (
       return;
     }
 
-    // Delete user's profile image if exists
     if (user.imageUrl) {
       try {
         await imageService.deleteImage(user.imageUrl, "users");
@@ -182,7 +181,6 @@ export const deleteAccount = async (
       }
     }
 
-    // Delete user's locations and their images
     const userLocations = await Location.find({ createdBy: userId });
     for (const location of userLocations) {
       if (location.imageUrl) {
@@ -193,7 +191,6 @@ export const deleteAccount = async (
         }
       }
 
-      // Delete review images from this location
       for (const review of location.reviews) {
         if (review.imageUrl) {
           try {
@@ -205,7 +202,6 @@ export const deleteAccount = async (
       }
     }
 
-    // Delete user's reviews and their images from other locations
     const locationsWithUserReviews = await Location.find({
       "reviews.user": userId,
     });
@@ -371,7 +367,6 @@ export const forceDeleteUser = async (
       return;
     }
 
-    // Delete user's profile image if exists
     if (user.imageUrl) {
       try {
         await imageService.deleteImage(user.imageUrl, "users");
@@ -380,7 +375,6 @@ export const forceDeleteUser = async (
       }
     }
 
-    // Delete user's locations and their images
     const userLocations = await Location.find({ createdBy: userId });
     for (const location of userLocations) {
       if (location.imageUrl) {
@@ -391,7 +385,6 @@ export const forceDeleteUser = async (
         }
       }
 
-      // Delete review images from this location
       for (const review of location.reviews) {
         if (review.imageUrl) {
           try {
@@ -403,7 +396,6 @@ export const forceDeleteUser = async (
       }
     }
 
-    // Delete user's reviews and their images from other locations
     const locationsWithUserReviews = await Location.find({
       "reviews.user": userId,
     });
@@ -490,7 +482,6 @@ export const forceDeleteUser = async (
   }
 };
 
-// Kullanıcıyı takip etme
 export const followUser = async (
   req: AuthRequest,
   res: Response
@@ -517,7 +508,6 @@ export const followUser = async (
       return res.status(404).json({ message: "Kullanıcı bulunamadı" });
     }
 
-    // Kullanıcı zaten takip ediliyor mu kontrol et
     const userToFollowId = new mongoose.Types.ObjectId(userId);
     if (currentUser.following.some((id) => id.equals(userToFollowId))) {
       return res
@@ -525,12 +515,10 @@ export const followUser = async (
         .json({ message: "Bu kullanıcıyı zaten takip ediyorsunuz" });
     }
 
-    // Takip et
     await User.findByIdAndUpdate(currentUserId, {
       $addToSet: { following: userToFollowId },
     });
 
-    // Takipçi olarak ekle
     const currentUserId_obj = new mongoose.Types.ObjectId(currentUserId);
     await User.findByIdAndUpdate(userId, {
       $addToSet: { followers: currentUserId_obj },
@@ -547,7 +535,6 @@ export const followUser = async (
   }
 };
 
-// Kullanıcı takibini bırakma
 export const unfollowUser = async (
   req: AuthRequest,
   res: Response
@@ -576,7 +563,6 @@ export const unfollowUser = async (
       return res.status(404).json({ message: "Kullanıcı bulunamadı" });
     }
 
-    // Kullanıcı takip ediliyor mu kontrol et
     const userToUnfollowId = new mongoose.Types.ObjectId(userId);
     if (!currentUser.following.some((id) => id.equals(userToUnfollowId))) {
       return res
@@ -584,12 +570,10 @@ export const unfollowUser = async (
         .json({ message: "Bu kullanıcıyı takip etmiyorsunuz" });
     }
 
-    // Takibi bırak
     await User.findByIdAndUpdate(currentUserId, {
       $pull: { following: userToUnfollowId },
     });
 
-    // Takipçilerden çıkar
     const currentUserId_obj = new mongoose.Types.ObjectId(currentUserId);
     await User.findByIdAndUpdate(userId, {
       $pull: { followers: currentUserId_obj },
@@ -606,7 +590,6 @@ export const unfollowUser = async (
   }
 };
 
-// Takip edilen kullanıcıları getirme
 export const getFollowing = async (
   req: AuthRequest,
   res: Response
@@ -631,7 +614,6 @@ export const getFollowing = async (
   }
 };
 
-// Takipçileri getirme
 export const getFollowers = async (
   req: AuthRequest,
   res: Response

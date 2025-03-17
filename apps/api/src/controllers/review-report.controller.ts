@@ -131,7 +131,6 @@ export const createReviewReport = async (req: AuthRequest, res: Response) => {
         .json({ message: "Rapor oluşturulurken bir hata oluştu" });
     }
 
-    // Get user information for the review
     const reviewUser = await User.findById(review.user)
       .select("_id username name")
       .lean();

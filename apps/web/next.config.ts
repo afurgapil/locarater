@@ -5,6 +5,8 @@ const nextConfig: NextConfig = {
     domains: [
       "cyzbcfsevwcshsrkzrcv.supabase.co",
       "ruktayxteaitzyqadwsg.supabase.co",
+      "localhost",
+      "127.0.0.1",
     ],
     remotePatterns: [
       {
@@ -18,6 +20,12 @@ const nextConfig: NextConfig = {
         hostname: "ruktayxteaitzyqadwsg.supabase.co",
         port: "",
         pathname: "/storage/v1/object/public/**",
+      },
+      {
+        protocol: "http",
+        hostname: "localhost",
+        port: "3000",
+        pathname: "/images/**",
       },
     ],
   },

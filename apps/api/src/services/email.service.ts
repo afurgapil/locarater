@@ -4,9 +4,13 @@ const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
 
 transporter.verify(function (error, success) {
   if (error) {
+    console.log("================================================");
     console.log("SMTP Server bağlantı hatası:", error);
+    console.log("================================================");
   } else {
+    console.log("================================================");
     console.log("SMTP Server bağlantısı başarılı!");
+    console.log("================================================");
   }
 });
 

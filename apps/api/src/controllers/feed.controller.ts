@@ -5,6 +5,7 @@ import { User } from "../models/user.model";
 import mongoose from "mongoose";
 import { ReviewReaction } from "../models/review-reaction.model";
 import { ReviewComment } from "../models/review-comment.model";
+import { BadgeService } from "../services/badge.service";
 
 export const getFeed = async (
   req: AuthRequest,
@@ -260,6 +261,8 @@ export const likeReview = async (
       });
     }
 
+    await BadgeService.checkInteractionBadges(userId);
+
     res.status(200).json({ message: "Değerlendirme başarıyla beğenildi" });
   } catch (error) {
     console.error("Değerlendirme beğenme hatası:", error);
@@ -404,6 +407,8 @@ export const addComment = async (
       review: reviewId,
       content,
     });
+
+    await BadgeService.checkInteractionBadges(userId);
 
     const populatedComment = await ReviewComment.findById(
       newComment._id

@@ -2,12 +2,21 @@ import dotenv from "dotenv";
 import path from "path";
 
 const environment = process.env.NODE_ENV || "development";
-console.log(`Loading environment: ${environment}`);
+console.log("================================================");
+console.log(`Environment: ${environment}`);
+console.log("================================================");
+
 const envPath = path.resolve(__dirname, `../.env.${environment}`);
-console.log(`Looking for .env file at: ${envPath}`);
+
 dotenv.config({
   path: envPath,
 });
+
+const MONGODB_URI = process.env.MONGODB_URI;
+if (!MONGODB_URI) {
+  console.error("MONGODB_URI bulunamadı!");
+  process.exit(1);
+}
 
 import express from "express";
 import cors from "cors";
@@ -19,6 +28,7 @@ import userRoutes from "./routes/user.routes";
 import statisticsRoutes from "./routes/statistics.routes";
 import reviewReportRoutes from "./routes/review-report.routes";
 import feedRoutes from "./routes/feed.routes";
+import badgeRoutes from "./routes/badge.routes";
 
 const app = express();
 
@@ -40,16 +50,24 @@ app.use("/api/users", userRoutes);
 app.use("/api/statistics", statisticsRoutes);
 app.use("/api/review-reports", reviewReportRoutes);
 app.use("/api/feed", feedRoutes);
-
-const MONGODB_URI =
-  process.env.MONGODB_URI || "mongodb://localhost:27017/locarater";
+app.use("/api/badges", badgeRoutes);
 
 mongoose
   .connect(MONGODB_URI)
-  .then(() => console.log("Connected to MongoDB"))
-  .catch((error: any) => console.error("MongoDB connection error:", error));
+  .then(() => {
+    console.log("================================================");
+    console.log("Connected to MongoDB");
+    console.log("================================================");
+  })
+  .catch((error: any) => {
+    console.log("================================================");
+    console.error("MongoDB connection error:", error);
+    console.log("================================================");
+  });
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
+  console.log("================================================");
   console.log(`Server running on port ${PORT}`);
+  console.log("================================================");
 });

@@ -14,7 +14,7 @@ import { formatDate } from "@/lib/utils";
 import Link from "next/link";
 import { getCategoryLabel, CategoryType } from "@/constants/categories";
 import { useUser } from "@/hooks/useUser";
-
+import BadgesSection from "@/components/profile/BadgesSection";
 export default function UserProfilePage() {
   const { username } = useParams();
   const [user, setUser] = useState<User | null>(null);
@@ -231,8 +231,12 @@ export default function UserProfilePage() {
               )}
             </div>
           </div>
-        </div>
 
+          <div className="p-6 border-t border-gray-200 dark:border-gray-700">
+            {user._id && <BadgesSection userId={user._id} />}
+          </div>
+        </div>
+        <div className="mt-8  border-gray-200 dark:border-gray-700 pt-6"></div>
         {publicProfileStats && (
           <>
             <div className="p-6 border-t border-gray-200 dark:border-gray-700">

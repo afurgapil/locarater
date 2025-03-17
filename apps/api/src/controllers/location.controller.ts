@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { Location } from "../models/location.model";
 import { AuthRequest } from "../types/auth";
 import imageService from "../services/image.service";
+import { BadgeService } from "../services/badge.service";
 
 interface LocationRequest extends AuthRequest {
   body: {
@@ -34,6 +35,11 @@ export const createLocation = async (
 
     const location = new Location(locationData);
     await location.save();
+
+    if (req.user?.id) {
+      await BadgeService.checkLocationBadges(req.user.id);
+    }
+
     res.status(201).json(location);
   } catch (error: any) {
     res.status(400).json({ message: error.message });
@@ -165,7 +171,6 @@ export const deleteLocation = async (
       }
     }
 
-    // Delete review images if they exist
     for (const review of location.reviews) {
       if (review.imageUrl) {
         try {

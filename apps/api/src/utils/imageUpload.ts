@@ -32,7 +32,7 @@ const upload = multer({
   storage,
   fileFilter,
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
+    fileSize: 5 * 1024 * 1024,
   },
 });
 
@@ -47,7 +47,7 @@ const imageUpload = (type: BucketType) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
       await new Promise<void>((resolve, reject) => {
-        // @ts-ignore - Temporarily ignoring type issues with multer middleware
+        // @ts-ignore
         uploadMiddleware(req, res, (err) => {
           if (err) reject(err);
           else resolve();

@@ -87,6 +87,11 @@ export const API_ENDPOINTS = {
     deleteComment: (reviewId: string, commentId: string) =>
       `${API_BASE_URL}/feed/reviews/${reviewId}/comments/${commentId}`,
   },
+  badges: {
+    getAll: `${API_BASE_URL}/badges`,
+    getUserBadges: `${API_BASE_URL}/badges/user`,
+    checkAndUpdateBadges: `${API_BASE_URL}/badges/check`,
+  },
 };
 
 export type ApiEndpoints = typeof API_ENDPOINTS;

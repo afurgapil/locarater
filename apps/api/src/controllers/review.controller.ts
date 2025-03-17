@@ -1,8 +1,10 @@
 import { Request, Response } from "express";
-import { Location, ILocation } from "../models/location.model";
+import { Location } from "../models/location.model";
 import mongoose from "mongoose";
 import { AuthRequest } from "../types/auth";
 import imageService from "../services/image.service";
+import { ReviewReport } from "../models/review-report.model";
+import { BadgeService } from "../services/badge.service";
 
 interface Rating {
   overall: number;
@@ -101,6 +103,11 @@ export const addReview = async (
 
     location.reviews.push(newReview);
     await location.save();
+
+    await Promise.all([
+      BadgeService.checkReviewBadges(req.user.id),
+      BadgeService.checkQualityBadges(req.user.id),
+    ]);
 
     const updatedLocation = await Location.findById(locationId).populate(
       "reviews.user",

@@ -11,13 +11,10 @@ import {
 import { authenticateToken, checkRole } from "../middleware/auth.middleware";
 import imageUpload from "../utils/imageUpload";
 const router = Router();
-// Public routes
 router.get("/:locationId", getReviews);
 
-// Admin routes
 router.get("/", authenticateToken, checkRole(["ADMIN"]), getAllReviews);
 
-// Protected routes
 router.post("/user", authenticateToken, getReviewsByUser);
 // @ts-ignore
 router.post(

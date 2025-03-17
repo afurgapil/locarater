@@ -1,6 +1,6 @@
 import { Schema, model } from "mongoose";
 
-interface ReviewReport {
+export interface ReviewReport {
   locationId: Schema.Types.ObjectId;
   reviewId: string;
   reporter: Schema.Types.ObjectId;
