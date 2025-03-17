@@ -24,6 +24,8 @@ export default function UserProfilePage() {
   const [error, setError] = useState<string | null>(null);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
+  const [followerCount, setFollowerCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
   const { showToast } = useToast();
   const { user: currentUser } = useUser();
   useEffect(() => {
@@ -39,6 +41,9 @@ export default function UserProfilePage() {
         );
 
         setUser(userData);
+        setFollowerCount(userData.followers.length);
+        setFollowingCount(userData.following.length);
+
         setPublicProfileStats(profileStats);
 
         if (currentUser && currentUser._id !== userData._id) {
@@ -156,6 +161,25 @@ export default function UserProfilePage() {
                       @{user.username}
                     </p>
                   )}
+
+                  <div className="flex gap-4 mt-2">
+                    <div className="text-center">
+                      <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                        {followerCount}
+                      </span>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        Takipçi
+                      </p>
+                    </div>
+                    <div className="text-center">
+                      <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                        {followingCount}
+                      </span>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        Takip
+                      </p>
+                    </div>
+                  </div>
                 </div>
 
                 {currentUser &&
@@ -244,7 +268,7 @@ export default function UserProfilePage() {
                 Kullanıcı İstatistikleri
               </h2>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                 <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
                   <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
                     Eklenen Mekanlar
@@ -309,8 +333,7 @@ export default function UserProfilePage() {
                 </div>
               )}
 
-            {publicProfileStats.recentActivity &&
-              publicProfileStats.recentActivity.locations &&
+            {publicProfileStats.recentActivity?.locations &&
               publicProfileStats.recentActivity.locations.length > 0 && (
                 <div className="p-6 border-t border-gray-200 dark:border-gray-700">
                   <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
@@ -357,8 +380,7 @@ export default function UserProfilePage() {
                 </div>
               )}
 
-            {publicProfileStats.recentActivity &&
-              publicProfileStats.recentActivity.reviews &&
+            {publicProfileStats.recentActivity?.reviews &&
               publicProfileStats.recentActivity.reviews.length > 0 && (
                 <div className="p-6 border-t border-gray-200 dark:border-gray-700">
                   <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">

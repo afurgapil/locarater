@@ -13,6 +13,8 @@ export interface User {
   createdAt: string;
   updatedAt: string;
   isActive: boolean;
+  followers: string[];
+  following: string[];
 }
 
 export interface AuthResponse {

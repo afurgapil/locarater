@@ -240,23 +240,27 @@ export default function BadgeFeedItem({ item }: BadgeFeedItemProps) {
   return (
     <div className="p-6">
       <div className="flex items-center mb-4">
-        <div className="flex-shrink-0">
+        <Link
+          href={`/users/${badgeData?.user?.username || ""}`}
+          className="flex-shrink-0"
+          prefetch={false}
+        >
           {badgeData?.user?.imageUrl ? (
             <Image
               src={badgeData.user.imageUrl}
               alt={badgeData.user.name || "Kullanıcı"}
               width={40}
               height={40}
-              className="rounded-full"
+              className="rounded-full cursor-pointer hover:opacity-90 transition-opacity"
             />
           ) : (
-            <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
+            <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity">
               <span className="text-gray-600 dark:text-gray-300 font-medium">
                 {badgeData?.user?.name?.[0]?.toUpperCase() || "?"}
               </span>
             </div>
           )}
-        </div>
+        </Link>
         <div className="ml-3">
           <p className="text-sm font-medium text-gray-900 dark:text-white">
             <Link
@@ -397,15 +401,20 @@ export default function BadgeFeedItem({ item }: BadgeFeedItemProps) {
             <div className="space-y-4">
               {comments.map((comment) => (
                 <div key={comment._id} className="flex gap-2">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage
-                      src={comment.user.imageUrl}
-                      alt={comment.user.name}
-                    />
-                    <AvatarFallback>
-                      {comment.user.name[0]?.toUpperCase() || "?"}
-                    </AvatarFallback>
-                  </Avatar>
+                  <Link
+                    href={`/users/${comment.user.username}`}
+                    prefetch={false}
+                  >
+                    <Avatar className="h-8 w-8 cursor-pointer hover:opacity-90 transition-opacity">
+                      <AvatarImage
+                        src={comment.user.imageUrl}
+                        alt={comment.user.name}
+                      />
+                      <AvatarFallback>
+                        {comment.user.name[0]?.toUpperCase() || "?"}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Link>
                   <div className="flex-grow bg-gray-50 dark:bg-gray-900 rounded-lg p-3">
                     <div className="flex justify-between items-start">
                       <div>
