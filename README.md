@@ -8,19 +8,30 @@ Locarater is a comprehensive platform where users can discover, rate, and review
 
 ### Frontend
 
-- Next.js 14
+- Next.js 15
+- React 19
 - TypeScript
-- Tailwind CSS
-- Zustand
-- React Query
-- Formik
+- Tailwind CSS 4
+- Zustand 5
+- Axios
+- Formik & Yup
+- date-fns
+- Lucide React
+- Radix UI Components
+- Headless UI
+- Next Themes
 
 ### Backend
 
-- Node.js & Express
-- MongoDB
+- Node.js
+- Express
+- TypeScript
+- MongoDB & Mongoose
 - JWT Authentication
+- Bcrypt
 - Nodemailer
+- Multer
+- Supabase Storage
 
 ## 👥 User Roles
 
@@ -38,6 +49,8 @@ Locarater is a comprehensive platform where users can discover, rate, and review
 - Rate and review locations
 - Email verification system
 - Manage their added locations
+- Like, dislike and comment on feed items
+- Earn badges and view badge notifications
 
 ### 3. Admin
 
@@ -58,6 +71,18 @@ Locarater is a comprehensive platform where users can discover, rate, and review
 
 - Star rating
 - Written reviews
+- Like/dislike functionality
+- Comment system
+- Review reporting
+
+### Social Feed System
+
+- Activity feed with location additions
+- Review posts from followed users
+- Badge achievement notifications
+- Social interactions (likes, dislikes, comments)
+- Comment counter display
+- Content reporting
 
 ### Search and Filtering
 
@@ -84,27 +109,36 @@ Locarater is a comprehensive platform where users can discover, rate, and review
 ## 📁 Project Structure
 
 ```
-apps/
-├── web/ # Frontend (Next.js)
-│ ├── src/
-│ │ ├── app/ # Pages
-│ │ ├── components/ # UI Components
-│ │ │ ├── (auth)/ # Authentication Components
-│ │ │ ├── profile/ # Profile Components
-│ │ │ └── shared/ # Shared Components
-│ │ ├── hooks/ # Custom Hooks
-│ │ ├── services/ # API Services
-│ │ ├── store/ # State Management
-│ │ ├── types/ # TypeScript Types
-│ │ └── utils/ # Helper Functions
-│
-└── api/ # Backend (Express)
-    ├── src/
-    │ ├── controllers/ # Route Controllers
-    │ ├── models/ # Database Models
-    │ ├── routes/ # API Routes
-    │ ├── services/ # Business Logic
-    │ └── utils/ # Helper Functions
+.
+├── apps
+│   ├── api
+│   │   ├── src
+│   │   │   ├── controllers
+│   │   │   ├── hooks
+│   │   │   ├── index.ts
+│   │   │   ├── middleware
+│   │   │   ├── models
+│   │   │   ├── public
+│   │   │   ├── routes
+│   │   │   ├── scripts
+│   │   │   ├── seeds
+│   │   │   ├── services
+│   │   │   ├── types
+│   │   │   └── utils
+│   └── web
+│       ├── public
+│       ├── src
+│       │   ├── app
+│       │   ├── assets
+│       │   ├── components
+│       │   ├── config
+│       │   ├── constants
+│       │   ├── hooks
+│       │   ├── lib
+│       │   ├── providers
+│       │   ├── services
+│       │   ├── store
+│       │   └── types
 ```
 
 ## 🚀 Development Progress
@@ -127,12 +161,21 @@ apps/
 
 ### 3. Rating System
 
-- [ ] Comments and ratings
-- [ ] Like system
-- [ ] Response system
-- [ ] Reporting
+- [x] Comments and ratings
+- [x] Like system
+- [x] Response system
+- [x] Reporting
 
-### 4. User System
+### 4. Social Feed System
+
+- [x] Activity feed
+- [x] Review posts
+- [x] Badge notifications
+- [x] Post interactions (likes, dislikes)
+- [x] Comment system
+- [x] Interaction counters
+
+### 5. User System
 
 - [x] Profile management
 - [x] User authentication
@@ -141,7 +184,7 @@ apps/
 - [ ] Notifications
 - [ ] Settings
 
-### 5. Dashboard & Admin
+### 6. Dashboard & Admin
 
 - [x] Location management
 - [x] Statistics
@@ -154,6 +197,7 @@ apps/
 
 - Node.js 18.x
 - MongoDB
+- Supabase
 - npm or yarn
 
 ### Installation
