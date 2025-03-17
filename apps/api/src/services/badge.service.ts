@@ -4,6 +4,7 @@ import { Location } from "../models/location.model";
 import { Types } from "mongoose";
 import { ReviewComment } from "../models/review-comment.model";
 import { ReviewReaction } from "../models/review-reaction.model";
+import { BadgeNotification } from "../models/badge-notification.model";
 
 export class BadgeService {
   private static async checkAndUpdateBadge(
@@ -22,19 +23,35 @@ export class BadgeService {
         badgeId: badge._id,
       });
 
+      let badgeUnlocked = false;
+
       if (!userBadge) {
+        const isUnlocked = currentCount >= badge.requiredCount;
         userBadge = await UserBadge.create({
           userId,
           badgeId: badge._id,
           progress: currentCount,
-          unlockedAt: currentCount >= badge.requiredCount ? new Date() : null,
+          unlockedAt: isUnlocked ? new Date() : null,
         });
+
+        badgeUnlocked = isUnlocked;
       } else {
         userBadge.progress = currentCount;
         if (!userBadge.unlockedAt && currentCount >= badge.requiredCount) {
           userBadge.unlockedAt = new Date();
+          badgeUnlocked = true;
         }
         await userBadge.save();
+      }
+
+      if (badgeUnlocked) {
+        await BadgeNotification.create({
+          userId,
+          badgeId: badge._id,
+          badgeName: badge.name,
+          badgeCategory: badge.category,
+          badgeImage: badge.image,
+        });
       }
 
       return userBadge;

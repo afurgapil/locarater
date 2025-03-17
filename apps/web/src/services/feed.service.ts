@@ -32,6 +32,7 @@ export interface ReviewFeedData {
     likes: number;
     dislikes: number;
     userReaction: "like" | "dislike" | null;
+    commentCount?: number;
   };
   reviewer: {
     _id: string;
@@ -48,11 +49,30 @@ export interface ReviewFeedData {
   };
 }
 
+export interface BadgeFeedData {
+  badge: {
+    _id: string;
+    name: string;
+    category: string;
+    image: string;
+    likes?: number;
+    dislikes?: number;
+    userReaction?: "like" | "dislike" | null;
+    commentCount?: number;
+  };
+  user: {
+    _id: string;
+    name: string;
+    username: string;
+    imageUrl?: string;
+  };
+}
+
 export interface FeedItem {
   _id?: string;
-  type: "LOCATION" | "REVIEW" | "location" | "review";
+  type: "LOCATION" | "REVIEW" | "BADGE" | "location" | "review" | "badge";
   createdAt: string;
-  data: LocationFeedData | ReviewFeedData;
+  data: LocationFeedData | ReviewFeedData | BadgeFeedData;
 }
 
 export interface FeedComment {
@@ -114,5 +134,57 @@ export const feedService = {
 
   async deleteComment(reviewId: string, commentId: string): Promise<void> {
     await api.delete(API_ENDPOINTS.feed.deleteComment(reviewId, commentId));
+  },
+
+  async likeBadgeNotification(badgeNotificationId: string): Promise<void> {
+    await api.post(
+      API_ENDPOINTS.feed.likeBadgeNotification(badgeNotificationId)
+    );
+  },
+
+  async dislikeBadgeNotification(badgeNotificationId: string): Promise<void> {
+    await api.post(
+      API_ENDPOINTS.feed.dislikeBadgeNotification(badgeNotificationId)
+    );
+  },
+
+  async removeBadgeNotificationReaction(
+    badgeNotificationId: string
+  ): Promise<void> {
+    await api.delete(
+      API_ENDPOINTS.feed.removeBadgeNotificationReaction(badgeNotificationId)
+    );
+  },
+
+  async getBadgeNotificationComments(
+    badgeNotificationId: string
+  ): Promise<FeedComment[]> {
+    const { data } = await api.get<FeedComment[]>(
+      API_ENDPOINTS.feed.getBadgeNotificationComments(badgeNotificationId)
+    );
+    return data;
+  },
+
+  async addBadgeNotificationComment(
+    badgeNotificationId: string,
+    content: string
+  ): Promise<FeedComment> {
+    const { data } = await api.post<FeedComment>(
+      API_ENDPOINTS.feed.addBadgeNotificationComment(badgeNotificationId),
+      { content }
+    );
+    return data;
+  },
+
+  async deleteBadgeNotificationComment(
+    badgeNotificationId: string,
+    commentId: string
+  ): Promise<void> {
+    await api.delete(
+      API_ENDPOINTS.feed.deleteBadgeNotificationComment(
+        badgeNotificationId,
+        commentId
+      )
+    );
   },
 };

@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import { reviewReportService } from "@/services/review-report.service";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import BadgeFeedItem from "@/components/feed/BadgeFeedItem";
 
 export default function FeedPage() {
   const [feedItems, setFeedItems] = useState<FeedItem[]>([]);
@@ -161,6 +162,8 @@ export default function FeedPage() {
             >
               {item.type === "LOCATION" || item.type === "location" ? (
                 <LocationFeedItem item={item} />
+              ) : item.type === "BADGE" || item.type === "badge" ? (
+                <BadgeFeedItem item={item} />
               ) : (
                 <ReviewFeedItem item={item} />
               )}
@@ -544,7 +547,12 @@ function ReviewFeedItem({ item }: { item: FeedItem }) {
           >
             <MessageCircle className="h-4 w-4" />
             <span>
-              {comments && comments.length > 0 ? comments.length : ""}
+              {showComments && comments.length > 0
+                ? comments.length
+                : reviewData?.review?.commentCount &&
+                    reviewData.review.commentCount > 0
+                  ? reviewData.review.commentCount
+                  : ""}
             </span>
           </Button>
 

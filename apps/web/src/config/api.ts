@@ -86,6 +86,21 @@ export const API_ENDPOINTS = {
       `${API_BASE_URL}/feed/reviews/${reviewId}/comments`,
     deleteComment: (reviewId: string, commentId: string) =>
       `${API_BASE_URL}/feed/reviews/${reviewId}/comments/${commentId}`,
+    likeBadgeNotification: (badgeNotificationId: string) =>
+      `${API_BASE_URL}/feed/badges/${badgeNotificationId}/like`,
+    dislikeBadgeNotification: (badgeNotificationId: string) =>
+      `${API_BASE_URL}/feed/badges/${badgeNotificationId}/dislike`,
+    removeBadgeNotificationReaction: (badgeNotificationId: string) =>
+      `${API_BASE_URL}/feed/badges/${badgeNotificationId}/reaction`,
+    getBadgeNotificationComments: (badgeNotificationId: string) =>
+      `${API_BASE_URL}/feed/badges/${badgeNotificationId}/comments`,
+    addBadgeNotificationComment: (badgeNotificationId: string) =>
+      `${API_BASE_URL}/feed/badges/${badgeNotificationId}/comments`,
+    deleteBadgeNotificationComment: (
+      badgeNotificationId: string,
+      commentId: string
+    ) =>
+      `${API_BASE_URL}/feed/badges/${badgeNotificationId}/comments/${commentId}`,
   },
   badges: {
     getAll: `${API_BASE_URL}/badges`,
