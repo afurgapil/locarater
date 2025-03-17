@@ -13,6 +13,7 @@ import { useState, useMemo } from "react";
 interface AddLocationDialogProps {
   isOpen: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
 }
 
 interface LocationFormValues {
@@ -39,7 +40,11 @@ const LocationSchema = Yup.object().shape({
   }),
 });
 
-export function AddLocationDialog({ isOpen, onClose }: AddLocationDialogProps) {
+export function AddLocationDialog({
+  isOpen,
+  onClose,
+  onSuccess,
+}: AddLocationDialogProps) {
   const { showToast } = useToast();
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [selectedCountry, setSelectedCountry] = useState<string>("TR");
@@ -88,6 +93,9 @@ export function AddLocationDialog({ isOpen, onClose }: AddLocationDialogProps) {
     try {
       await locationService.createLocation(values);
       showToast("Mekan başarıyla eklendi", "success");
+      if (onSuccess) {
+        onSuccess();
+      }
       onClose();
     } catch (error) {
       console.error("Error creating location:", error);

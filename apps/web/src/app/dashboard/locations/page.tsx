@@ -7,6 +7,11 @@ import { PlusIcon } from "@heroicons/react/24/outline";
 
 export default function MyLocationsPage() {
   const [isAddLocationOpen, setIsAddLocationOpen] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  const handleLocationAdded = () => {
+    setRefreshTrigger((prev) => prev + 1);
+  };
 
   return (
     <div className="space-y-6">
@@ -23,11 +28,12 @@ export default function MyLocationsPage() {
         </button>
       </div>
 
-      <DashboardLocationList />
+      <DashboardLocationList refreshTrigger={refreshTrigger} />
 
       <AddLocationDialog
         isOpen={isAddLocationOpen}
         onClose={() => setIsAddLocationOpen(false)}
+        onSuccess={handleLocationAdded}
       />
     </div>
   );

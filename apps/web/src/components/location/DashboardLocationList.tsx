@@ -22,7 +22,13 @@ interface ApiError {
   };
 }
 
-export function DashboardLocationList() {
+interface DashboardLocationListProps {
+  refreshTrigger?: number;
+}
+
+export function DashboardLocationList({
+  refreshTrigger = 0,
+}: DashboardLocationListProps) {
   const [locations, setLocations] = useState<Location[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -33,7 +39,7 @@ export function DashboardLocationList() {
 
   useEffect(() => {
     fetchLocations();
-  }, []);
+  }, [refreshTrigger]);
 
   const fetchLocations = async () => {
     try {

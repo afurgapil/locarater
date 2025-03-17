@@ -5,7 +5,13 @@ import { locationService } from "@/services/location.service";
 import { Location } from "@/types/location";
 import { DashboardLocationCard } from "./DashboardLocationCard";
 
-export function DashboardLocationList() {
+interface DashboardLocationListProps {
+  refreshTrigger?: number;
+}
+
+export function DashboardLocationList({
+  refreshTrigger = 0,
+}: DashboardLocationListProps) {
   const [locations, setLocations] = useState<Location[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -22,7 +28,7 @@ export function DashboardLocationList() {
     };
 
     fetchLocations();
-  }, []);
+  }, [refreshTrigger]);
 
   if (isLoading) {
     return (
