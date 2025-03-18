@@ -7,9 +7,11 @@ import {
   sendVerificationEmail,
   sendPasswordResetEmail,
 } from "../services/email.service";
+import ms from "ms";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 const JWT_EXPIRES_IN = "24h";
+const REFRESH_TOKEN_EXPIRES_IN = "30d";
 
 interface JwtPayload {
   _id: string;
@@ -19,6 +21,69 @@ interface JwtPayload {
 
 const generateVerificationToken = (): string => {
   return crypto.randomBytes(32).toString("hex");
+};
+
+const generateRefreshToken = (): string => {
+  return crypto.randomBytes(40).toString("hex");
+};
+
+export const refreshToken = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      res.status(400).json({ message: "Refresh token gerekli" });
+      return;
+    }
+
+    const user = (await User.findOne({
+      refreshToken,
+      refreshTokenExpires: { $gt: new Date() },
+    })) as IUser & { _id: mongoose.Types.ObjectId };
+
+    if (!user) {
+      res
+        .status(401)
+        .json({ message: "Geçersiz veya süresi dolmuş refresh token" });
+      return;
+    }
+
+    const payload: JwtPayload = {
+      _id: user._id.toString(),
+      username: user.username,
+      role: user.role,
+    };
+
+    const token = jwt.sign(payload, JWT_SECRET, {
+      expiresIn: JWT_EXPIRES_IN,
+    });
+
+    res.json({
+      message: "Token başarıyla yenilendi",
+      token,
+      user: {
+        _id: user._id,
+        username: user.username,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        isVerified: user.isVerified,
+        imageUrl: user.imageUrl,
+        lastLogin: user.lastLogin,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      },
+    });
+  } catch (error: any) {
+    console.error("Token yenileme hatası:", error);
+    res.status(500).json({
+      message: "Token yenilenirken bir hata oluştu",
+      error: error.message,
+    });
+  }
 };
 
 export const register = async (req: Request, res: Response): Promise<void> => {
@@ -42,6 +107,11 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     const verificationToken = generateVerificationToken();
     const verificationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
+    const refreshToken = generateRefreshToken();
+    const refreshTokenExpires = new Date(
+      Date.now() + ms(REFRESH_TOKEN_EXPIRES_IN)
+    );
+
     const user = new User({
       username,
       email,
@@ -49,6 +119,8 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       name,
       verificationToken,
       verificationTokenExpires,
+      refreshToken,
+      refreshTokenExpires,
       isVerified: false,
     }) as IUser & { _id: mongoose.Types.ObjectId };
 
@@ -74,6 +146,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       message:
         "Kullanıcı başarıyla oluşturuldu. Lütfen email adresinizi doğrulayın.",
       token,
+      refreshToken: user.refreshToken,
       user: {
         _id: user._id,
         username: user.username,
@@ -114,6 +187,13 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
+    const refreshToken = generateRefreshToken();
+    const refreshTokenExpires = new Date(
+      Date.now() + ms(REFRESH_TOKEN_EXPIRES_IN)
+    );
+
+    user.refreshToken = refreshToken;
+    user.refreshTokenExpires = refreshTokenExpires;
     user.lastLogin = new Date();
     await user.save();
 
@@ -130,6 +210,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     res.json({
       message: "Giriş başarılı",
       token,
+      refreshToken: user.refreshToken,
       user: {
         _id: user._id,
         username: user.username,
@@ -153,6 +234,20 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 
 export const logout = async (req: Request, res: Response): Promise<void> => {
   try {
+    const { refreshToken } = req.body;
+
+    if (refreshToken) {
+      await User.updateOne(
+        { refreshToken },
+        {
+          $set: {
+            refreshToken: null,
+            refreshTokenExpires: null,
+          },
+        }
+      );
+    }
+
     res.json({ message: "Başarıyla çıkış yapıldı" });
   } catch (error: any) {
     res.status(500).json({

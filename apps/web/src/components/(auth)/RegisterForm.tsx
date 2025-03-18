@@ -12,7 +12,7 @@ type RegisterFormValues = RegisterCredentials;
 
 export function RegisterForm() {
   const router = useRouter();
-  const { setUser, setToken } = useAuthStore();
+  const { setUser, setToken, setRefreshToken } = useAuthStore();
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
   const [userEmail, setUserEmail] = useState("");
 
@@ -93,6 +93,7 @@ export function RegisterForm() {
         following: response.user.following,
       });
       setToken(response.token);
+      setRefreshToken(response.refreshToken);
 
       setUserEmail(values.email);
       setRegistrationSuccess(true);

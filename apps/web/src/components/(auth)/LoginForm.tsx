@@ -11,7 +11,7 @@ type LoginFormValues = LoginCredentials;
 
 export function LoginForm() {
   const router = useRouter();
-  const { setUser, setToken } = useAuthStore();
+  const { setUser, setToken, setRefreshToken } = useAuthStore();
 
   const initialValues: LoginFormValues = {
     username: "",
@@ -66,6 +66,7 @@ export function LoginForm() {
       });
 
       setToken(response.token);
+      setRefreshToken(response.refreshToken);
       router.push("/dashboard");
     } catch (error: unknown) {
       console.error("Login error:", error);
@@ -106,7 +107,7 @@ export function LoginForm() {
               htmlFor="username"
               className="block text-sm font-medium text-gray-700 dark:text-gray-200"
             >
-              Kullanıcı Adı <span className="text-red-500">*</span>
+              Kullanıcı Adı
             </label>
             <Field
               id="username"
@@ -127,7 +128,7 @@ export function LoginForm() {
               htmlFor="password"
               className="block text-sm font-medium text-gray-700 dark:text-gray-200"
             >
-              Şifre <span className="text-red-500">*</span>
+              Şifre
             </label>
             <Field
               id="password"

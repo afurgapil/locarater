@@ -50,8 +50,20 @@ export const authenticateToken = async (
     };
 
     next();
-  } catch (error) {
-    console.error("Token doğrulama hatası:", error);
+  } catch (error: any) {
+    console.error("Token doğrulama hatası", error);
+
+    if (
+      error.name === "TokenExpiredError" ||
+      error.name === "JsonWebTokenError"
+    ) {
+      res.status(401).json({
+        message: "Token süresi dolmuş veya geçersiz token",
+        error: error.name,
+      });
+      return;
+    }
+
     res.status(403).json({ message: "Geçersiz token" });
   }
 };

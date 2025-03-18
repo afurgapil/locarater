@@ -55,6 +55,12 @@ const UserSchema = new mongoose.Schema(
     verificationTokenExpires: {
       type: Date,
     },
+    refreshToken: {
+      type: String,
+    },
+    refreshTokenExpires: {
+      type: Date,
+    },
     lastLogin: {
       type: Date,
     },
@@ -127,6 +133,8 @@ export interface IUser extends Document {
   isVerified: boolean;
   verificationToken?: string;
   verificationTokenExpires?: Date;
+  refreshToken?: string;
+  refreshTokenExpires?: Date;
   lastLogin?: Date;
   resetPasswordToken?: string;
   resetPasswordExpires?: Date;

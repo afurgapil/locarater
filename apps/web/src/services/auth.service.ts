@@ -20,6 +20,7 @@ export interface User {
 export interface AuthResponse {
   user: User;
   token: string;
+  refreshToken: string;
 }
 
 export interface LoginCredentials {
@@ -33,6 +34,10 @@ export interface RegisterCredentials {
   email: string;
   password: string;
   confirmPassword: string;
+}
+
+export interface RefreshTokenRequest {
+  refreshToken: string;
 }
 
 export interface ForgotPasswordCredentials {
@@ -70,6 +75,9 @@ export const authService = {
     if (data.token) {
       localStorage.setItem("token", data.token);
     }
+    if (data.refreshToken) {
+      localStorage.setItem("refreshToken", data.refreshToken);
+    }
     return data;
   },
 
@@ -78,16 +86,49 @@ export const authService = {
       API_ENDPOINTS.auth.register,
       credentials
     );
+    if (data.token) {
+      localStorage.setItem("token", data.token);
+    }
+    if (data.refreshToken) {
+      localStorage.setItem("refreshToken", data.refreshToken);
+    }
     return data;
+  },
+
+  async refreshToken(): Promise<AuthResponse> {
+    const refreshToken = localStorage.getItem("refreshToken");
+
+    if (!refreshToken) {
+      console.error("Refresh token bulunamadı");
+      throw new Error("Refresh token bulunamadı");
+    }
+
+    try {
+      const { data } = await api.post<AuthResponse>(
+        API_ENDPOINTS.auth.refreshToken,
+        { refreshToken }
+      );
+
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+      }
+
+      return data;
+    } catch (error) {
+      console.error("Refresh token hatası:", error);
+      throw error;
+    }
   },
 
   async logout(): Promise<void> {
     try {
-      await api.post(API_ENDPOINTS.auth.logout);
+      const refreshToken = localStorage.getItem("refreshToken");
+      await api.post(API_ENDPOINTS.auth.logout, { refreshToken });
     } catch (error) {
       console.error("Logout error:", error);
     } finally {
       localStorage.removeItem("token");
+      localStorage.removeItem("refreshToken");
     }
   },
 

@@ -5,10 +5,12 @@ import { User } from "@/services/auth.service";
 interface AuthState {
   user: User | null;
   token: string | null;
+  refreshToken: string | null;
   loading: boolean;
   error: string | null;
   setUser: (user: User | null) => void;
   setToken: (token: string | null) => void;
+  setRefreshToken: (refreshToken: string | null) => void;
   updateUser: (user: User) => void;
   updateVerificationStatus: (isVerified: boolean) => void;
   logout: () => void;
@@ -20,6 +22,7 @@ export const useAuthStore = create<AuthState>()(
     (set, get) => ({
       user: null,
       token: null,
+      refreshToken: null,
       loading: false,
       error: null,
       setUser: (user) => set({ user }),
@@ -31,6 +34,14 @@ export const useAuthStore = create<AuthState>()(
           localStorage.removeItem("token");
         }
       },
+      setRefreshToken: (refreshToken) => {
+        set({ refreshToken });
+        if (refreshToken) {
+          localStorage.setItem("refreshToken", refreshToken);
+        } else {
+          localStorage.removeItem("refreshToken");
+        }
+      },
       updateUser: (user) => set({ user }),
       updateVerificationStatus: (isVerified) => {
         const currentUser = get().user;
@@ -39,12 +50,15 @@ export const useAuthStore = create<AuthState>()(
         }
       },
       logout: () => {
-        set({ user: null, token: null, error: null });
+        set({ user: null, token: null, refreshToken: null, error: null });
         localStorage.removeItem("token");
+        localStorage.removeItem("refreshToken");
       },
       isAuthenticated: () => {
         const token = get().token || localStorage.getItem("token");
-        return !!token;
+        const refreshToken =
+          get().refreshToken || localStorage.getItem("refreshToken");
+        return !!(token || refreshToken);
       },
     }),
     {
