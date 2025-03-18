@@ -16,6 +16,41 @@ let failedQueue: {
   reject: (error: Error) => void;
 }[] = [];
 
+const isTokenExpired = (token: string): boolean => {
+  if (!token) return true;
+
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    const exp = payload.exp * 1000;
+    return Date.now() >= exp;
+  } catch {
+    return true;
+  }
+};
+
+if (typeof window !== "undefined") {
+  const validateTokenOnLoad = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      if (!token || isTokenExpired(token)) {
+        const refreshToken = localStorage.getItem("refreshToken");
+        if (refreshToken && !isRefreshing) {
+          isRefreshing = true;
+          try {
+            await authService.refreshToken();
+          } catch {
+          } finally {
+            isRefreshing = false;
+          }
+        }
+      }
+    } catch {}
+  };
+
+  validateTokenOnLoad();
+}
+
 const processQueue = (error: Error | null, token: string | null = null) => {
   failedQueue.forEach((promise) => {
     if (error) {
@@ -27,6 +62,19 @@ const processQueue = (error: Error | null, token: string | null = null) => {
 
   failedQueue = [];
 };
+
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 api.interceptors.response.use(
   (response) => {
