@@ -36,9 +36,7 @@ const ReviewSchema = Yup.object().shape({
       .min(1)
       .max(10),
   }),
-  comment: Yup.string()
-    .required("Yorum zorunludur")
-    .min(10, "En az 10 karakter yazmalısınız"),
+  comment: Yup.string().min(1, "En az 1 karakter yazmalısınız").nullable(),
   visitDate: Yup.date()
     .required("Ziyaret tarihi zorunludur")
     .max(new Date(), "Gelecek bir tarih seçemezsiniz")
@@ -106,6 +104,7 @@ export function ReviewForm({ locationId, onSuccess }: ReviewFormProps) {
         },
         visitDate: new Date(formData.visitDate),
         image: formData.image || undefined,
+        comment: formData.comment || "",
       };
 
       await reviewService.addReview(updatedFormData, locationId);
@@ -160,7 +159,7 @@ export function ReviewForm({ locationId, onSuccess }: ReviewFormProps) {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-                Lezzet
+                Lezzet <span className="text-red-500">*</span>
               </label>
               <Field
                 type="number"
@@ -173,7 +172,7 @@ export function ReviewForm({ locationId, onSuccess }: ReviewFormProps) {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-                Servis
+                Servis <span className="text-red-500">*</span>
               </label>
               <Field
                 type="number"
@@ -186,7 +185,7 @@ export function ReviewForm({ locationId, onSuccess }: ReviewFormProps) {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-                Ambiyans
+                Ambiyans <span className="text-red-500">*</span>
               </label>
               <Field
                 type="number"
@@ -199,7 +198,7 @@ export function ReviewForm({ locationId, onSuccess }: ReviewFormProps) {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-                Fiyat/Performans
+                Fiyat/Performans <span className="text-red-500">*</span>
               </label>
               <Field
                 type="number"
@@ -229,7 +228,7 @@ export function ReviewForm({ locationId, onSuccess }: ReviewFormProps) {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-              Ziyaret Tarihi
+              Ziyaret Tarihi <span className="text-red-500">*</span>
             </label>
             <Field
               type="date"

@@ -220,7 +220,7 @@ export function ProfileForm() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
-              Ad Soyad
+              Ad Soyad <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -234,7 +234,7 @@ export function ProfileForm() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
-              Kullanıcı Adı
+              Kullanıcı Adı <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -248,7 +248,7 @@ export function ProfileForm() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
-              E-posta
+              Email <span className="text-red-500">*</span>
             </label>
             <input
               type="email"

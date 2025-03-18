@@ -64,7 +64,7 @@ export function PasswordForm() {
         <Form className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
-              Mevcut Şifre
+              Mevcut Şifre <span className="text-red-500">*</span>
             </label>
             <Field
               type="password"
@@ -75,7 +75,7 @@ export function PasswordForm() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
-              Yeni Şifre
+              Yeni Şifre <span className="text-red-500">*</span>
             </label>
             <Field
               type="password"
@@ -86,7 +86,7 @@ export function PasswordForm() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
-              Yeni Şifre (Tekrar)
+              Yeni Şifre (Tekrar) <span className="text-red-500">*</span>
             </label>
             <Field
               type="password"

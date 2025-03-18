@@ -89,6 +89,8 @@ export function RegisterForm() {
         createdAt: response.user.createdAt,
         updatedAt: response.user.updatedAt,
         isActive: response.user.isActive,
+        followers: response.user.followers,
+        following: response.user.following,
       });
       setToken(response.token);
 
@@ -173,7 +175,7 @@ export function RegisterForm() {
               htmlFor="name"
               className="block text-sm font-medium text-gray-700 dark:text-gray-200"
             >
-              Ad Soyad
+              Ad Soyad <span className="text-red-500">*</span>
             </label>
             <Field
               id="name"
@@ -194,7 +196,7 @@ export function RegisterForm() {
               htmlFor="username"
               className="block text-sm font-medium text-gray-700 dark:text-gray-200"
             >
-              Kullanıcı Adı
+              Kullanıcı Adı <span className="text-red-500">*</span>
             </label>
             <Field
               id="username"
@@ -215,7 +217,7 @@ export function RegisterForm() {
               htmlFor="email"
               className="block text-sm font-medium text-gray-700 dark:text-gray-200"
             >
-              Email
+              Email <span className="text-red-500">*</span>
             </label>
             <Field
               id="email"
@@ -236,7 +238,7 @@ export function RegisterForm() {
               htmlFor="password"
               className="block text-sm font-medium text-gray-700 dark:text-gray-200"
             >
-              Şifre
+              Şifre <span className="text-red-500">*</span>
             </label>
             <Field
               id="password"
@@ -257,7 +259,7 @@ export function RegisterForm() {
               htmlFor="confirmPassword"
               className="block text-sm font-medium text-gray-700 dark:text-gray-200"
             >
-              Şifre Tekrarı
+              Şifre Tekrarı <span className="text-red-500">*</span>
             </label>
             <Field
               id="confirmPassword"

@@ -131,7 +131,7 @@ export function EditLocationDialog({
               <Form className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Mekan Adı
+                    Mekan Adı <span className="text-red-500">*</span>
                   </label>
                   <Field
                     type="text"
@@ -147,7 +147,7 @@ export function EditLocationDialog({
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Kategori
+                    Kategori <span className="text-red-500">*</span>
                   </label>
                   <Field
                     as="select"
@@ -221,7 +221,7 @@ export function EditLocationDialog({
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Şehir
+                      Şehir <span className="text-red-500">*</span>
                     </label>
                     <Field
                       as="select"
@@ -250,7 +250,7 @@ export function EditLocationDialog({
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      İlçe
+                      İlçe <span className="text-red-500">*</span>
                     </label>
                     <Field
                       as="select"

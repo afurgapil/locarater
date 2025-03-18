@@ -145,7 +145,7 @@ export function LocationForm({ location, onSuccess }: LocationFormProps) {
               htmlFor="name"
               className="block text-sm font-medium text-gray-700 dark:text-gray-200"
             >
-              Mekan Adı
+              Mekan Adı <span className="text-red-500">*</span>
             </label>
             <Field
               type="text"
@@ -160,7 +160,7 @@ export function LocationForm({ location, onSuccess }: LocationFormProps) {
               htmlFor="category"
               className="block text-sm font-medium text-gray-700 dark:text-gray-200"
             >
-              Kategori
+              Kategori <span className="text-red-500">*</span>
             </label>
             <Field
               as="select"
@@ -242,7 +242,7 @@ export function LocationForm({ location, onSuccess }: LocationFormProps) {
                 htmlFor="address.city"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-200"
               >
-                Şehir
+                Şehir <span className="text-red-500">*</span>
               </label>
               <Field
                 as="select"
@@ -270,7 +270,7 @@ export function LocationForm({ location, onSuccess }: LocationFormProps) {
                 htmlFor="address.district"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-200"
               >
-                İlçe
+                İlçe <span className="text-red-500">*</span>
               </label>
               <Field
                 as="select"

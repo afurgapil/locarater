@@ -37,9 +37,7 @@ const validationSchema = Yup.object().shape({
     ambiance: Yup.number().required().min(0).max(10),
     pricePerformance: Yup.number().required().min(0).max(10),
   }),
-  comment: Yup.string()
-    .required("Yorum alanı zorunludur")
-    .min(10, "Yorum en az 10 karakter olmalıdır"),
+  comment: Yup.string().min(1, "Yorum en az 1 karakter olmalıdır").nullable(),
   visitDate: Yup.string().required("Ziyaret tarihi zorunludur"),
 });
 
@@ -55,7 +53,7 @@ export function EditReviewDialog({
     try {
       await reviewService.updateReview(review.locationId, review._id, {
         rating: values.rating,
-        comment: values.comment,
+        comment: values.comment || "",
         visitDate: new Date(values.visitDate),
       });
       showToast("Değerlendirme başarıyla güncellendi", "success");
@@ -143,7 +141,7 @@ export function EditReviewDialog({
 
                       <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                          Ziyaret Tarihi
+                          Ziyaret Tarihi <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="date"
@@ -177,6 +175,7 @@ export function EditReviewDialog({
                           onChange={(value) =>
                             setFieldValue("rating.taste", value)
                           }
+                          isRequired
                         />
                         <RatingInput
                           label="Servis"
@@ -185,6 +184,7 @@ export function EditReviewDialog({
                           onChange={(value) =>
                             setFieldValue("rating.service", value)
                           }
+                          isRequired
                         />
                         <RatingInput
                           label="Ambiyans"
@@ -193,6 +193,7 @@ export function EditReviewDialog({
                           onChange={(value) =>
                             setFieldValue("rating.ambiance", value)
                           }
+                          isRequired
                         />
                         <RatingInput
                           label="Fiyat/Performans"
@@ -201,6 +202,7 @@ export function EditReviewDialog({
                           onChange={(value) =>
                             setFieldValue("rating.pricePerformance", value)
                           }
+                          isRequired
                         />
                       </div>
 

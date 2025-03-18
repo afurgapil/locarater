@@ -61,6 +61,8 @@ export function LoginForm() {
         createdAt: response.user.createdAt,
         updatedAt: response.user.updatedAt,
         isActive: response.user.isActive,
+        followers: response.user.followers,
+        following: response.user.following,
       });
 
       setToken(response.token);
@@ -104,7 +106,7 @@ export function LoginForm() {
               htmlFor="username"
               className="block text-sm font-medium text-gray-700 dark:text-gray-200"
             >
-              Kullanıcı Adı
+              Kullanıcı Adı <span className="text-red-500">*</span>
             </label>
             <Field
               id="username"
@@ -125,7 +127,7 @@ export function LoginForm() {
               htmlFor="password"
               className="block text-sm font-medium text-gray-700 dark:text-gray-200"
             >
-              Şifre
+              Şifre <span className="text-red-500">*</span>
             </label>
             <Field
               id="password"

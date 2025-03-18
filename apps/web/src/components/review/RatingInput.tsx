@@ -6,6 +6,7 @@ interface RatingInputProps {
   onChange: (value: number) => void;
   maxValue?: number;
   label?: string;
+  isRequired?: boolean;
 }
 
 export function RatingInput({
@@ -14,12 +15,13 @@ export function RatingInput({
   onChange,
   maxValue = 10,
   label,
+  isRequired = false,
 }: RatingInputProps) {
   return (
     <div>
       {label && (
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          {label}
+          {label} {isRequired && <span className="text-red-500">*</span>}
         </label>
       )}
       <div className="flex items-center space-x-2">
