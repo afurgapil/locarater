@@ -293,6 +293,7 @@ function ReviewFeedItem({ item }: { item: FeedItem }) {
         locationId: reviewData.location._id,
         reviewId: reviewData.review._id,
         reason: reportReason,
+        category: "OTHER" as const,
       });
       showToast("Değerlendirme başarıyla raporlandı", "success");
       setIsReportDialogOpen(false);

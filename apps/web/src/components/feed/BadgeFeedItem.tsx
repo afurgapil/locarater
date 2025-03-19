@@ -72,6 +72,7 @@ export default function BadgeFeedItem({ item }: BadgeFeedItemProps) {
         locationId: badgeData.badge._id,
         reviewId: item._id || badgeData.badge._id,
         reason: reportReason,
+        category: "OTHER" as const,
       });
       showToast("Rozet bildirimi başarıyla raporlandı", "success");
       setIsReportDialogOpen(false);
