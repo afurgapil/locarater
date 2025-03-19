@@ -29,6 +29,7 @@ import statisticsRoutes from "./routes/statistics.routes";
 import reviewReportRoutes from "./routes/review-report.routes";
 import feedRoutes from "./routes/feed.routes";
 import badgeRoutes from "./routes/badge.routes";
+import notificationRoutes from "./routes/notification.routes";
 
 const app = express();
 
@@ -51,6 +52,7 @@ app.use("/api/statistics", statisticsRoutes);
 app.use("/api/review-reports", reviewReportRoutes);
 app.use("/api/feed", feedRoutes);
 app.use("/api/badges", badgeRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 mongoose
   .connect(MONGODB_URI)

@@ -6,17 +6,40 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
-import { Star, PencilIcon, TrashIcon, ImageIcon, Flag } from "lucide-react";
+import {
+  Star,
+  PencilIcon,
+  TrashIcon,
+  ImageIcon,
+  Flag,
+  Loader2,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useAuthStore } from "@/store/useAuthStore";
 import { locationService } from "@/services/location.service";
-import { reviewReportService } from "@/services/review-report.service";
+import {
+  reviewReportService,
+  type ReportCategory,
+} from "@/services/review-report.service";
 import { useToast } from "@/hooks/useToast";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 
 interface ReviewCardProps {
   review: Review;
@@ -24,6 +47,38 @@ interface ReviewCardProps {
   onEdit?: (review: Review) => void;
   onDelete?: () => Promise<void>;
 }
+
+const reportCategories: {
+  value: ReportCategory;
+  label: string;
+  description: string;
+}[] = [
+  {
+    value: "SPAM",
+    label: "Spam",
+    description: "Alakasız, tekrarlayan veya reklam içeren yorum",
+  },
+  {
+    value: "INAPPROPRIATE_CONTENT",
+    label: "Uygunsuz İçerik",
+    description: "Müstehcen, uygunsuz veya saldırgan içerik",
+  },
+  {
+    value: "FALSE_INFORMATION",
+    label: "Yanlış Bilgi",
+    description: "Mekan hakkında yanlış veya yanıltıcı bilgiler",
+  },
+  {
+    value: "HARASSMENT",
+    label: "Taciz/Hakaret",
+    description: "Kişileri hedef alan taciz, hakaret veya aşağılayıcı içerik",
+  },
+  {
+    value: "OTHER",
+    label: "Diğer",
+    description: "Yukarıdaki kategorilere girmeyen diğer nedenler",
+  },
+];
 
 export function ReviewCard({
   review,
@@ -38,6 +93,7 @@ export function ReviewCard({
   const [isCopyingImage, setIsCopyingImage] = useState(false);
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
   const [reportReason, setReportReason] = useState("");
+  const [reportCategory, setReportCategory] = useState<ReportCategory>("OTHER");
   const [isSubmittingReport, setIsSubmittingReport] = useState(false);
   const { user } = useAuthStore();
   const { showToast } = useToast();
@@ -85,10 +141,12 @@ export function ReviewCard({
         locationId,
         reviewId: review._id,
         reason: reportReason,
+        category: reportCategory,
       });
       showToast("Değerlendirme başarıyla raporlandı", "success");
       setIsReportDialogOpen(false);
       setReportReason("");
+      setReportCategory("OTHER");
     } catch (error: unknown) {
       console.error("Error reporting review:", error);
       const errorMessage =
@@ -348,38 +406,86 @@ export function ReviewCard({
 
       {/* Report Dialog */}
       <Dialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
-        <DialogContent>
-          <DialogTitle>Değerlendirmeyi Raporla</DialogTitle>
-          <div className="mt-4">
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-              Bu değerlendirmeyi neden uygunsuz bulduğunuzu açıklayın.
-            </p>
-            <Textarea
-              value={reportReason}
-              onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
-                setReportReason(e.target.value)
-              }
-              placeholder="Rapor nedeninizi yazın..."
-              className="min-h-[100px]"
-            />
+        <DialogContent className="sm:max-w-md">
+          <DialogTitle className="flex items-center gap-2">
+            <Flag className="h-5 w-5 text-red-500" />
+            <span>Değerlendirmeyi Raporla</span>
+          </DialogTitle>
+          <DialogDescription>
+            Bu yorumun neden uygunsuz olduğunu düşündüğünüzü bize bildirin. Tüm
+            raporlar gizli tutulur ve kontrol edilir.
+          </DialogDescription>
+
+          <div className="mt-4 space-y-4">
+            <div className="space-y-2 w-full flex flex-col gap-2">
+              <Label htmlFor="report-category">Rapor Kategorisi</Label>
+              <Select
+                value={reportCategory}
+                onValueChange={(value: string) =>
+                  setReportCategory(value as ReportCategory)
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Kategori seçin" />
+                </SelectTrigger>
+                <SelectContent>
+                  {reportCategories.map((category) => (
+                    <SelectItem key={category.value} value={category.value}>
+                      <div className="flex flex-col justify-center items-start">
+                        <span>{category.label}</span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                          {category.description}
+                        </span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="report-reason">Açıklama</Label>
+              <Textarea
+                id="report-reason"
+                value={reportReason}
+                onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
+                  setReportReason(e.target.value)
+                }
+                placeholder="Lütfen daha detaylı bilgi verin..."
+                className="min-h-[100px]"
+              />
+            </div>
           </div>
+
           <div className="mt-6 flex justify-end space-x-3">
             <Button
               variant="outline"
               onClick={() => {
                 setIsReportDialogOpen(false);
                 setReportReason("");
+                setReportCategory("OTHER");
               }}
               disabled={isSubmittingReport}
             >
               Vazgeç
             </Button>
             <Button
-              variant="default"
+              variant="destructive"
               onClick={handleReport}
-              disabled={isSubmittingReport}
+              disabled={isSubmittingReport || !reportReason.trim()}
+              className="gap-2"
             >
-              {isSubmittingReport ? "Gönderiliyor..." : "Raporla"}
+              {isSubmittingReport ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Gönderiliyor...</span>
+                </>
+              ) : (
+                <>
+                  <Flag className="h-4 w-4" />
+                  <span>Raporla</span>
+                </>
+              )}
             </Button>
           </div>
         </DialogContent>

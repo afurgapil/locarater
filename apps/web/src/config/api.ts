@@ -107,6 +107,16 @@ export const API_ENDPOINTS = {
     getAll: `${API_BASE_URL}/badges`,
     getUserBadges: `${API_BASE_URL}/badges/user`,
     checkAndUpdateBadges: `${API_BASE_URL}/badges/check`,
+    getById: (badgeId: string) => `${API_BASE_URL}/badges/${badgeId}`,
+  },
+  notifications: {
+    getAll: `${API_BASE_URL}/notifications`,
+    markAsRead: (notificationId: string) =>
+      `${API_BASE_URL}/notifications/${notificationId}/read`,
+    markAllAsRead: `${API_BASE_URL}/notifications/read-all`,
+    delete: (notificationId: string) =>
+      `${API_BASE_URL}/notifications/${notificationId}`,
+    deleteAll: `${API_BASE_URL}/notifications`,
   },
 };
 

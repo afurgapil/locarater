@@ -5,10 +5,18 @@ export interface ReviewReport {
   reviewId: string;
   reporter: Schema.Types.ObjectId;
   reason: string;
-  status: "PENDING" | "RESOLVED" | "REJECTED";
+  category:
+    | "SPAM"
+    | "INAPPROPRIATE_CONTENT"
+    | "FALSE_INFORMATION"
+    | "HARASSMENT"
+    | "OTHER";
+  status: "PENDING" | "IN_REVIEW" | "RESOLVED" | "REJECTED";
+  result?: "REMOVED" | "WARNING_ISSUED" | "NO_ACTION" | "FALSE_REPORT";
   notes?: string;
   createdAt: Date;
   updatedAt: Date;
+  processedAt?: Date;
 }
 
 const reviewReportSchema = new Schema<ReviewReport>(
@@ -31,12 +39,28 @@ const reviewReportSchema = new Schema<ReviewReport>(
       type: String,
       required: true,
     },
+    category: {
+      type: String,
+      enum: [
+        "SPAM",
+        "INAPPROPRIATE_CONTENT",
+        "FALSE_INFORMATION",
+        "HARASSMENT",
+        "OTHER",
+      ],
+      required: true,
+    },
     status: {
       type: String,
-      enum: ["PENDING", "RESOLVED", "REJECTED"],
+      enum: ["PENDING", "IN_REVIEW", "RESOLVED", "REJECTED"],
       default: "PENDING",
     },
+    result: {
+      type: String,
+      enum: ["REMOVED", "WARNING_ISSUED", "NO_ACTION", "FALSE_REPORT"],
+    },
     notes: String,
+    processedAt: Date,
   },
   {
     timestamps: true,

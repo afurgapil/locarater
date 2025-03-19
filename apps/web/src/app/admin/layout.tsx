@@ -3,9 +3,8 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/useAuthStore";
-import { Header } from "@/components/layout/Header";
 import { DashboardSidebar } from "@/components/layout/DashboardSidebar";
-
+import { Header } from "@/components/layout/Header";
 export default function AdminLayout({
   children,
 }: {
@@ -26,7 +25,7 @@ export default function AdminLayout({
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100 dark:bg-gray-900">
-      <Header showDashboardLink={true} />
+      <Header />
       <div className="flex flex-1 pt-14 md:pt-16">
         <DashboardSidebar />
         <div className="flex-1 md:ml-64">

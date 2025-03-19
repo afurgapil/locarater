@@ -4,6 +4,7 @@ import { Location } from "../models/location.model";
 import { User } from "../models/user.model";
 import { AuthRequest } from "../types/auth";
 import { Types, Document } from "mongoose";
+import { notificationService } from "../services/notification.service";
 
 interface PopulatedLocation {
   _id: Types.ObjectId;
@@ -22,27 +23,16 @@ interface ReviewReport extends Document {
   reviewId: string;
   reporter: PopulatedUser;
   reason: string;
-  status: "PENDING" | "RESOLVED" | "REJECTED";
+  category:
+    | "SPAM"
+    | "INAPPROPRIATE_CONTENT"
+    | "FALSE_INFORMATION"
+    | "HARASSMENT"
+    | "OTHER";
+  status: "PENDING" | "IN_REVIEW" | "RESOLVED" | "REJECTED";
+  result?: "REMOVED" | "WARNING_ISSUED" | "NO_ACTION" | "FALSE_REPORT";
   notes?: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-interface ReviewReportObject {
-  _id: Types.ObjectId;
-  locationId: {
-    _id: Types.ObjectId;
-    name: string;
-  };
-  reviewId: string;
-  reporter: {
-    _id: Types.ObjectId;
-    username: string;
-    name: string;
-  };
-  reason: string;
-  status: "PENDING" | "RESOLVED" | "REJECTED";
-  notes?: string;
+  processedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -69,18 +59,30 @@ interface ReportResponseObject {
     name: string;
   };
   reason: string;
-  status: "PENDING" | "RESOLVED" | "REJECTED";
+  category:
+    | "SPAM"
+    | "INAPPROPRIATE_CONTENT"
+    | "FALSE_INFORMATION"
+    | "HARASSMENT"
+    | "OTHER";
+  status: "PENDING" | "IN_REVIEW" | "RESOLVED" | "REJECTED";
+  result?: "REMOVED" | "WARNING_ISSUED" | "NO_ACTION" | "FALSE_REPORT";
   notes?: string;
+  processedAt?: string;
   createdAt: string;
   updatedAt: string;
 }
 
 export const createReviewReport = async (req: AuthRequest, res: Response) => {
   try {
-    const { locationId, reviewId, reason } = req.body;
+    const { locationId, reviewId, reason, category } = req.body;
 
     if (!req.user) {
       return res.status(401).json({ message: "Lütfen giriş yapın" });
+    }
+
+    if (!category) {
+      return res.status(400).json({ message: "Kategori belirtilmelidir" });
     }
 
     const location = await Location.findById(locationId).lean();
@@ -110,6 +112,7 @@ export const createReviewReport = async (req: AuthRequest, res: Response) => {
       reviewId,
       reporter: req.user._id,
       reason,
+      category,
     });
 
     const populatedReport = await ReviewReportModel.findById(report._id)
@@ -162,9 +165,33 @@ export const createReviewReport = async (req: AuthRequest, res: Response) => {
         username: populatedReport.reporter.username,
         name: populatedReport.reporter.name,
       },
+      category: populatedReport.category,
+      status: populatedReport.status,
+      result: populatedReport.result,
+      reason: populatedReport.reason,
+      notes: populatedReport.notes,
+      processedAt: populatedReport.processedAt
+        ? populatedReport.processedAt.toISOString()
+        : undefined,
       createdAt: populatedReport.createdAt.toISOString(),
       updatedAt: populatedReport.updatedAt.toISOString(),
     };
+
+    if (reviewUser) {
+      try {
+        await notificationService.sendReportCreatedNotification({
+          reviewUserId: reviewUser._id.toString(),
+          reportId: populatedReport._id.toString(),
+          locationName: populatedReport.locationId.name,
+          reporterName:
+            populatedReport.reporter.name || populatedReport.reporter.username,
+          reportCategory: populatedReport.category,
+        });
+      } catch (notificationError) {
+        console.error("Error sending report notification:", notificationError);
+        // Bildirim gönderme hatası olsa bile ana işlemi devam ettiriyoruz
+      }
+    }
 
     res.status(201).json(responseObject);
   } catch (error) {
@@ -235,38 +262,36 @@ export const getAllReports = async (req: Request, res: Response) => {
           _id: report._id.toString(),
           locationId: {
             _id: report.locationId._id.toString(),
-            name: report.locationId.name || "Mekan adı bulunamadı",
+            name: report.locationId.name,
           },
-          review: review
-            ? {
-                _id: review._id.toString(),
-                comment: review.comment || "",
-                user: reviewUser
-                  ? {
-                      _id: reviewUser._id.toString(),
-                      username: reviewUser.username,
-                      name: reviewUser.name,
-                    }
-                  : {
-                      _id: review.user.toString(),
-                      username: "Kullanıcı bulunamadı",
-                      name: "Kullanıcı bulunamadı",
-                    },
-              }
-            : {
-                _id: "",
-                comment: "Değerlendirme bulunamadı",
-                user: {
-                  _id: "",
-                  username: "",
-                  name: "",
+          review: {
+            _id: review ? review._id.toString() : "",
+            comment: review ? review.comment || "" : "Değerlendirme bulunamadı",
+            user: reviewUser
+              ? {
+                  _id: reviewUser._id.toString(),
+                  username: reviewUser.username,
+                  name: reviewUser.name,
+                }
+              : {
+                  _id: review ? review.user.toString() : "",
+                  username: "Kullanıcı bulunamadı",
+                  name: "Kullanıcı bulunamadı",
                 },
-              },
+          },
           reporter: {
             _id: report.reporter._id.toString(),
             username: report.reporter.username,
             name: report.reporter.name,
           },
+          category: report.category,
+          status: report.status,
+          result: report.result,
+          reason: report.reason,
+          notes: report.notes,
+          processedAt: report.processedAt
+            ? report.processedAt.toISOString()
+            : undefined,
           createdAt: report.createdAt.toISOString(),
           updatedAt: report.updatedAt.toISOString(),
         };
@@ -285,11 +310,25 @@ export const getAllReports = async (req: Request, res: Response) => {
 export const updateReportStatus = async (req: Request, res: Response) => {
   try {
     const { reportId } = req.params;
-    const { status } = req.body;
+    const { status, result, notes } = req.body;
+
+    const updateData: {
+      status: string;
+      result?: string;
+      notes?: string;
+      processedAt?: Date;
+    } = { status };
+
+    if (result) updateData.result = result;
+    if (notes) updateData.notes = notes;
+
+    if (status === "RESOLVED" || status === "REJECTED") {
+      updateData.processedAt = new Date();
+    }
 
     const report = await ReviewReportModel.findByIdAndUpdate(
       reportId,
-      { status },
+      updateData,
       { new: true }
     )
       .populate<ReviewReport>([
@@ -330,6 +369,14 @@ export const updateReportStatus = async (req: Request, res: Response) => {
           username: report.reporter.username,
           name: report.reporter.name,
         },
+        category: report.category,
+        status: report.status,
+        result: report.result,
+        reason: report.reason,
+        notes: report.notes,
+        processedAt: report.processedAt
+          ? report.processedAt.toISOString()
+          : undefined,
         createdAt: report.createdAt.toISOString(),
         updatedAt: report.updatedAt.toISOString(),
       };
@@ -354,41 +401,63 @@ export const updateReportStatus = async (req: Request, res: Response) => {
       _id: report._id.toString(),
       locationId: {
         _id: report.locationId._id.toString(),
-        name: report.locationId.name || "Mekan adı bulunamadı",
+        name: report.locationId.name,
       },
-      review: review
-        ? {
-            _id: review._id.toString(),
-            comment: review.comment || "",
-            user: reviewUser
-              ? {
-                  _id: reviewUser._id.toString(),
-                  username: reviewUser.username,
-                  name: reviewUser.name,
-                }
-              : {
-                  _id: review.user.toString(),
-                  username: "Kullanıcı bulunamadı",
-                  name: "Kullanıcı bulunamadı",
-                },
-          }
-        : {
-            _id: "",
-            comment: "Değerlendirme bulunamadı",
-            user: {
-              _id: "",
-              username: "",
-              name: "",
+      review: {
+        _id: review ? review._id.toString() : "",
+        comment: review ? review.comment || "" : "Değerlendirme bulunamadı",
+        user: reviewUser
+          ? {
+              _id: reviewUser._id.toString(),
+              username: reviewUser.username,
+              name: reviewUser.name,
+            }
+          : {
+              _id: review ? review.user.toString() : "",
+              username: "Kullanıcı bulunamadı",
+              name: "Kullanıcı bulunamadı",
             },
-          },
+      },
       reporter: {
         _id: report.reporter._id.toString(),
         username: report.reporter.username,
         name: report.reporter.name,
       },
+      category: report.category,
+      status: report.status,
+      result: report.result,
+      reason: report.reason,
+      notes: report.notes,
+      processedAt: report.processedAt
+        ? report.processedAt.toISOString()
+        : undefined,
       createdAt: report.createdAt.toISOString(),
       updatedAt: report.updatedAt.toISOString(),
     };
+
+    try {
+      if (status === "RESOLVED") {
+        await notificationService.sendReportResolvedNotification({
+          reporterId: report.reporter._id,
+          reportId: report._id.toString(),
+          locationName: report.locationId.name,
+          result: report.result,
+          notes: report.notes,
+        });
+      } else if (status === "REJECTED") {
+        await notificationService.sendReportRejectedNotification({
+          reporterId: report.reporter._id,
+          reportId: report._id.toString(),
+          locationName: report.locationId.name,
+          notes: report.notes,
+        });
+      }
+    } catch (notificationError) {
+      console.error(
+        "Error sending report status notification:",
+        notificationError
+      );
+    }
 
     res.json(responseObject);
   } catch (error) {
@@ -443,6 +512,9 @@ export const getUserReports = async (req: AuthRequest, res: Response) => {
               username: report.reporter.username,
               name: report.reporter.name,
             },
+            processedAt: report.processedAt
+              ? report.processedAt.toISOString()
+              : undefined,
             createdAt: report.createdAt.toISOString(),
             updatedAt: report.updatedAt.toISOString(),
           } as ReportResponseObject;
@@ -465,38 +537,36 @@ export const getUserReports = async (req: AuthRequest, res: Response) => {
           _id: report._id.toString(),
           locationId: {
             _id: report.locationId._id.toString(),
-            name: report.locationId.name || "Mekan adı bulunamadı",
+            name: report.locationId.name,
           },
-          review: review
-            ? {
-                _id: review._id.toString(),
-                comment: review.comment || "",
-                user: reviewUser
-                  ? {
-                      _id: reviewUser._id.toString(),
-                      username: reviewUser.username,
-                      name: reviewUser.name,
-                    }
-                  : {
-                      _id: review.user.toString(),
-                      username: "Kullanıcı bulunamadı",
-                      name: "Kullanıcı bulunamadı",
-                    },
-              }
-            : {
-                _id: "",
-                comment: "Değerlendirme bulunamadı",
-                user: {
-                  _id: "",
-                  username: "",
-                  name: "",
+          review: {
+            _id: review ? review._id.toString() : "",
+            comment: review ? review.comment || "" : "Değerlendirme bulunamadı",
+            user: reviewUser
+              ? {
+                  _id: reviewUser._id.toString(),
+                  username: reviewUser.username,
+                  name: reviewUser.name,
+                }
+              : {
+                  _id: review ? review.user.toString() : "",
+                  username: "Kullanıcı bulunamadı",
+                  name: "Kullanıcı bulunamadı",
                 },
-              },
+          },
           reporter: {
             _id: report.reporter._id.toString(),
             username: report.reporter.username,
             name: report.reporter.name,
           },
+          category: report.category,
+          status: report.status,
+          result: report.result,
+          reason: report.reason,
+          notes: report.notes,
+          processedAt: report.processedAt
+            ? report.processedAt.toISOString()
+            : undefined,
           createdAt: report.createdAt.toISOString(),
           updatedAt: report.updatedAt.toISOString(),
         };

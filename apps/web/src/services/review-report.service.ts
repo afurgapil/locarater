@@ -1,6 +1,19 @@
 import { API_ENDPOINTS } from "@/config/api";
 import { api } from "@/lib/axios";
 
+export type ReportCategory =
+  | "SPAM"
+  | "INAPPROPRIATE_CONTENT"
+  | "FALSE_INFORMATION"
+  | "HARASSMENT"
+  | "OTHER";
+export type ReportStatus = "PENDING" | "IN_REVIEW" | "RESOLVED" | "REJECTED";
+export type ReportResult =
+  | "REMOVED"
+  | "WARNING_ISSUED"
+  | "NO_ACTION"
+  | "FALSE_REPORT";
+
 export interface ReviewReport {
   _id: string;
   locationId: {
@@ -23,20 +36,26 @@ export interface ReviewReport {
     name: string;
   };
   reason: string;
-  status: "PENDING" | "RESOLVED" | "REJECTED";
+  category: ReportCategory;
+  status: ReportStatus;
+  result?: ReportResult;
   notes?: string;
   createdAt: string;
   updatedAt: string;
+  processedAt?: string;
 }
 
 export interface CreateReviewReportDto {
   locationId: string;
   reviewId: string;
   reason: string;
+  category: ReportCategory;
 }
 
 export interface UpdateReviewReportStatusDto {
-  status: "RESOLVED" | "REJECTED";
+  status: ReportStatus;
+  result?: ReportResult;
+  notes?: string;
 }
 
 class ReviewReportService {
@@ -57,11 +76,11 @@ class ReviewReportService {
 
   async updateReportStatus(
     reportId: string,
-    status: UpdateReviewReportStatusDto["status"]
+    data: UpdateReviewReportStatusDto
   ) {
     const response = await api.put(
       API_ENDPOINTS.reviewReports.updateStatus(reportId),
-      { status }
+      data
     );
     return response.data;
   }
