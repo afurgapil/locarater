@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
 import { useEffect, useState } from "react";
@@ -18,10 +19,12 @@ import {
   Heart,
   UserPlus,
   Trash,
+  MessageCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useRouter } from "next/navigation";
 
 interface NotificationsListProps {
   onClose?: () => void;
@@ -37,11 +40,26 @@ export default function NotificationsList({
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"all" | "unread">("all");
   const { showToast } = useToast();
+  const [isFirstLoad, setIsFirstLoad] = useState(true);
 
   useEffect(() => {
     fetchNotifications();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
+
+  useEffect(() => {
+    const markNotificationsAsRead = async () => {
+      if (isFirstLoad && unreadCount > 0 && !loading) {
+        try {
+          await handleMarkAllAsRead();
+          setIsFirstLoad(false);
+        } catch (error) {
+          console.error("Error marking notifications as read:", error);
+        }
+      }
+    };
+
+    markNotificationsAsRead();
+  }, [isFirstLoad, unreadCount, loading]);
 
   const fetchNotifications = async () => {
     try {
@@ -84,7 +102,6 @@ export default function NotificationsList({
       setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
       setUnreadCount(0);
       onUpdateUnreadCount?.(0);
-      showToast("Tüm bildirimler okundu olarak işaretlendi", "success");
 
       if (onClose && activeTab === "unread") {
         onClose();
@@ -120,6 +137,22 @@ export default function NotificationsList({
     }
   };
 
+  const handleDeleteAllNotifications = async () => {
+    try {
+      await notificationService.deleteAllNotifications();
+      setNotifications([]);
+      setUnreadCount(0);
+      onUpdateUnreadCount?.(0);
+      showToast("Tüm bildirimler silindi", "success");
+      if (onClose) {
+        onClose();
+      }
+    } catch (error) {
+      console.error("Error deleting all notifications:", error);
+      showToast("Bildirimler silinirken bir hata oluştu", "error");
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex h-48 w-full items-center justify-center">
@@ -145,16 +178,29 @@ export default function NotificationsList({
     <div className="flex w-full flex-col">
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-lg font-semibold">Bildirimler</h2>
-        {unreadCount > 0 && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleMarkAllAsRead}
-            className="text-xs"
-          >
-            Tümünü Okundu İşaretle
-          </Button>
-        )}
+        <div className="flex gap-2">
+          {unreadCount > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleMarkAllAsRead}
+              className="text-xs"
+            >
+              Tümünü Okundu İşaretle
+            </Button>
+          )}
+          {notifications.length > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDeleteAllNotifications}
+              className="text-xs text-red-500 hover:text-red-600"
+            >
+              <Trash className="mr-1 h-4 w-4" />
+              Tümünü Sil
+            </Button>
+          )}
+        </div>
       </div>
 
       <Tabs
@@ -177,6 +223,7 @@ export default function NotificationsList({
               notification={notification}
               onMarkAsRead={handleMarkAsRead}
               onDelete={handleDeleteNotification}
+              onClose={onClose}
             />
           ))}
         </TabsContent>
@@ -190,6 +237,7 @@ export default function NotificationsList({
                 notification={notification}
                 onMarkAsRead={handleMarkAsRead}
                 onDelete={handleDeleteNotification}
+                onClose={onClose}
               />
             ))}
         </TabsContent>
@@ -202,13 +250,17 @@ interface NotificationItemProps {
   notification: INotification;
   onMarkAsRead: (id: string) => void;
   onDelete: (id: string) => void;
+  onClose?: () => void;
 }
 
 function NotificationItem({
   notification,
   onMarkAsRead,
   onDelete,
+  onClose,
 }: NotificationItemProps) {
+  const router = useRouter();
+
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case "REPORT_CREATED":
@@ -221,11 +273,109 @@ function NotificationItem({
         return <Award className="h-5 w-5 text-purple-500" />;
       case "REVIEW_LIKED":
         return <Heart className="h-5 w-5 text-pink-500" />;
+      case "REVIEW_DISLIKED":
+        return <Heart className="h-5 w-5 text-red-500" />;
+      case "REVIEW_COMMENTED":
+        return <MessageCircle className="h-5 w-5 text-blue-500" />;
       case "NEW_FOLLOWER":
         return <UserPlus className="h-5 w-5 text-blue-500" />;
       default:
         return <Bell className="h-5 w-5 text-gray-500" />;
     }
+  };
+
+  const handleUserClick = (username: string | undefined) => {
+    if (username) {
+      onMarkAsRead(notification._id);
+      onClose?.();
+      router.push(`/users/${username}`);
+    }
+  };
+
+  const renderNotificationContent = () => {
+    const data = notification.data;
+
+    switch (notification.type) {
+      case "NEW_FOLLOWER": {
+        if (data?.follower) {
+          const { username, name } = data.follower;
+          return (
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => handleUserClick(username)}
+                className="font-medium text-blue-600 hover:underline dark:text-blue-400"
+              >
+                {name}
+              </button>
+              <span>sizi takip etmeye başladı.</span>
+            </div>
+          );
+        }
+        break;
+      }
+
+      case "REVIEW_LIKED": {
+        if (data?.likedBy) {
+          const { username, name } = data.likedBy;
+          return (
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => handleUserClick(username)}
+                className="font-medium text-blue-600 hover:underline dark:text-blue-400"
+              >
+                {name}
+              </button>
+              <span>
+                {data.locationName} için yaptığınız değerlendirmeyi beğendi.
+              </span>
+            </div>
+          );
+        }
+        break;
+      }
+
+      case "REVIEW_DISLIKED": {
+        if (data?.dislikedBy) {
+          const { username, name } = data.dislikedBy;
+          return (
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => handleUserClick(username)}
+                className="font-medium text-blue-600 hover:underline dark:text-blue-400"
+              >
+                {name}
+              </button>
+              <span>
+                {data.locationName} için yaptığınız değerlendirmeyi beğenmedi.
+              </span>
+            </div>
+          );
+        }
+        break;
+      }
+
+      case "REVIEW_COMMENTED": {
+        if (data?.commentBy) {
+          const { username, name } = data.commentBy;
+          return (
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => handleUserClick(username)}
+                className="font-medium text-blue-600 hover:underline dark:text-blue-400"
+              >
+                {name}
+              </button>
+              <span>
+                {data.locationName} için yaptığınız değerlendirmeye yorum yaptı.
+              </span>
+            </div>
+          );
+        }
+        break;
+      }
+    }
+
+    return <p>{notification.message}</p>;
   };
 
   return (
@@ -245,21 +395,21 @@ function NotificationItem({
           <div className="mb-1 flex items-start justify-between">
             <h3 className="font-medium">{notification.title}</h3>
             <span className="text-xs text-gray-500">
-              {format(new Date(notification.createdAt), "d MMM, HH:mm", {
+              {format(new Date(notification.createdAt), "d MMM yyyy HH:mm", {
                 locale: tr,
               })}
             </span>
           </div>
-          <p className="text-sm text-gray-600 dark:text-gray-300">
-            {notification.message}
-          </p>
-          <div className="mt-2 flex justify-end gap-2">
+          <div className="text-sm text-gray-600 dark:text-gray-300">
+            {renderNotificationContent()}
+          </div>
+          <div className="mt-2 flex justify-end space-x-2">
             {!notification.isRead && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => onMarkAsRead(notification._id)}
-                className="h-8 text-xs"
+                className="text-xs"
               >
                 Okundu İşaretle
               </Button>
@@ -268,9 +418,9 @@ function NotificationItem({
               variant="ghost"
               size="sm"
               onClick={() => onDelete(notification._id)}
-              className="h-8 text-xs text-red-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950"
+              className="text-xs text-red-500 hover:text-red-600"
             >
-              <Trash className="mr-1 h-3 w-3" />
+              <Trash className="mr-1 h-4 w-4" />
               Sil
             </Button>
           </div>

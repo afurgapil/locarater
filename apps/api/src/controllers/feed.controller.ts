@@ -9,6 +9,8 @@ import { BadgeService } from "../services/badge.service";
 import { BadgeNotification } from "../models/badge-notification.model";
 import { BadgeReaction } from "../models/badge-reaction.model";
 import { BadgeComment } from "../models/badge-comment.model";
+import { notificationService } from "../services/notification.service";
+import { NotificationType } from "../models/notification.model";
 
 export const getFeed = async (
   req: AuthRequest,
@@ -365,6 +367,18 @@ export const likeReview = async (
       return;
     }
 
+    const review = location.reviews.find((r) => r._id.toString() === reviewId);
+    if (!review) {
+      res.status(404).json({ message: "Değerlendirme bulunamadı" });
+      return;
+    }
+
+    const currentUser = await User.findById(userId);
+    if (!currentUser) {
+      res.status(404).json({ message: "Kullanıcı bulunamadı" });
+      return;
+    }
+
     const existingReaction = await ReviewReaction.findOne({
       user: userId,
       review: reviewId,
@@ -386,6 +400,26 @@ export const likeReview = async (
         review: reviewId,
         type: "like",
       });
+
+      if (review.user.toString() !== userId) {
+        await notificationService.createNotification({
+          userId: review.user,
+          type: NotificationType.REVIEW_LIKED,
+          title: "Değerlendirmeniz Beğenildi",
+          message: `${currentUser.name} ${location.name} için yaptığınız değerlendirmeyi beğendi.`,
+          relatedId: reviewId,
+          data: {
+            locationId: location._id,
+            locationName: location.name,
+            likedBy: {
+              id: currentUser._id,
+              name: currentUser.name,
+              username: currentUser.username,
+              imageUrl: currentUser.imageUrl,
+            },
+          },
+        });
+      }
     }
 
     await BadgeService.checkInteractionBadges(userId);
@@ -418,6 +452,18 @@ export const dislikeReview = async (
       return;
     }
 
+    const review = location.reviews.find((r) => r._id.toString() === reviewId);
+    if (!review) {
+      res.status(404).json({ message: "Değerlendirme bulunamadı" });
+      return;
+    }
+
+    const currentUser = await User.findById(userId);
+    if (!currentUser) {
+      res.status(404).json({ message: "Kullanıcı bulunamadı" });
+      return;
+    }
+
     const existingReaction = await ReviewReaction.findOne({
       user: userId,
       review: reviewId,
@@ -439,6 +485,26 @@ export const dislikeReview = async (
         review: reviewId,
         type: "dislike",
       });
+
+      if (review.user.toString() !== userId) {
+        await notificationService.createNotification({
+          userId: review.user,
+          type: NotificationType.REVIEW_DISLIKED,
+          title: "Değerlendirmeniz Beğenilmedi",
+          message: `${currentUser.name} ${location.name} için yaptığınız değerlendirmeyi beğenmedi.`,
+          relatedId: reviewId,
+          data: {
+            locationId: location._id,
+            locationName: location.name,
+            dislikedBy: {
+              id: currentUser._id,
+              name: currentUser.name,
+              username: currentUser.username,
+              imageUrl: currentUser.imageUrl,
+            },
+          },
+        });
+      }
     }
 
     res.status(200).json({ message: "Değerlendirme başarıyla beğenilmedi" });
@@ -529,11 +595,46 @@ export const addComment = async (
       return;
     }
 
+    const review = location.reviews.find((r) => r._id.toString() === reviewId);
+    if (!review) {
+      res.status(404).json({ message: "Değerlendirme bulunamadı" });
+      return;
+    }
+
+    const currentUser = await User.findById(userId);
+    if (!currentUser) {
+      res.status(404).json({ message: "Kullanıcı bulunamadı" });
+      return;
+    }
+
     const newComment = await ReviewComment.create({
       user: userId,
       review: reviewId,
       content,
     });
+
+    // Değerlendirme sahibine bildirim gönder
+    if (review.user.toString() !== userId) {
+      await notificationService.createNotification({
+        userId: review.user,
+        type: NotificationType.REVIEW_COMMENTED,
+        title: "Değerlendirmenize Yorum Yapıldı",
+        message: `${currentUser.name} ${location.name} için yaptığınız değerlendirmeye yorum yaptı: "${content.substring(0, 50)}${content.length > 50 ? "..." : ""}"`,
+        relatedId: reviewId,
+        data: {
+          locationId: location._id,
+          locationName: location.name,
+          commentId: newComment._id,
+          commentBy: {
+            id: currentUser._id,
+            name: currentUser.name,
+            username: currentUser.username,
+            imageUrl: currentUser.imageUrl,
+          },
+          commentContent: content,
+        },
+      });
+    }
 
     await BadgeService.checkInteractionBadges(userId);
 

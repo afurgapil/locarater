@@ -7,7 +7,33 @@ export type NotificationType =
   | "REPORT_REJECTED"
   | "BADGE_EARNED"
   | "REVIEW_LIKED"
+  | "REVIEW_DISLIKED"
+  | "REVIEW_COMMENTED"
   | "NEW_FOLLOWER";
+
+interface UserInfo {
+  id: string;
+  name: string;
+  username: string;
+  imageUrl?: string;
+  followers_count?: number;
+  reviews_count?: number;
+}
+
+interface NotificationData {
+  follower?: UserInfo;
+  likedBy?: UserInfo;
+  dislikedBy?: UserInfo;
+  commentBy?: UserInfo;
+  locationId?: string;
+  locationName?: string;
+  commentId?: string;
+  commentContent?: string;
+  reviewContent?: string;
+  reviewRating?: number;
+  reviewId?: string;
+  locationImageUrl?: string;
+}
 
 export interface Notification {
   _id: string;
@@ -17,7 +43,7 @@ export interface Notification {
   message: string;
   relatedId?: string;
   isRead: boolean;
-  data?: Record<string, unknown>;
+  data?: NotificationData;
   createdAt: string;
   updatedAt: string;
 }

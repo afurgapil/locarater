@@ -5,6 +5,8 @@ import { Location } from "../models/location.model";
 import { AuthRequest } from "../types/auth";
 import imageService from "../services/image.service";
 import mongoose from "mongoose";
+import { notificationService } from "../services/notification.service";
+import { NotificationType } from "../models/notification.model";
 
 interface UserRequest extends AuthRequest {
   body: {
@@ -522,6 +524,21 @@ export const followUser = async (
     const currentUserId_obj = new mongoose.Types.ObjectId(currentUserId);
     await User.findByIdAndUpdate(userId, {
       $addToSet: { followers: currentUserId_obj },
+    });
+
+    await notificationService.createNotification({
+      userId: userToFollowId,
+      type: NotificationType.NEW_FOLLOWER,
+      title: "Yeni Takipçi",
+      message: `${currentUser.name} sizi takip etmeye başladı.`,
+      data: {
+        follower: {
+          id: currentUser._id,
+          name: currentUser.name,
+          username: currentUser.username,
+          imageUrl: currentUser.imageUrl,
+        },
+      },
     });
 
     return res
