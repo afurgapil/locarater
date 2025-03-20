@@ -142,19 +142,19 @@ export default function BadgesSection({ userId }: BadgesSectionProps) {
 
         <CollapsibleContent className="mt-6">
           <Tabs defaultValue="LOCATION">
-            <TabsList className="flex flex-col sm:flex-row gap-2 mb-8">
+            <TabsList className="flex flex-col md:flex-row gap-2 my-20 md:my-4 w-full">
               {categories.map((category) => (
                 <TabsTrigger
                   key={category.id}
                   value={category.id}
                   className={cn(
-                    "flex-1 p-4 rounded-lg text-center bg-amber-800 text-white",
+                    "flex-1 p-4 rounded-lg text-center bg-amber-800 text-white w-full",
                     "border-2 border-transparent",
                     "data-[state=active]:border-amber-600 data-[state=active]:bg-amber-600 data-[state=active]:font-bold",
                     "hover:bg-amber-700 dark:hover:bg-amber-700 transition-all duration-300"
                   )}
                 >
-                  <div className="space-y-2">
+                  <div className="flex flex-row md:flex-col justify-between md:justify-center items-center space-y-2 w-full">
                     <div className="text-lg font-medium">{category.name}</div>
                     <div className="text-sm text-amber-200 dark:text-amber-200">
                       {getBadgesByCategory(category.id as BadgeCategory).length}{" "}
