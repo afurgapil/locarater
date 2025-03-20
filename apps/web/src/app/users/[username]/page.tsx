@@ -15,6 +15,9 @@ import Link from "next/link";
 import { getCategoryLabel, CategoryType } from "@/constants/categories";
 import { useUser } from "@/hooks/useUser";
 import BadgesSection from "@/components/profile/BadgesSection";
+import { getFavorites, IFavorite } from "@/services/favorite.service";
+import { LocationCard } from "@/components/location/LocationCard";
+
 export default function UserProfilePage() {
   const { username } = useParams();
   const [user, setUser] = useState<User | null>(null);
@@ -28,23 +31,24 @@ export default function UserProfilePage() {
   const [followingCount, setFollowingCount] = useState(0);
   const { showToast } = useToast();
   const { user: currentUser } = useUser();
+  const [favorites, setFavorites] = useState<IFavorite[]>([]);
+  const [loadingFavorites, setLoadingFavorites] = useState(false);
+  const [visibleFavorites, setVisibleFavorites] = useState(3);
+
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         setLoading(true);
-        const userData = await userService.getUserByUsername(
-          username as string
-        );
-
-        const profileStats = await statisticsService.getPublicProfileStats(
-          username as string
-        );
+        const [userData, profileStats] = await Promise.all([
+          userService.getUserByUsername(username as string),
+          statisticsService.getPublicProfileStats(username as string),
+        ]);
 
         setUser(userData);
         setFollowerCount(userData.followers.length);
         setFollowingCount(userData.following.length);
-
         setPublicProfileStats(profileStats);
+        fetchFavorites(userData._id);
 
         if (currentUser && currentUser._id !== userData._id) {
           checkFollowStatus(userData._id);
@@ -66,6 +70,18 @@ export default function UserProfilePage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [username, currentUser]);
+
+  const fetchFavorites = async (userId: string) => {
+    try {
+      setLoadingFavorites(true);
+      const data = await getFavorites(userId);
+      setFavorites(data);
+    } catch (error) {
+      console.error("Favoriler yüklenirken hata:", error);
+    } finally {
+      setLoadingFavorites(false);
+    }
+  };
 
   const checkFollowStatus = async (userId: string) => {
     try {
@@ -258,6 +274,88 @@ export default function UserProfilePage() {
 
           <div className="p-6 border-t border-gray-200 dark:border-gray-700">
             {user._id && <BadgesSection userId={user._id} />}
+          </div>
+
+          <div className="mt-8 border-t border-gray-200 dark:border-gray-700 pt-6">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+              Favori Mekanlarım
+            </h2>
+
+            {loadingFavorites ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="animate-pulse">
+                    <div className="bg-gray-200 dark:bg-gray-700 h-48 rounded-lg mb-4" />
+                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2" />
+                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
+                  </div>
+                ))}
+              </div>
+            ) : favorites.length > 0 ? (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {favorites.slice(0, visibleFavorites).map((favorite) => (
+                    <LocationCard
+                      key={favorite._id}
+                      location={{
+                        ...favorite.location,
+                        reviews: [],
+                        reviewCount: 0,
+                        averageRating: favorite.location?.rating?.overall || 0,
+                        createdBy: {
+                          _id: user._id,
+                          username: user.username,
+                          name: user.name,
+                          imageUrl: user.imageUrl,
+                        },
+                        createdAt: favorite.createdAt,
+                        updatedAt: favorite.updatedAt,
+                        ratings: {
+                          average: favorite.location?.rating?.overall || 0,
+                          count: 0,
+                          distribution: {
+                            10: 0,
+                            9: 0,
+                            8: 0,
+                            7: 0,
+                            6: 0,
+                            5: 0,
+                            4: 0,
+                            3: 0,
+                            2: 0,
+                            1: 0,
+                          },
+                        },
+                      }}
+                    />
+                  ))}
+                </div>
+                <div className="flex justify-center gap-4 mt-6">
+                  {visibleFavorites < favorites.length && (
+                    <button
+                      onClick={() => setVisibleFavorites((prev) => prev + 3)}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                    >
+                      Daha Fazla Göster
+                    </button>
+                  )}
+                  {visibleFavorites > 3 && (
+                    <button
+                      onClick={() => setVisibleFavorites(3)}
+                      className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
+                    >
+                      Gizle
+                    </button>
+                  )}
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-500 dark:text-gray-400">
+                  Henüz favori mekan eklenmemiş.
+                </p>
+              </div>
+            )}
           </div>
         </div>
         <div className="mt-8  border-gray-200 dark:border-gray-700 pt-6"></div>

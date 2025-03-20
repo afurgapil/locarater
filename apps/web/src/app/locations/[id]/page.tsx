@@ -17,6 +17,7 @@ import type { Location } from "@/types/location";
 import { useAuthStore } from "@/store/useAuthStore";
 import Link from "next/link";
 import { useToast } from "@/hooks/useToast";
+import { FavoriteButton } from "@/components/shared/FavoriteButton";
 
 export default function LocationDetailPage() {
   const params = useParams();
@@ -178,20 +179,28 @@ export default function LocationDetailPage() {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
           <div className="absolute bottom-0 left-0 p-6">
-            <h1 className="text-3xl font-bold text-white mb-2">
-              {location.name}
-            </h1>
-            <div className="flex items-center text-white/90 mb-2">
-              <MapPinIcon className="h-5 w-5 mr-1" />
-              <span>
-                {location.address.city}, {location.address.district}
-              </span>
-            </div>
-            <div className="flex items-center">
-              <TagIcon className="h-5 w-5 mr-1 text-white/90" />
-              <span className="text-white/90">
-                {getCategoryLabel(location.category)}
-              </span>
+            <div className="flex items-center justify-between w-full">
+              <div>
+                <h1 className="text-3xl font-bold text-white mb-2">
+                  {location.name}
+                </h1>
+                <div className="flex items-center text-white/90 mb-2">
+                  <MapPinIcon className="h-5 w-5 mr-1" />
+                  <span>
+                    {location.address.city}, {location.address.district}
+                  </span>
+                </div>
+                <div className="flex items-center">
+                  <TagIcon className="h-5 w-5 mr-1 text-white/90" />
+                  <span className="text-white/90">
+                    {getCategoryLabel(location.category)}
+                  </span>
+                </div>
+              </div>
+              <FavoriteButton
+                placeId={location._id}
+                className="bg-white/10 backdrop-blur-sm"
+              />
             </div>
           </div>
         </div>

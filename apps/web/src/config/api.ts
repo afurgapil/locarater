@@ -118,6 +118,11 @@ export const API_ENDPOINTS = {
       `${API_BASE_URL}/notifications/${notificationId}`,
     deleteAll: `${API_BASE_URL}/notifications`,
   },
+  favorites: {
+    add: `${API_BASE_URL}/favorites`,
+    remove: (locationId: string) => `${API_BASE_URL}/favorites/${locationId}`,
+    get: (userId: string) => `${API_BASE_URL}/favorites/${userId}`,
+  },
 };
 
 export type ApiEndpoints = typeof API_ENDPOINTS;
