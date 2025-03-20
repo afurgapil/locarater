@@ -35,7 +35,7 @@ export function FavoriteButton({
 
   const checkInitialState = async () => {
     try {
-      const result = await checkIsFavorite(placeId);
+      const result = await checkIsFavorite(user?._id || "", placeId);
       setIsFavorite(result);
     } catch (error) {
       console.error("Favori durumu kontrol edilirken hata:", error);
