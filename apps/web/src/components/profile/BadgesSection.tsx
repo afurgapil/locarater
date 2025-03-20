@@ -91,35 +91,47 @@ export default function BadgesSection({ userId }: BadgesSectionProps) {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center p-8">
-        <Spinner size="lg" />
+      <div className="bg-white dark:bg-gray-800  py-6 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex justify-center items-center p-8">
+          <Spinner size="lg" />
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="text-center p-8 text-red-500 dark:text-red-400">
-        <p>{error}</p>
+      <div className="bg-white dark:bg-gray-800  py-6 border-b border-gray-200 dark:border-gray-700">
+        <div className="text-center p-8 text-red-500 dark:text-red-400">
+          <p>{error}</p>
+        </div>
       </div>
     );
   }
 
   if (!allBadges.length) {
     return (
-      <div className="text-center p-8 text-gray-500 dark:text-gray-400">
-        <p>Henüz rozet bulunmuyor</p>
+      <div className="bg-white dark:bg-gray-800  py-6 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-center gap-3 mb-6">
+          <Award className="h-6 w-6 text-amber-500" />
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+            Rozet Yolculuğu
+          </h2>
+        </div>
+        <div className="text-center p-8 text-gray-500 dark:text-gray-400">
+          <p>Henüz rozet bulunmuyor</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <>
-      <Collapsible defaultOpen={true}>
+    <div className="bg-white dark:bg-gray-800  py-6 border-b border-gray-200 dark:border-gray-700">
+      <Collapsible defaultOpen={true} className="w-full">
         <CollapsibleTrigger className="w-full hover:cursor-pointer">
           <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <Award className="h-6 w-6 text-amber-500" />
+            <div className="flex items-center justify-center gap-3">
+              <Award className="h-6 w-6 text-gray-500" />
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
                 Rozet Yolculuğu
               </h2>
@@ -128,15 +140,7 @@ export default function BadgesSection({ userId }: BadgesSectionProps) {
           </div>
         </CollapsibleTrigger>
 
-        <CollapsibleContent>
-          <div className="mb-6">
-            <p className="text-gray-600 dark:text-gray-400">
-              {currentUser && currentUser._id === userId
-                ? "Başarıların zaman çizelgesi"
-                : "Kullanıcının başarı zaman çizelgesi"}
-            </p>
-          </div>
-
+        <CollapsibleContent className="mt-6">
           <Tabs defaultValue="LOCATION">
             <TabsList className="flex flex-col sm:flex-row gap-2 mb-8">
               {categories.map((category) => (
@@ -306,6 +310,6 @@ export default function BadgesSection({ userId }: BadgesSectionProps) {
           </Tabs>
         </CollapsibleContent>
       </Collapsible>
-    </>
+    </div>
   );
 }

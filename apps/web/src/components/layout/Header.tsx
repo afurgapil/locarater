@@ -7,6 +7,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useState } from "react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import NotificationButton from "@/components/notifications/NotificationButton";
+import Image from "next/image";
 
 export function Header({
   showDashboardLink = true,
@@ -44,9 +45,32 @@ export function Header({
           </div>
 
           <div className="flex items-center md:hidden">
-            {user && <NotificationButton />}
+            {user && (
+              <>
+                <Link
+                  href={`/users/${user.username}`}
+                  className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden mr-2"
+                >
+                  {user.imageUrl ? (
+                    <Image
+                      src={user.imageUrl}
+                      alt={user.name || user.username}
+                      width={32}
+                      height={32}
+                      className="rounded-full"
+                    />
+                  ) : (
+                    <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                      {user.name?.[0]?.toUpperCase() ||
+                        user.username?.[0]?.toUpperCase()}
+                    </span>
+                  )}
+                </Link>
+                <NotificationButton />
+              </>
+            )}
             <button
-              className="flex items-center p-2 ml-2"
+              className="flex items-center p-2"
               onClick={toggleMenu}
               aria-label="Toggle menu"
             >
@@ -77,7 +101,30 @@ export function Header({
           </div>
 
           <div className="hidden md:flex items-center space-x-4">
-            {user && <NotificationButton />}
+            {user && (
+              <>
+                <NotificationButton />
+                <Link
+                  href={`/users/${user.username}`}
+                  className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden"
+                >
+                  {user.imageUrl ? (
+                    <Image
+                      src={user.imageUrl}
+                      alt={user.name || user.username}
+                      width={32}
+                      height={32}
+                      className="rounded-full"
+                    />
+                  ) : (
+                    <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                      {user.name?.[0]?.toUpperCase() ||
+                        user.username?.[0]?.toUpperCase()}
+                    </span>
+                  )}
+                </Link>
+              </>
+            )}
             {user ? (
               <>
                 <Link

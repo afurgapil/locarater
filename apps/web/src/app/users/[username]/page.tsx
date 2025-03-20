@@ -10,13 +10,11 @@ import {
 import { useToast } from "@/hooks/useToast";
 import { Spinner } from "@/components/ui/Spinner";
 import Image from "next/image";
-import { formatDate } from "@/lib/utils";
-import Link from "next/link";
-import { getCategoryLabel, CategoryType } from "@/constants/categories";
 import { useUser } from "@/hooks/useUser";
 import BadgesSection from "@/components/profile/BadgesSection";
-import { getFavorites, IFavorite } from "@/services/favorite.service";
-import { LocationCard } from "@/components/location/LocationCard";
+import FavoritesSection from "@/components/profile/FavoritesSection";
+import UserInfoSection from "@/components/profile/UserInfoSection";
+import StatsSection from "@/components/profile/StatsSection";
 
 export default function UserProfilePage() {
   const { username } = useParams();
@@ -31,9 +29,6 @@ export default function UserProfilePage() {
   const [followingCount, setFollowingCount] = useState(0);
   const { showToast } = useToast();
   const { user: currentUser } = useUser();
-  const [favorites, setFavorites] = useState<IFavorite[]>([]);
-  const [loadingFavorites, setLoadingFavorites] = useState(false);
-  const [visibleFavorites, setVisibleFavorites] = useState(3);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -48,7 +43,6 @@ export default function UserProfilePage() {
         setFollowerCount(userData.followers.length);
         setFollowingCount(userData.following.length);
         setPublicProfileStats(profileStats);
-        fetchFavorites(userData._id);
 
         if (currentUser && currentUser._id !== userData._id) {
           checkFollowStatus(userData._id);
@@ -70,18 +64,6 @@ export default function UserProfilePage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [username, currentUser]);
-
-  const fetchFavorites = async (userId: string) => {
-    try {
-      setLoadingFavorites(true);
-      const data = await getFavorites(userId);
-      setFavorites(data);
-    } catch (error) {
-      console.error("Favoriler yüklenirken hata:", error);
-    } finally {
-      setLoadingFavorites(false);
-    }
-  };
 
   const checkFollowStatus = async (userId: string) => {
     try {
@@ -242,283 +224,13 @@ export default function UserProfilePage() {
             </div>
           </div>
 
-          <div className="mt-8 border-t border-gray-200 dark:border-gray-700 pt-6">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-              Kullanıcı Bilgileri
-            </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {user.createdAt && (
-                <div>
-                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Üyelik Tarihi
-                  </p>
-                  <p className="mt-1 text-gray-900 dark:text-white">
-                    {formatDate(user.createdAt)}
-                  </p>
-                </div>
-              )}
-
-              {user.lastLogin && (
-                <div>
-                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Son Giriş
-                  </p>
-                  <p className="mt-1 text-gray-900 dark:text-white">
-                    {formatDate(user.lastLogin)}
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="p-6 border-t border-gray-200 dark:border-gray-700">
+          <div className="space-y-6 mt-8">
+            <UserInfoSection />
             {user._id && <BadgesSection userId={user._id} />}
-          </div>
-
-          <div className="mt-8 border-t border-gray-200 dark:border-gray-700 pt-6">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-              Favori Mekanlarım
-            </h2>
-
-            {loadingFavorites ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {[...Array(3)].map((_, i) => (
-                  <div key={i} className="animate-pulse">
-                    <div className="bg-gray-200 dark:bg-gray-700 h-48 rounded-lg mb-4" />
-                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2" />
-                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
-                  </div>
-                ))}
-              </div>
-            ) : favorites.length > 0 ? (
-              <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {favorites.slice(0, visibleFavorites).map((favorite) => (
-                    <LocationCard
-                      key={favorite._id}
-                      location={{
-                        ...favorite.location,
-                        reviews: [],
-                        reviewCount: 0,
-                        averageRating: favorite.location?.rating?.overall || 0,
-                        createdBy: {
-                          _id: user._id,
-                          username: user.username,
-                          name: user.name,
-                          imageUrl: user.imageUrl,
-                        },
-                        createdAt: favorite.createdAt,
-                        updatedAt: favorite.updatedAt,
-                        ratings: {
-                          average: favorite.location?.rating?.overall || 0,
-                          count: 0,
-                          distribution: {
-                            10: 0,
-                            9: 0,
-                            8: 0,
-                            7: 0,
-                            6: 0,
-                            5: 0,
-                            4: 0,
-                            3: 0,
-                            2: 0,
-                            1: 0,
-                          },
-                        },
-                      }}
-                    />
-                  ))}
-                </div>
-                <div className="flex justify-center gap-4 mt-6">
-                  {visibleFavorites < favorites.length && (
-                    <button
-                      onClick={() => setVisibleFavorites((prev) => prev + 3)}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-                    >
-                      Daha Fazla Göster
-                    </button>
-                  )}
-                  {visibleFavorites > 3 && (
-                    <button
-                      onClick={() => setVisibleFavorites(3)}
-                      className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
-                    >
-                      Gizle
-                    </button>
-                  )}
-                </div>
-              </>
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-gray-500 dark:text-gray-400">
-                  Henüz favori mekan eklenmemiş.
-                </p>
-              </div>
-            )}
+            {user._id && <FavoritesSection userId={user._id} />}
+            {publicProfileStats && <StatsSection stats={publicProfileStats} />}
           </div>
         </div>
-        <div className="mt-8  border-gray-200 dark:border-gray-700 pt-6"></div>
-        {publicProfileStats && (
-          <>
-            <div className="p-6 border-t border-gray-200 dark:border-gray-700">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-                Kullanıcı İstatistikleri
-              </h2>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Eklenen Mekanlar
-                  </p>
-                  <p className="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">
-                    {publicProfileStats.stats?.locationsCount || 0}
-                  </p>
-                </div>
-
-                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Yapılan Yorumlar
-                  </p>
-                  <p className="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">
-                    {publicProfileStats.stats?.reviewsCount || 0}
-                  </p>
-                </div>
-
-                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Ortalama Puan
-                  </p>
-                  <p className="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">
-                    {typeof publicProfileStats.stats?.averageRating === "number"
-                      ? publicProfileStats.stats.averageRating.toFixed(1)
-                      : "0.0"}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {publicProfileStats.topCategories &&
-              publicProfileStats.topCategories.length > 0 && (
-                <div className="p-6 border-t border-gray-200 dark:border-gray-700">
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-                    En Çok Yorum Yapılan Kategoriler
-                  </h2>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {publicProfileStats.topCategories.map((category, index) => (
-                      <div
-                        key={index}
-                        className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg"
-                      >
-                        <p className="text-sm font-medium text-gray-900 dark:text-white">
-                          {getCategoryLabel(category.category as CategoryType)}
-                        </p>
-                        <div className="flex justify-between mt-2">
-                          <span className="text-gray-500 dark:text-gray-400">
-                            {category.count} yorum
-                          </span>
-                          <span className="text-yellow-500">
-                            {typeof category.averageRating === "number"
-                              ? category.averageRating.toFixed(1)
-                              : "0.0"}{" "}
-                            ★
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-            {publicProfileStats.recentActivity?.locations &&
-              publicProfileStats.recentActivity.locations.length > 0 && (
-                <div className="p-6 border-t border-gray-200 dark:border-gray-700">
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-                    Son Eklenen Mekanlar
-                  </h2>
-
-                  <div className="space-y-4">
-                    {publicProfileStats.recentActivity.locations.map(
-                      (location) => (
-                        <div
-                          key={location._id}
-                          className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg"
-                        >
-                          <Link href={`/locations/${location._id}`}>
-                            <h3 className="text-lg font-medium text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400">
-                              {location.name}
-                            </h3>
-                          </Link>
-                          <div className="flex justify-between mt-2">
-                            <span className="text-sm text-gray-500 dark:text-gray-400">
-                              {getCategoryLabel(
-                                location.category as CategoryType
-                              )}
-                            </span>
-                            <span className="text-sm text-gray-500 dark:text-gray-400">
-                              {formatDate(location.createdAt)}
-                            </span>
-                          </div>
-                          <div className="flex justify-between mt-2">
-                            <span className="text-sm text-gray-500 dark:text-gray-400">
-                              {location.reviewCount || 0} yorum
-                            </span>
-                            <span className="text-yellow-500">
-                              {typeof location.averageRating === "number"
-                                ? location.averageRating.toFixed(1)
-                                : "0.0"}{" "}
-                              ★
-                            </span>
-                          </div>
-                        </div>
-                      )
-                    )}
-                  </div>
-                </div>
-              )}
-
-            {publicProfileStats.recentActivity?.reviews &&
-              publicProfileStats.recentActivity.reviews.length > 0 && (
-                <div className="p-6 border-t border-gray-200 dark:border-gray-700">
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-                    Son Yapılan Yorumlar
-                  </h2>
-
-                  <div className="space-y-4">
-                    {publicProfileStats.recentActivity.reviews.map((review) => (
-                      <div
-                        key={review._id}
-                        className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg"
-                      >
-                        <Link href={`/locations/${review.location._id}`}>
-                          <h3 className="text-lg font-medium text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400">
-                            {review.location.name}
-                          </h3>
-                        </Link>
-                        <div className="flex items-center mt-2">
-                          <span className="text-yellow-500 mr-2">
-                            {typeof review.rating.overall === "number"
-                              ? review.rating.overall.toFixed(1)
-                              : "0.0"}{" "}
-                            ★
-                          </span>
-                          <span className="text-sm text-gray-500 dark:text-gray-400">
-                            {formatDate(review.createdAt)}
-                          </span>
-                        </div>
-                        {review.comment && (
-                          <p className="mt-2 text-gray-700 dark:text-gray-300">
-                            {review.comment}
-                          </p>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-          </>
-        )}
       </div>
     </div>
   );

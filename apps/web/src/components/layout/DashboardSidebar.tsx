@@ -7,7 +7,6 @@ import {
   HomeIcon,
   MapPinIcon,
   StarIcon,
-  UserIcon,
   Bars3Icon,
   XMarkIcon,
   ArrowLeftIcon,
@@ -23,7 +22,7 @@ const navigation = [
     href: "/dashboard/reviews",
     icon: StarIcon,
   },
-  { name: "Profil", href: "/dashboard/profile", icon: UserIcon },
+  { name: "Ayarlar", href: "/dashboard/settings", icon: Cog6ToothIcon },
   { name: "Raporlarım", href: "/dashboard/reports", icon: Bars3Icon },
 ];
 
