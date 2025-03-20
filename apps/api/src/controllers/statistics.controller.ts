@@ -32,19 +32,39 @@ export const getDashboardStats = async (
     const userLocationsCount = await Location.countDocuments({
       createdBy: userId,
     });
+
     const userReviewsCount = await Location.aggregate([
+      {
+        $match: {
+          reviews: { $exists: true, $ne: [] },
+        },
+      },
       {
         $unwind: "$reviews",
       },
       {
         $match: {
-          "reviews.user": userId,
+          "reviews.user": new mongoose.Types.ObjectId(userId),
         },
       },
       {
-        $count: "total",
+        $group: {
+          _id: null,
+          total: { $sum: 1 },
+        },
       },
-    ]);
+      {
+        $project: {
+          _id: 0,
+          total: { $ifNull: ["$total", 0] },
+        },
+      },
+    ])
+      .then((result) => result[0]?.total || 0)
+      .catch((error) => {
+        console.error("Error calculating user reviews count:", error);
+        return 0;
+      });
 
     const recentLocations = await Location.find()
       .sort({ createdAt: -1 })
@@ -169,7 +189,7 @@ export const getDashboardStats = async (
       totalReviews,
       userStats: {
         locationsCount: userLocationsCount,
-        reviewsCount: userReviewsCount[0]?.total || 0,
+        reviewsCount: userReviewsCount,
       },
       recentActivities: {
         locations: recentLocations.map((loc) => ({
