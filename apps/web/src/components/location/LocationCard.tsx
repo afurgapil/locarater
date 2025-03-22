@@ -56,7 +56,7 @@ export function LocationCard({ location }: LocationCardProps) {
           <div className="flex items-center">
             <StarIcon className="h-4 w-4 text-yellow-400 mr-1" />
             <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              {location.averageRating?.toFixed(1) || "0.0"}
+              {location.ratings?.average?.toFixed(1) || "0.0"}
             </span>
           </div>
         </div>

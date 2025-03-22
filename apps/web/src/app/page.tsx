@@ -72,25 +72,21 @@ function HomeContent() {
     return [...filtered].sort((a, b) => {
       switch (selectedSort.value) {
         case "rating-desc":
-          const aRating = a.ratings?.average || a.averageRating || 0;
-          const bRating = b.ratings?.average || b.averageRating || 0;
+          const aRating = a.ratings?.average || 0;
+          const bRating = b.ratings?.average || 0;
           return bRating - aRating;
         case "rating-asc":
-          const aRatingAsc = a.ratings?.average || a.averageRating || 0;
-          const bRatingAsc = b.ratings?.average || b.averageRating || 0;
+          const aRatingAsc = a.ratings?.average || 0;
+          const bRatingAsc = b.ratings?.average || 0;
           return aRatingAsc - bRatingAsc;
 
         case "reviews-desc":
-          const aReviews =
-            a.ratings?.count || a.reviewCount || a.reviews?.length || 0;
-          const bReviews =
-            b.ratings?.count || b.reviewCount || b.reviews?.length || 0;
+          const aReviews = a.ratings?.count || 0;
+          const bReviews = b.ratings?.count || 0;
           return bReviews - aReviews;
         case "reviews-asc":
-          const aReviewsAsc =
-            a.ratings?.count || a.reviewCount || a.reviews?.length || 0;
-          const bReviewsAsc =
-            b.ratings?.count || b.reviewCount || b.reviews?.length || 0;
+          const aReviewsAsc = a.ratings?.count || 0;
+          const bReviewsAsc = b.ratings?.count || 0;
           return aReviewsAsc - bReviewsAsc;
 
         case "date-desc":
@@ -117,14 +113,10 @@ function HomeContent() {
           return b.address.district.localeCompare(a.address.district, "tr");
 
         default:
-          const aRatingWeight = a.ratings?.average || a.averageRating || 0;
-          const bRatingWeight = b.ratings?.average || b.averageRating || 0;
-          const aReviewsWeight = Math.log(
-            a.ratings?.count || a.reviewCount || a.reviews?.length || 1
-          );
-          const bReviewsWeight = Math.log(
-            b.ratings?.count || b.reviewCount || b.reviews?.length || 1
-          );
+          const aRatingWeight = a.ratings?.average || 0;
+          const bRatingWeight = b.ratings?.average || 0;
+          const aReviewsWeight = Math.log(a.ratings?.count || 1);
+          const bReviewsWeight = Math.log(b.ratings?.count || 1);
 
           const aScore = aRatingWeight * 0.7 + aReviewsWeight * 0.3;
           const bScore = bRatingWeight * 0.7 + bReviewsWeight * 0.3;

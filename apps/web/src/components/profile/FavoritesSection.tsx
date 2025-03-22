@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   Collapsible,
   CollapsibleContent,
@@ -19,7 +19,7 @@ export default function FavoritesSection({ userId }: FavoritesSectionProps) {
   const [error, setError] = useState<string | null>(null);
   const { user: currentUser } = useUser();
 
-  const fetchFavorites = async (userId: string) => {
+  const fetchFavorites = useCallback(async (userId: string) => {
     try {
       setLoadingFavorites(true);
       const data = await getFavorites(userId);
@@ -30,13 +30,13 @@ export default function FavoritesSection({ userId }: FavoritesSectionProps) {
     } finally {
       setLoadingFavorites(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (userId) {
       fetchFavorites(userId);
     }
-  }, [userId]);
+  }, [userId, fetchFavorites]);
 
   if (loadingFavorites) {
     return (
@@ -99,19 +99,10 @@ export default function FavoritesSection({ userId }: FavoritesSectionProps) {
                   key={favorite._id}
                   location={{
                     ...favorite.location,
-                    reviews: [],
-                    reviewCount: 0,
-                    averageRating: favorite.location?.rating?.overall || 0,
-                    createdBy: {
-                      _id: currentUser?._id || "",
-                      username: currentUser?.username || "",
-                      name: currentUser?.name || "",
-                      imageUrl: currentUser?.imageUrl || "",
-                    },
-                    createdAt: favorite.createdAt,
-                    updatedAt: favorite.updatedAt,
-                    ratings: {
-                      average: favorite.location?.rating?.overall || 0,
+                    reviews: favorite.location.reviews || [],
+                    reviewCount: favorite.location.reviewCount || 0,
+                    ratings: favorite.location.ratings || {
+                      average: 0,
                       count: 0,
                       distribution: {
                         10: 0,
@@ -126,6 +117,17 @@ export default function FavoritesSection({ userId }: FavoritesSectionProps) {
                         1: 0,
                       },
                     },
+                    createdBy: {
+                      _id: currentUser?._id || "",
+                      username: currentUser?.username || "",
+                      name: currentUser?.name || "",
+                      imageUrl: currentUser?.imageUrl || "",
+                    },
+                    createdAt:
+                      favorite.location.createdAt || favorite.createdAt,
+                    updatedAt:
+                      favorite.location.updatedAt || favorite.updatedAt,
+                    averageRating: favorite.location.ratings?.average || 0,
                   }}
                 />
               ))}

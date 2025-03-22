@@ -66,7 +66,18 @@ export const getUserFavorites = async (req: Request, res: Response) => {
     const favorites = await Favorite.find({ user: userId })
       .populate({
         path: "location",
-        select: "_id name description address category rating imageUrl",
+        select:
+          "_id name description address category imageUrl ratings reviews reviewCount createdAt updatedAt",
+        populate: [
+          {
+            path: "reviews",
+            select: "rating comment visitDate imageUrl createdAt updatedAt",
+            populate: {
+              path: "user",
+              select: "_id username name imageUrl",
+            },
+          },
+        ],
       })
       .sort({ createdAt: -1 });
 

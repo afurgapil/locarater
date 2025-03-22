@@ -2,6 +2,30 @@ import { API_ENDPOINTS } from "@/config/api";
 import { api } from "@/lib/axios";
 import { CategoryType } from "@/constants/categories";
 
+interface Rating {
+  overall: number;
+  taste: number;
+  service: number;
+  ambiance: number;
+  pricePerformance: number;
+}
+
+interface Review {
+  _id: string;
+  user: {
+    _id: string;
+    username: string;
+    name: string;
+    imageUrl?: string;
+  };
+  rating: Rating;
+  comment: string;
+  imageUrl?: string;
+  visitDate: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface IFavorite {
   _id: string;
   user: string;
@@ -14,14 +38,28 @@ export interface IFavorite {
       district: string;
     };
     category: CategoryType;
-    rating?: {
-      overall: number;
-      taste: number;
-      service: number;
-      ambiance: number;
-      pricePerformance: number;
-    };
+    rating?: Rating;
     imageUrl?: string;
+    reviews: Review[];
+    reviewCount: number;
+    ratings: {
+      average: number;
+      count: number;
+      distribution: {
+        10: number;
+        9: number;
+        8: number;
+        7: number;
+        6: number;
+        5: number;
+        4: number;
+        3: number;
+        2: number;
+        1: number;
+      };
+    };
+    createdAt: string;
+    updatedAt: string;
   };
   createdAt: string;
   updatedAt: string;
